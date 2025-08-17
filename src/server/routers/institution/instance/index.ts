@@ -29,7 +29,7 @@ import {
 import { AllocationInstance } from "@/data-objects";
 
 import { Transformers as T } from "@/db/transformers";
-import { AllocationMethod, Role, Stage } from "@/db/types";
+import { AllocationMethod, PreferenceType, Role, Stage } from "@/db/types";
 import { stageSchema } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -39,7 +39,12 @@ import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
+import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
 import { instanceParamsSchema } from "@/lib/validations/params";
+import {
+  convertPreferenceType,
+  studentPreferenceSchema,
+} from "@/lib/validations/student-preference";
 import { tabGroupSchema } from "@/lib/validations/tabs";
 
 import { algorithmRouter } from "./algorithm";
@@ -504,6 +509,199 @@ export const instanceRouter = createTRPCRouter({
         audit("Changing student flag", { studentId, flagId });
         const student = await instance.getStudent(studentId);
         return student.setStudentFlag(flagId);
+      },
+    ),
+
+  // todo: standardise error reporting
+  // pin - [#f9a8d4]
+  /**
+   * Sub-group admin updating a student's preference over a particular project
+   */
+  updateStudentPreference: procedure.instance
+    .inStage([Stage.STUDENT_BIDDING])
+    .subGroupAdmin.input(
+      z.object({
+        studentId: z.string(),
+        projectId: z.string(),
+        preferenceType: studentPreferenceSchema,
+      }),
+    )
+    .output(
+      z.object({
+        [PreferenceType.PREFERENCE]: z.array(projectPreferenceCardDtoSchema),
+        [PreferenceType.SHORTLIST]: z.array(projectPreferenceCardDtoSchema),
+      }),
+    )
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, projectId, preferenceType },
+      }) => {
+        audit("Attempting to update student preference", {
+          studentId,
+          projectId,
+          preferenceType,
+        });
+
+        const student = await instance.getStudent(studentId);
+
+        if (await student.hasSelfDefinedProject()) {
+          audit("Student has self-defined a project, aborting update", {
+            studentId,
+          });
+          throw new Error("Student has self-defined a project");
+        }
+
+        const newPreferenceType = convertPreferenceType(preferenceType);
+        audit("Updating draft preference type", {
+          studentId,
+          projectId,
+          newPreferenceType,
+        });
+
+        await student.updateDraftPreferenceType(projectId, newPreferenceType);
+
+        audit("Fetching updated preference board state", { studentId });
+        return await student.getPreferenceBoardState();
+      },
+    ),
+
+  // pin - [#f9a8d4]
+  // ? maybe duplicate of `updateStudentPreference`
+  /**
+   * Sub-group admin changing a Student's preference
+   */
+  changeStudentPreference: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        studentId: z.string(),
+        projectId: z.string(),
+        newPreferenceType: studentPreferenceSchema,
+      }),
+    )
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, projectId, newPreferenceType },
+      }) => {
+        audit("Changing student preference", {
+          studentId,
+          projectId,
+          newPreferenceType,
+        });
+        const student = await instance.getStudent(studentId);
+
+        const preferenceType = convertPreferenceType(newPreferenceType);
+
+        await student.updateDraftPreferenceType(projectId, preferenceType);
+        audit("Student preference updated successfully", {
+          studentId,
+          projectId,
+          newPreferenceType,
+        });
+      },
+    ),
+
+  // pin - [#f9a8d4]
+  // move - also maybe rename?
+  /**
+   * Sub-group admin changing multiple of a Student's preferences
+   */
+  changeManyStudentPreferences: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        studentId: z.string(),
+        newPreferenceType: z.enum(PreferenceType).or(z.literal("None")),
+        projectIds: z.array(z.string()),
+      }),
+    )
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, newPreferenceType, projectIds },
+      }) => {
+        audit("Changing student preferences for multiple projects", {
+          studentId,
+          newPreferenceType,
+          projectIds,
+        });
+        const student = await instance.getStudent(studentId);
+        const preferenceType = convertPreferenceType(newPreferenceType);
+
+        await student.updateManyDraftPreferenceTypes(
+          projectIds,
+          preferenceType,
+        );
+        audit("Student preferences updated successfully", {
+          studentId,
+          newPreferenceType,
+          projectIds,
+        });
+      },
+    ),
+
+  // pin - [#f9a8d4]
+  // ? maybe merge all of these into a single update
+  /**
+   * Sub-group admin reordering a student's preferences
+   */
+  reorderStudentPreference: procedure.instance
+    .inStage([Stage.STUDENT_BIDDING])
+    .subGroupAdmin.input(
+      z.object({
+        studentId: z.string(),
+        projectId: z.string(),
+        preferenceType: z.enum(PreferenceType),
+        updatedRank: z.number(),
+      }),
+    )
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, projectId, preferenceType, updatedRank },
+      }) => {
+        audit("Attempting to reorder student preference", {
+          studentId,
+          projectId,
+          preferenceType,
+          updatedRank,
+        });
+
+        const student = await instance.getStudent(studentId);
+
+        audit("Checking if student has self-defined project", { studentId });
+        if (await student.hasSelfDefinedProject()) {
+          audit("Student has self-defined a project, skipping reorder", {
+            studentId,
+          });
+
+          return;
+        }
+        audit("not self-defined, checking flags");
+        const { flag: studentFlag } = await student.get();
+        const projectFlags = await instance.getProject(projectId).getFlags();
+
+        if (!projectFlags.map((f) => f.id).includes(studentFlag.id)) {
+          audit("Project is not suitable for student", {
+            projectFlags,
+            studentFlag,
+          });
+          return;
+        }
+
+        await student.updateDraftPreferenceRank(
+          projectId,
+          updatedRank,
+          preferenceType,
+        );
+        audit("Draft preference rank updated successfully", {
+          studentId,
+          projectId,
+          updatedRank,
+        });
       },
     ),
 

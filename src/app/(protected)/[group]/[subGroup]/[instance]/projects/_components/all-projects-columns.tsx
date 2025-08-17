@@ -59,21 +59,21 @@ export function useAllProjectsColumns({
   projectPreferences,
   hasSelfDefinedProject,
   deleteProject,
-  deleteMultipleProjects,
-  changePreference,
-  changeMultiplePreferences,
+  deleteManyProjects,
+  updatePreference,
+  updateManyPreferences,
 }: {
   user: User;
   roles: Set<Role>;
   projectPreferences: Record<string, PreferenceType>;
   hasSelfDefinedProject: boolean;
   deleteProject: (id: string) => Promise<void>;
-  deleteMultipleProjects: (ids: string[]) => Promise<void>;
-  changePreference: (
+  deleteManyProjects: (ids: string[]) => Promise<void>;
+  updatePreference: (
     newType: StudentPreferenceType,
     projectId: string,
   ) => Promise<void>;
-  changeMultiplePreferences: (
+  updateManyPreferences: (
     newType: StudentPreferenceType,
     projectIds: string[],
   ) => Promise<void>;
@@ -284,7 +284,7 @@ export function useAllProjectsColumns({
                 </DropdownMenuTrigger>
                 <YesNoActionContainer
                   action={async () =>
-                    void deleteMultipleProjects(selectedProjectIds)
+                    void deleteManyProjects(selectedProjectIds)
                   }
                   title={`Delete ${selectedProjectIds.length} Projects`}
                   description={`You are about to delete ${selectedProjectIds.length} projects from the ${spacesLabels.instance.short}. Do you wish to proceed?`}
@@ -313,10 +313,7 @@ export function useAllProjectsColumns({
                       allowed={
                         <StudentPreferenceActionSubMenu
                           changePreference={async (t) =>
-                            void changeMultiplePreferences(
-                              t,
-                              selectedProjectIds,
-                            )
+                            void updateManyPreferences(t, selectedProjectIds)
                           }
                         />
                       }
@@ -419,7 +416,7 @@ export function useAllProjectsColumns({
                       <StudentPreferenceActionSubMenu
                         defaultType={projectPreferences[project.id] ?? "None"}
                         changePreference={async (t) =>
-                          void changePreference(t, project.id)
+                          void updatePreference(t, project.id)
                         }
                       />
                     }
