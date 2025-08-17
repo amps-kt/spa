@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -15,17 +14,16 @@ import {
 
 import { type PreferenceType, type Role } from "@/db/types";
 
+import { MyPreferencesButton } from "@/components/my-preferences-button";
 import {
   useInstanceParams,
   usePathInInstance,
 } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
-import { buttonVariants } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { type User } from "@/lib/auth/types";
 import { api } from "@/lib/trpc/client";
-import { cn } from "@/lib/utils";
 import { toPP3 } from "@/lib/utils/general/instance-params";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
@@ -46,9 +44,9 @@ export function AllProjectsDataTable({
   hasSelfDefinedProject: boolean;
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
 }) {
+  const router = useRouter();
   const params = useInstanceParams();
   const { getPath } = usePathInInstance();
-  const router = useRouter();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
@@ -65,8 +63,8 @@ export function AllProjectsDataTable({
     void toast
       .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
         loading: "Deleting project...",
-        error: "Something went wrong",
         success: `Successfully deleted project ${projectId}`,
+        error: "Something went wrong",
       })
       .unwrap()
       .then(() => router.refresh());
@@ -76,8 +74,8 @@ export function AllProjectsDataTable({
     void toast
       .promise(api_deleteManyProjects({ params, projectIds }), {
         loading: "Deleting selected projects...",
-        error: "Something went wrong",
         success: `Successfully deleted ${projectIds.length} projects`,
+        error: "Something went wrong",
       })
       .unwrap()
       .then(() => router.refresh());
@@ -95,15 +93,7 @@ export function AllProjectsDataTable({
           <ToastSuccessCard
             message="Successfully updated project preference"
             action={
-              <Link
-                href={getPath(PAGES.myPreferences.href)}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "flex h-full w-34 text-nowrap items-center gap-2 self-end py-3 text-xs",
-                )}
-              >
-                {PAGES.myPreferences.title}
-              </Link>
+              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
             }
           />
         ),
@@ -126,15 +116,7 @@ export function AllProjectsDataTable({
             <ToastSuccessCard
               message={`Successfully updated ${projectIds.length} project preferences`}
               action={
-                <Link
-                  href={getPath(PAGES.myPreferences.href)}
-                  className={cn(
-                    buttonVariants({ variant: "outline" }),
-                    "flex h-full w-34 text-nowrap items-center gap-2 self-end py-3 text-xs",
-                  )}
-                >
-                  {PAGES.myPreferences.title}
-                </Link>
+                <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
               }
             />
           ),

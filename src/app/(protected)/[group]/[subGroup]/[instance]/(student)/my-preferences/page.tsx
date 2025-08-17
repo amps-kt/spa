@@ -66,7 +66,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
       <ConditionalRender
         allowedStages={[Stage.STUDENT_BIDDING]}
         allowed={
-          // TODO: maybe add a denied state somehow?
+          // TODO: add denied state inside component
           <SubmissionArea
             title="Submit your preference list"
             studentId={user.id}

@@ -53,3 +53,18 @@ export function toPP2(params: ProjectParams) {
 export function toPP3(params: InstanceParams, projectId: string) {
   return { ...params, projectId };
 }
+
+// * I think this is how we should pass project params to procedures
+export function toPP4(params: PageParams): {
+  params: InstanceParams;
+  projectId: string;
+} {
+  return {
+    params: {
+      group: params.group,
+      subGroup: params.subGroup,
+      instance: params.instance,
+    },
+    projectId: params.id,
+  };
+}

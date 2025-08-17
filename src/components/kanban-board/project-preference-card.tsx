@@ -92,9 +92,9 @@ export function ProjectPreferenceCard({
         }
       />
 
-      <div>
+      <div className="w-full">
         <CardHeader className="flex w-full flex-row items-center justify-between space-y-0 p-4 pb-2">
-          {project.columnId === PreferenceType.PREFERENCE && rank && (
+          {project.columnId === PreferenceType.PREFERENCE && (
             <Badge
               variant="accent"
               className="mr-2 h-8 w-8 rounded-full text-lg text-secondary"

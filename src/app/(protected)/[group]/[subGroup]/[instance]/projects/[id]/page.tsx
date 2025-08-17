@@ -16,7 +16,7 @@ import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO, type SupervisorDTO } from "@/dto";
 
-import { Role, Stage } from "@/db/types";
+import { Role } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { Heading, SectionHeading } from "@/components/heading";
@@ -83,11 +83,11 @@ export default async function Project({ params }: { params: PageParams }) {
   const user = await api.user.get();
   const roles = await api.user.roles({ params });
 
-  let preAllocated = false;
+  let isPreAllocated = false;
   let preferenceStatus: StudentPreferenceType = "None";
 
   if (roles.has(Role.STUDENT)) {
-    preAllocated = !!(await api.user.student.isPreAllocated({ params }));
+    isPreAllocated = !!(await api.user.student.isPreAllocated({ params }));
     preferenceStatus = await api.user.student.preference.getForProject({
       params,
       projectId,
@@ -114,20 +114,16 @@ export default async function Project({ params }: { params: PageParams }) {
         )}
       >
         {project.title}
-        {/* // TODO add denied below */}
-        <ConditionalRender
-          allowedRoles={[Role.STUDENT]}
-          allowedStages={[Stage.STUDENT_BIDDING]}
-          overrides={{ roles: { AND: !preAllocated } }}
-          allowed={
-            <StudentPreferenceButton
-              projectId={projectId}
-              defaultStatus={preferenceStatus}
-            />
-          }
+        <StudentPreferenceButton
+          isPreAllocated={isPreAllocated}
+          project={project}
+          defaultStatus={preferenceStatus}
         />
-
-        <EditButton project={project} user={user} />
+        <ConditionalRender
+          allowedRoles={[Role.ADMIN]}
+          overrides={{ roles: { OR: project.supervisorId === user.id } }}
+          allowed={<EditButton project={project} user={user} />}
+        />
       </Heading>
 
       <div className="mt-6 flex gap-6">
@@ -201,40 +197,32 @@ async function ProjectDetailsCard({
   roles: Set<Role>;
   projectData: { project: ProjectDTO; supervisor: SupervisorDTO };
 }) {
-  const user = await api.user.get();
   return (
     <Card className="w-full max-w-sm">
       <CardContent className="flex flex-col gap-10 pt-5">
-        <ConditionalRender
-          allowedRoles={[Role.ADMIN, Role.STUDENT]}
-          overrides={{ roles: { OR: projectData.supervisor.id === user.id } }}
-          allowed={
-            <div className="flex items-center space-x-4">
-              <UserIcon className="h-6 w-6 text-blue-500" />
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  Supervisor
-                </h3>
-                {/* // ! this is so dumb */}
-                {roles.has(Role.ADMIN) ? (
-                  <Link
-                    className={cn(
-                      buttonVariants({ variant: "link" }),
-                      "p-0 text-lg",
-                    )}
-                    href={`../${PAGES.allSupervisors.href}/${projectData.supervisor.id}`}
-                  >
-                    {projectData.supervisor.name}
-                  </Link>
-                ) : (
-                  <p className="text-lg font-semibold">
-                    {projectData.supervisor.name}
-                  </p>
+        <div className="flex items-center space-x-4">
+          <UserIcon className="h-6 w-6 text-blue-500" />
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground">
+              Supervisor
+            </h3>
+            {roles.has(Role.ADMIN) ? (
+              <Link
+                className={cn(
+                  buttonVariants({ variant: "link" }),
+                  "p-0 text-lg",
                 )}
-              </div>
-            </div>
-          }
-        />
+                href={`../${PAGES.allSupervisors.href}/${projectData.supervisor.id}`}
+              >
+                {projectData.supervisor.name}
+              </Link>
+            ) : (
+              <p className="text-lg font-semibold">
+                {projectData.supervisor.name}
+              </p>
+            )}
+          </div>
+        </div>
         <div className={cn(projectData.project.flags.length === 0 && "hidden")}>
           <div className="mb-2 flex items-center space-x-4">
             <FlagIcon className="h-6 w-6 text-fuchsia-500" />
