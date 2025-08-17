@@ -1,70 +1,117 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
+
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { PAGES } from "@/config/pages";
 
-import { ChangePreferenceButton } from "@/components/change-preference-button";
+import { type ProjectDTO } from "@/dto";
+
+import { PreferenceType, Role, Stage } from "@/db/types";
+
+import { ConditionalRender } from "@/components/access-control";
+import { MyPreferencesButton } from "@/components/my-preferences-button";
 import {
   useInstanceParams,
   usePathInInstance,
 } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
-import { buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import { api } from "@/lib/trpc/client";
-import { cn } from "@/lib/utils";
-import { type StudentPreferenceType } from "@/lib/validations/student-preference";
+import {
+  studentPreferenceSchema,
+  type StudentPreferenceType,
+} from "@/lib/validations/student-preference";
 
 export function StudentPreferenceButton({
-  projectId,
+  project,
+  isPreAllocated,
   defaultStatus,
 }: {
-  projectId: string;
+  project: ProjectDTO;
+  isPreAllocated: boolean;
   defaultStatus: StudentPreferenceType;
 }) {
   const router = useRouter();
   const params = useInstanceParams();
   const { getPath } = usePathInInstance();
 
+  const [selectStatus, setSelectStatus] =
+    useState<StudentPreferenceType>(defaultStatus);
+
   const { mutateAsync: updateAsync } =
     api.user.student.preference.update.useMutation();
 
   async function handleChange(preferenceType: StudentPreferenceType) {
-    void toast.promise(
-      updateAsync({ params, projectId, preferenceType }).then(() =>
-        router.refresh(),
-      ),
-      {
-        loading: `Updating preference for Project ${projectId}...`,
-        error: "Something went wrong",
+    void toast
+      .promise(updateAsync({ params, projectId: project.id, preferenceType }), {
+        loading: `Updating preference for Project (${project.title})...`,
         success: (
           <ToastSuccessCard
             message="Successfully updated project preference"
             action={
-              <Link
-                href={getPath(PAGES.myPreferences.href)}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "flex h-full w-34 text-nowrap items-center gap-2 self-end py-3 text-xs",
-                )}
-              >
-                {PAGES.myPreferences.title}
-              </Link>
+              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
             }
           />
         ),
-      },
-    );
+        error: "Something went wrong",
+      })
+      .unwrap()
+      .then(() => {
+        router.refresh();
+        setSelectStatus(preferenceType);
+      });
   }
 
   return (
-    <ChangePreferenceButton
-      buttonLabelType="dynamic"
-      defaultStatus={defaultStatus}
-      changeFunction={handleChange}
+    <ConditionalRender
+      allowedRoles={[Role.STUDENT]}
+      allowedStages={[Stage.STUDENT_BIDDING]}
+      overrides={{ roles: { AND: !isPreAllocated } }}
+      allowed={
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="min-w-32 text-nowrap">
+              {selectStatus === PreferenceType.PREFERENCE
+                ? "In Preferences"
+                : selectStatus === PreferenceType.SHORTLIST
+                  ? "In Shortlist"
+                  : "Select"}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel>Save Project in:</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup
+              value={selectStatus}
+              onValueChange={async (value) => {
+                const preferenceChange = studentPreferenceSchema.parse(value);
+                await handleChange(preferenceChange);
+              }}
+            >
+              <DropdownMenuRadioItem value="None">None</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value={PreferenceType.SHORTLIST}>
+                Shortlist
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value={PreferenceType.PREFERENCE}>
+                Preference
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      }
     />
   );
 }

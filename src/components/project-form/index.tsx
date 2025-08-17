@@ -344,9 +344,9 @@ export function ProjectForm({
                   />
                 </FormControl>
                 <FormDescription className="mt-2">
-                  Tags help students find projects that match their interests.
-                  You can select multiple tags. If you need to add a new tag,
-                  please contact the system administrators.
+                  Keywords help students find projects that match their
+                  interests. You can select multiple keywords. If you need to
+                  add a new keyword, please contact the system administrators.
                 </FormDescription>
                 <FormMessage />
               </FormItem>
