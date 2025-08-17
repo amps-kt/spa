@@ -24,48 +24,54 @@ export function StudentPreferenceDataTable({
   const params = useInstanceParams();
   const router = useRouter();
 
-  const { mutateAsync: api_changePreference } =
-    api.user.student.preference.change.useMutation();
+  const { mutateAsync: api_changeStudentPreference } =
+    api.institution.instance.changeStudentPreference.useMutation();
 
-  const { mutateAsync: api_changeMultiplePreferences } =
-    api.user.student.preference.changeSelected.useMutation();
+  const { mutateAsync: api_changeManyStudentPreferences } =
+    api.institution.instance.changeManyStudentPreferences.useMutation();
 
   async function changePreference(
     newPreferenceType: StudentPreferenceType,
     projectId: string,
   ) {
-    void toast.promise(
-      api_changePreference({
-        params,
-        newPreferenceType,
-        projectId,
-        studentId,
-      }).then(() => router.refresh()),
-      {
-        loading: "Updating project preference...",
-        error: "Something went wrong",
-        success: `Project ${projectId} preference updated successfully`,
-      },
-    );
+    void toast
+      .promise(
+        api_changeStudentPreference({
+          params,
+          newPreferenceType,
+          projectId,
+          studentId,
+        }),
+        {
+          loading: "Updating project preference...",
+          success: `Project ${projectId} preference updated successfully`,
+          error: "Something went wrong",
+        },
+      )
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   async function changeMultiplePreferences(
     newPreferenceType: StudentPreferenceType,
     projectIds: string[],
   ) {
-    void toast.promise(
-      api_changeMultiplePreferences({
-        params,
-        newPreferenceType,
-        studentId,
-        projectIds,
-      }).then(() => router.refresh()),
-      {
-        loading: "Updating all project preferences...",
-        error: "Something went wrong",
-        success: `Successfully updated ${projectIds.length} project preferences`,
-      },
-    );
+    void toast
+      .promise(
+        api_changeManyStudentPreferences({
+          params,
+          newPreferenceType,
+          studentId,
+          projectIds,
+        }),
+        {
+          loading: "Updating all project preferences...",
+          success: `Successfully updated ${projectIds.length} project preferences`,
+          error: "Something went wrong",
+        },
+      )
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   const columns = useStudentPreferencesColumns({
