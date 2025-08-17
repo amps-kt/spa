@@ -161,7 +161,8 @@ export function useAllSupervisorsColumns({
                 title="Remove Supervisors?"
                 description={
                   selectedSupervisorIds.length === 1
-                    ? `you are about to remove 1 supervisor from the list. Do you wish to proceed?`
+                    ? // TODO: use supervisor name instead of "1"
+                      `you are about to remove 1 supervisor from the list. Do you wish to proceed?`
                     : `You are about to remove ${selectedSupervisorIds.length} supervisors from the list. Do you wish to proceed?`
                 }
               >
@@ -173,7 +174,10 @@ export function useAllSupervisorsColumns({
                       trigger={
                         <button className="flex items-center gap-2">
                           <Trash2Icon className="h-4 w-4" />
-                          <span>Remove selected Supervisors</span>
+                          <span>
+                            Remove {selectedSupervisorIds.length} selected
+                            Supervisors
+                          </span>
                         </button>
                       }
                     />
