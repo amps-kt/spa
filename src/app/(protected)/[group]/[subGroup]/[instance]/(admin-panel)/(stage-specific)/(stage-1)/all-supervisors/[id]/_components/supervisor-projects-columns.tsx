@@ -317,7 +317,8 @@ export function useSupervisorProjectsColumns({
                 title="Delete Projects?"
                 description={
                   selectedProjectIds.length === 1
-                    ? `You are about to delete "${selectedProjectIds[0]}". Do you wish to proceed?`
+                    ? // TODO: display the title, not the ID
+                      `You are about to delete "${selectedProjectIds[0]}". Do you wish to proceed?`
                     : `You are about to delete ${selectedProjectIds.length} projects. Do you wish to proceed?`
                 }
               >
@@ -329,7 +330,9 @@ export function useSupervisorProjectsColumns({
                       trigger={
                         <button className="flex items-center gap-2">
                           <Trash2Icon className="h-4 w-4" />
-                          <span>Delete selected Projects</span>
+                          <span>
+                            Delete {selectedProjectIds.length} selected Projects
+                          </span>
                         </button>
                       }
                     />

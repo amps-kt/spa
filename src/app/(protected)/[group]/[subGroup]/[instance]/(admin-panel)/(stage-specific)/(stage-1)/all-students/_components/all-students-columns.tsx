@@ -276,7 +276,10 @@ export function useAllStudentsColumns({
                   </DropdownMenuItem>
                 }
                 denied={(data) => (
-                  <WithTooltip tip={<FormatDenials {...data} />} forDisabled>
+                  <WithTooltip
+                    tip={<FormatDenials action="Deleting Students" {...data} />}
+                    forDisabled
+                  >
                     <DropdownMenuItem
                       className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
                       disabled

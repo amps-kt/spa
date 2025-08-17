@@ -18,10 +18,7 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { usePathInInstance } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -40,7 +37,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
-import { previousStages, stageLte } from "@/lib/utils/permissions/stage-check";
+import { previousStages } from "@/lib/utils/permissions/stage-check";
 
 export function useNewSupervisorColumns({
   deleteSupervisor,
@@ -49,7 +46,6 @@ export function useNewSupervisorColumns({
   deleteSupervisor: (id: string) => Promise<void>;
   deleteManySupervisors: (ids: string[]) => Promise<void>;
 }): ColumnDef<SupervisorDTO>[] {
-  const stage = useInstanceStage();
   const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<SupervisorDTO>();
@@ -129,70 +125,80 @@ export function useNewSupervisorColumns({
           .getSelectedRowModel()
           .rows.map((e) => e.original.id);
 
-        if (someSelected && stageLte(stage, Stage.STUDENT_BIDDING))
-          return (
-            <div className="flex w-14 items-center justify-center">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button size="icon" variant="ghost">
-                    <span className="sr-only">Open menu</span>
-                    <MoreIcon className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <YesNoActionContainer
-                  action={async () =>
-                    void deleteManySupervisors(selectedSupervisorIds).then(() =>
-                      table.toggleAllRowsSelected(false),
-                    )
-                  }
-                  title="Remove Supervisors?"
-                  description={
-                    selectedSupervisorIds.length === 1
-                      ? `you are about to remove 1 supervisor from the list. Do you wish to proceed?`
-                      : `You are about to remove ${selectedSupervisorIds.length} supervisors from the list. Do you wish to proceed?`
-                  }
-                >
-                  <DropdownMenuContent align="center" side="bottom">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <ConditionalRender
-                      allowedStages={previousStages(Stage.STUDENT_BIDDING)}
-                      allowed={
-                        <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
-                          <YesNoActionTrigger
-                            trigger={
-                              <button className="flex items-center gap-2">
-                                <Trash2Icon className="h-4 w-4" />
-                                <span>Remove selected Supervisors</span>
-                              </button>
-                            }
-                          />
-                        </DropdownMenuItem>
-                      }
-                      denied={({ ctx, reasons }) => (
-                        <WithTooltip
-                          forDisabled
-                          tip={<FormatDenials ctx={ctx} reasons={reasons} />}
-                        >
-                          <DropdownMenuItem
-                            className="text-destructive focus:bg-red-100/40 focus:text-destructive"
-                            disabled
-                          >
-                            <button className="flex items-center gap-2 text-sm">
-                              <Trash2Icon className="h-4 w-4" />
-                              <span>Remove selected Supervisors</span>
-                            </button>
-                          </DropdownMenuItem>
-                        </WithTooltip>
-                      )}
-                    />
-                  </DropdownMenuContent>
-                </YesNoActionContainer>
-              </DropdownMenu>
-            </div>
-          );
+        if (!someSelected) return <ActionColumnLabel />;
 
-        return <ActionColumnLabel />;
+        return (
+          <div className="flex w-14 items-center justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="icon" variant="ghost">
+                  <span className="sr-only">Open menu</span>
+                  <MoreIcon className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <YesNoActionContainer
+                action={async () =>
+                  void deleteManySupervisors(selectedSupervisorIds).then(() =>
+                    table.toggleAllRowsSelected(false),
+                  )
+                }
+                title="Remove Supervisors?"
+                description={
+                  selectedSupervisorIds.length === 1
+                    ? `you are about to remove 1 supervisor from the list. Do you wish to proceed?`
+                    : `You are about to remove ${selectedSupervisorIds.length} supervisors from the list. Do you wish to proceed?`
+                }
+              >
+                <DropdownMenuContent align="center" side="bottom">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <ConditionalRender
+                    allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                    allowed={
+                      <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
+                        <YesNoActionTrigger
+                          trigger={
+                            <button className="flex items-center gap-2">
+                              <Trash2Icon className="h-4 w-4" />
+                              <span>
+                                Remove {selectedSupervisorIds.length} selected
+                                Supervisors
+                              </span>
+                            </button>
+                          }
+                        />
+                      </DropdownMenuItem>
+                    }
+                    denied={(data) => (
+                      <WithTooltip
+                        forDisabled
+                        tip={
+                          <FormatDenials
+                            action="Deleting Supervisors"
+                            {...data}
+                          />
+                        }
+                      >
+                        <DropdownMenuItem
+                          className="text-destructive focus:bg-red-100/40 focus:text-destructive"
+                          disabled
+                        >
+                          <button className="flex items-center gap-2 text-sm">
+                            <Trash2Icon className="h-4 w-4" />
+                            <span>
+                              Remove {selectedSupervisorIds.length} selected
+                              Supervisors
+                            </span>
+                          </button>
+                        </DropdownMenuItem>
+                      </WithTooltip>
+                    )}
+                  />
+                </DropdownMenuContent>
+              </YesNoActionContainer>
+            </DropdownMenu>
+          </div>
+        );
       },
       cell: ({ row: { original: supervisor } }) => (
         <div className="flex w-14 items-center justify-center">
@@ -254,9 +260,14 @@ export function useNewSupervisorColumns({
                       />
                     </DropdownMenuItem>
                   }
-                  denied={({ ctx, reasons }) => (
+                  denied={(data) => (
                     <WithTooltip
-                      tip={<FormatDenials ctx={ctx} reasons={reasons} />}
+                      tip={
+                        <FormatDenials
+                          action="Deleting Supervisors"
+                          {...data}
+                        />
+                      }
                       forDisabled
                     >
                       <DropdownMenuItem
