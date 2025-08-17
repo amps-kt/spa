@@ -27,13 +27,6 @@ import {
 
 import { type NewStudent, buildNewStudentSchema } from "./new-student-schema";
 
-const blankStudentForm = {
-  fullName: "",
-  institutionId: "",
-  email: "",
-  flagId: "",
-};
-
 export function FormSection({
   handleAddStudent,
   flags,
@@ -43,12 +36,17 @@ export function FormSection({
 }) {
   const form = useForm<NewStudent>({
     resolver: zodResolver(buildNewStudentSchema(flags)),
-    defaultValues: blankStudentForm,
+    defaultValues: { fullName: "", institutionId: "", email: "", flagId: "" },
   });
 
   async function onSubmit(data: NewStudent) {
     await handleAddStudent(data).then(() => {
-      form.reset(blankStudentForm);
+      form.reset({
+        fullName: "",
+        institutionId: "",
+        email: "",
+        flagId: data.flagId,
+      });
     });
   }
 
@@ -62,7 +60,6 @@ export function FormSection({
           Manually create Student
         </SectionHeading>
         <div className="flex w-full items-center justify-start gap-5">
-          {/* // TODO: don't allow special characters */}
           <FormField
             control={form.control}
             name="fullName"
@@ -91,7 +88,7 @@ export function FormSection({
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="w-1/3">
+              <FormItem className="w-1/4">
                 <FormControl>
                   <Input placeholder="Email" {...field} />
                 </FormControl>
@@ -103,7 +100,7 @@ export function FormSection({
             control={form.control}
             name="flagId"
             render={({ field }) => (
-              <FormItem className="w-1/4">
+              <FormItem className="w-1/3">
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
