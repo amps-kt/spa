@@ -1,9 +1,11 @@
+import { ListCheckIcon } from "lucide-react";
+
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
 import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
 
-import { Heading, SubHeading } from "@/components/heading";
+import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
 import { api } from "@/lib/trpc/server";
@@ -19,6 +21,8 @@ export async function generateMetadata({
 }: {
   params: PageParams;
 }) {
+  // todo: add necessary exist checks
+
   const { displayName } = await api.institution.instance.get({ params });
   const project = await api.user.student.getAllocatedProject({
     params,
@@ -98,9 +102,9 @@ export default async function MarksPage({
         <strong>Marking:</strong>
         {project.title}
       </Heading>
-
-      <SubHeading>{unitOfAssessment.title}</SubHeading>
-
+      <SectionHeading icon={ListCheckIcon}>
+        {unitOfAssessment.title}
+      </SectionHeading>
       <div className="mt-6 flex flex-col gap-6">
         <MarkingSection
           markingCriteria={markingCriteria}

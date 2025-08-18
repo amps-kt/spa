@@ -1,8 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+
+import { PAGES } from "@/config/pages";
 
 import {
   type TagDTO,
@@ -13,17 +14,16 @@ import {
 
 import { type PreferenceType, type Role } from "@/db/types";
 
+import { MyPreferencesButton } from "@/components/my-preferences-button";
 import {
   useInstanceParams,
   usePathInInstance,
 } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
-import { buttonVariants } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { type User } from "@/lib/auth/types";
 import { api } from "@/lib/trpc/client";
-import { cn } from "@/lib/utils";
 import { toPP3 } from "@/lib/utils/general/instance-params";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
@@ -44,122 +44,103 @@ export function AllProjectsDataTable({
   hasSelfDefinedProject: boolean;
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
 }) {
+  const router = useRouter();
   const params = useInstanceParams();
   const { getPath } = usePathInInstance();
-  const router = useRouter();
 
-  const { mutateAsync: api_delete } = api.project.delete.useMutation();
+  const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
-  const { mutateAsync: api_deleteMultiple } =
+  const { mutateAsync: api_deleteManyProjects } =
     api.project.deleteSelected.useMutation();
 
-  const { mutateAsync: api_changePreference } =
+  const { mutateAsync: api_updatePreference } =
     api.user.student.preference.update.useMutation();
 
-  const { mutateAsync: api_changeMultiplePreferences } =
-    api.user.student.preference.updateSelected.useMutation();
+  const { mutateAsync: api_updateManyPreferences } =
+    api.user.student.preference.updateMany.useMutation();
 
-  async function handleDelete(projectId: string) {
-    void toast.promise(
-      api_delete({ params: toPP3(params, projectId) }).then(() =>
-        router.refresh(),
-      ),
-      {
+  async function deleteProject(projectId: string) {
+    void toast
+      .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
         loading: "Deleting project...",
-        error: "Something went wrong",
         success: `Successfully deleted project ${projectId}`,
-      },
-    );
-  }
-
-  async function handleDeleteMultiple(projectIds: string[]) {
-    void toast.promise(
-      api_deleteMultiple({ params, projectIds }).then(() => router.refresh()),
-      {
-        loading: "Deleting selected projects...",
         error: "Something went wrong",
-        success: `Successfully deleted ${projectIds.length} projects`,
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
-  async function handleChangePreference(
+  async function deleteManyProjects(projectIds: string[]) {
+    void toast
+      .promise(api_deleteManyProjects({ params, projectIds }), {
+        loading: "Deleting selected projects...",
+        success: `Successfully deleted ${projectIds.length} projects`,
+        error: "Something went wrong",
+      })
+      .unwrap()
+      .then(() => router.refresh());
+  }
+
+  async function updatePreference(
     preferenceType: StudentPreferenceType,
     projectId: string,
   ) {
-    void toast.promise(
-      api_changePreference({ params, preferenceType, projectId }).then(() =>
-        router.refresh(),
-      ),
-      {
+    void toast
+      .promise(api_updatePreference({ params, preferenceType, projectId }), {
         loading: "Updating project preference...",
         error: "Something went wrong",
         success: (
           <ToastSuccessCard
             message="Successfully updated project preference"
             action={
-              <Link
-                href={getPath("my-preferences")}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "flex h-full w-max items-center gap-2 self-end py-3 text-xs",
-                )}
-              >
-                view &quot;My Preferences&quot;
-              </Link>
+              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
             }
           />
         ),
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
-  async function handleChangeMultiplePreferences(
+  async function updateManyPreferences(
     preferenceType: StudentPreferenceType,
     projectIds: string[],
   ) {
-    void toast.promise(
-      api_changeMultiplePreferences({
-        params,
-        preferenceType,
-        projectIds,
-      }).then(() => router.refresh()),
-      {
-        loading: "Updating all project preferences...",
-        error: "Something went wrong",
-        success: (
-          <ToastSuccessCard
-            message={`Successfully updated ${projectIds.length} project preferences`}
-            action={
-              <Link
-                href={getPath("my-preferences")}
-                className={cn(
-                  buttonVariants({ variant: "outline" }),
-                  "flex h-full w-max items-center gap-2 self-end py-3 text-xs",
-                )}
-              >
-                view &quot;My Preferences&quot;
-              </Link>
-            }
-          />
-        ),
-      },
-    );
+    void toast
+      .promise(
+        api_updateManyPreferences({ params, preferenceType, projectIds }),
+        {
+          loading: "Updating all project preferences...",
+          error: "Something went wrong",
+          success: (
+            <ToastSuccessCard
+              message={`Successfully updated ${projectIds.length} project preferences`}
+              action={
+                <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
+              }
+            />
+          ),
+        },
+      )
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   const filters = [
     {
+      title: "Flags",
       columnId: "Flags",
       options: projectDescriptors.flags.map((flag) => ({
         id: flag.id,
-        title: flag.displayName,
+        displayName: flag.displayName,
       })),
     },
     {
+      title: "Keywords",
       columnId: "Keywords",
       options: projectDescriptors.tags.map((tag) => ({
         id: tag.id,
-        title: tag.title,
+        displayName: tag.title,
       })),
     },
   ];
@@ -169,10 +150,10 @@ export function AllProjectsDataTable({
     roles,
     projectPreferences,
     hasSelfDefinedProject,
-    deleteProject: handleDelete,
-    deleteMultipleProjects: handleDeleteMultiple,
-    changePreference: handleChangePreference,
-    changeMultiplePreferences: handleChangeMultiplePreferences,
+    deleteProject,
+    deleteManyProjects,
+    updatePreference,
+    updateManyPreferences,
   });
 
   return (

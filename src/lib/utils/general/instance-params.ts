@@ -15,6 +15,14 @@ export function expand(params: InstanceParams, instanceId?: string) {
   };
 }
 
+export function isSameInstance(a: InstanceParams, b: InstanceParams) {
+  return (
+    a.group === b.group &&
+    a.subGroup === b.subGroup &&
+    a.instance === b.instance
+  );
+}
+
 export function toInstanceId(params: InstanceParams, instanceId?: string) {
   return {
     allocationGroupId: params.group,
@@ -44,4 +52,19 @@ export function toPP2(params: ProjectParams) {
 
 export function toPP3(params: InstanceParams, projectId: string) {
   return { ...params, projectId };
+}
+
+// * I think this is how we should pass project params to procedures
+export function toPP4(params: PageParams): {
+  params: InstanceParams;
+  projectId: string;
+} {
+  return {
+    params: {
+      group: params.group,
+      subGroup: params.subGroup,
+      instance: params.instance,
+    },
+    projectId: params.id,
+  };
 }

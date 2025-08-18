@@ -15,61 +15,67 @@ export function KanbanBoardSection({ studentId }: { studentId: string }) {
   const params = useInstanceParams();
   const router = useRouter();
 
-  const utils = api.useUtils();
-
   const deleteProject = useBoardDetails((s) => s.deleteProject);
+
+  const utils = api.useUtils();
 
   const refetch = () =>
     utils.user.student.preference.initialBoardState.refetch();
 
-  const { mutateAsync: reorderAsync } =
-    api.user.student.preference.makeReorder.useMutation();
+  const { mutateAsync: api_reorderStudentPreference } =
+    api.institution.instance.reorderStudentPreference.useMutation();
 
-  const { mutateAsync: api_updatePreferenceAsync } =
-    api.user.student.preference.makeUpdate.useMutation();
+  const { mutateAsync: api_updateStudentPreference } =
+    api.institution.instance.updateStudentPreference.useMutation();
 
   async function reorderPreference(
     projectId: string,
     updatedRank: number,
     preferenceType: PreferenceType,
   ) {
-    void toast.promise(
-      reorderAsync({
-        params,
-        studentId,
-        projectId,
-        updatedRank,
-        preferenceType,
-      }).then(async () => {
+    void toast
+      .promise(
+        api_reorderStudentPreference({
+          params,
+          studentId,
+          projectId,
+          updatedRank,
+          preferenceType,
+        }),
+        {
+          loading: "Reordering...",
+          success: "Successfully reordered preferences",
+          error: "Something went wrong",
+        },
+      )
+      .unwrap()
+      .then(async () => {
         router.refresh();
         await refetch();
-      }),
-      {
-        loading: "Reordering...",
-        error: "Something went wrong",
-        success: "Successfully reordered preferences",
-      },
-    );
+      });
   }
 
   async function deletePreference(projectId: string) {
-    void toast.promise(
-      api_updatePreferenceAsync({
-        params,
-        studentId,
-        projectId,
-        preferenceType: "None",
-      }).then(async () => {
+    void toast
+      .promise(
+        api_updateStudentPreference({
+          params,
+          studentId,
+          projectId,
+          preferenceType: "None",
+        }),
+        {
+          loading: `Removing project from preferences...`,
+          success: `Successfully removed project from preferences`,
+          error: "Something went wrong",
+        },
+      )
+      .unwrap()
+      .then(async () => {
         router.refresh();
         await refetch();
         deleteProject(projectId);
-      }),
-      {
-        loading: `Removing project from preferences...`,
-        error: "Something went wrong",
-        success: `Successfully removed project from preferences`,
-      },
-    );
+      });
   }
 
   return (

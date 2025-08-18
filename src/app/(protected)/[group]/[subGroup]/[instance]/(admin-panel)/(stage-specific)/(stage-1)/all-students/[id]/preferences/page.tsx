@@ -5,7 +5,6 @@ import { PAGES } from "@/config/pages";
 
 import { Stage } from "@/db/types";
 
-import { AccessControl } from "@/components/access-control";
 import { Heading } from "@/components/heading";
 import { LatestSubmissionDataTable } from "@/components/pages/student-preferences/latest-submission-data-table";
 import { SubmissionArea } from "@/components/pages/student-preferences/submission-area";
@@ -20,6 +19,12 @@ import { type PageParams } from "@/lib/validations/params";
 import { CurrentBoardState } from "./_components/current-board-state";
 
 export async function generateMetadata({ params }: { params: PageParams }) {
+  const exists = await api.user.student.exists({
+    params,
+    studentId: params.id,
+  });
+  if (!exists) notFound();
+
   const { displayName } = await api.institution.instance.get({ params });
   const { name } = await api.user.getById({ userId: params.id });
 
@@ -69,18 +74,23 @@ export default async function Page({ params }: { params: PageParams }) {
         <p>{PAGES.studentPreferences.title}</p>
         <p className="text-3xl text-muted-foreground">for {student.name}</p>
       </Heading>
-      <AccessControl allowedStages={[Stage.STUDENT_BIDDING]}>
-        <section className="flex flex-col gap-3">
-          <SubmissionArea
-            title="Submit student preference list"
-            studentId={studentId}
-            initialProjects={initialProjects}
-            latestSubmissionDateTime={latestSubmissionDateTime}
-            restrictions={restrictions}
-          />
-        </section>
-      </AccessControl>
-      <Tabs defaultValue="current-board-state" className="w-full">
+
+      <section className="flex flex-col gap-3">
+        <SubmissionArea
+          title="Submit student preference list"
+          studentId={studentId}
+          initialProjects={initialProjects}
+          latestSubmissionDateTime={latestSubmissionDateTime}
+          restrictions={restrictions}
+        />
+      </section>
+
+      <Tabs
+        searchParamName="tab"
+        options={["current-board-state", "last-submission"]}
+        defaultValue="current-board-state"
+        className="w-full"
+      >
         <TabsList className="w-full">
           <TabsTrigger
             className="w-full data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"

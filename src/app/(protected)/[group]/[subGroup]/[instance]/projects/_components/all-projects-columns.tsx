@@ -2,6 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import {
+  BookmarkIcon,
   CornerDownRightIcon,
   LucideMoreHorizontal as MoreIcon,
   PenIcon,
@@ -17,7 +18,8 @@ import { flagDtoSchema, type ProjectDTO, type SupervisorDTO } from "@/dto";
 
 import { type PreferenceType, Role, Stage } from "@/db/types";
 
-import { AccessControl } from "@/components/access-control";
+import { ConditionalRender } from "@/components/access-control";
+import { FormatDenials } from "@/components/access-control/format-denial";
 import { ExportCSVButton } from "@/components/export-csv";
 import {
   useInstanceStage,
@@ -46,7 +48,7 @@ import {
 
 import { type User } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
-import { stageIn } from "@/lib/utils/permissions/stage-check";
+import { previousStages } from "@/lib/utils/permissions/stage-check";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
 type ProjectData = { project: ProjectDTO; supervisor: SupervisorDTO };
@@ -57,26 +59,26 @@ export function useAllProjectsColumns({
   projectPreferences,
   hasSelfDefinedProject,
   deleteProject,
-  deleteMultipleProjects,
-  changePreference,
-  changeMultiplePreferences,
+  deleteManyProjects,
+  updatePreference,
+  updateManyPreferences,
 }: {
   user: User;
   roles: Set<Role>;
   projectPreferences: Record<string, PreferenceType>;
   hasSelfDefinedProject: boolean;
   deleteProject: (id: string) => Promise<void>;
-  deleteMultipleProjects: (ids: string[]) => Promise<void>;
-  changePreference: (
+  deleteManyProjects: (ids: string[]) => Promise<void>;
+  updatePreference: (
     newType: StudentPreferenceType,
     projectId: string,
   ) => Promise<void>;
-  changeMultiplePreferences: (
+  updateManyPreferences: (
     newType: StudentPreferenceType,
     projectIds: string[],
   ) => Promise<void>;
 }): ColumnDef<ProjectData>[] {
-  const { getPath } = usePathInInstance();
+  const { getInstancePath } = usePathInInstance();
   const stage = useInstanceStage();
 
   const selectCol = getSelectColumn<ProjectData>();
@@ -98,7 +100,7 @@ export function useAllProjectsColumns({
             buttonVariants({ variant: "link" }),
             "inline-block h-max min-w-60 px-0 text-start",
           )}
-          href={getPath(`projects/${project.id}`)}
+          href={getInstancePath([PAGES.allProjects.href, project.id])}
         >
           {project.title}
         </Link>
@@ -118,7 +120,7 @@ export function useAllProjectsColumns({
         roles.has(Role.ADMIN) ? (
           <Link
             className={buttonVariants({ variant: "link" })}
-            href={getPath(`${PAGES.allSupervisors.href}/${supervisor.id}`)}
+            href={getInstancePath([PAGES.allSupervisors.href, supervisor.id])}
           >
             {supervisor.name}
           </Link>
@@ -282,7 +284,7 @@ export function useAllProjectsColumns({
                 </DropdownMenuTrigger>
                 <YesNoActionContainer
                   action={async () =>
-                    void deleteMultipleProjects(selectedProjectIds)
+                    void deleteManyProjects(selectedProjectIds)
                   }
                   title={`Delete ${selectedProjectIds.length} Projects`}
                   description={`You are about to delete ${selectedProjectIds.length} projects from the ${spacesLabels.instance.short}. Do you wish to proceed?`}
@@ -293,7 +295,7 @@ export function useAllProjectsColumns({
                     <DropdownMenuItem>
                       <ExportCSVButton
                         filename="all-projects"
-                        text="Download selected rows"
+                        text={`Download ${selectedProjectIds.length} selected rows`}
                         header={[
                           "Title",
                           "Description",
@@ -305,34 +307,64 @@ export function useAllProjectsColumns({
                         data={data}
                       />
                     </DropdownMenuItem>
-                    <AccessControl
+                    <ConditionalRender
                       allowedRoles={[Role.STUDENT]}
                       allowedStages={[Stage.STUDENT_BIDDING]}
-                    >
-                      <StudentPreferenceActionSubMenu
-                        changePreference={async (t) =>
-                          void changeMultiplePreferences(t, selectedProjectIds)
-                        }
-                      />
-                    </AccessControl>
-                    <AccessControl
+                      allowed={
+                        <StudentPreferenceActionSubMenu
+                          changePreference={async (t) =>
+                            void updateManyPreferences(t, selectedProjectIds)
+                          }
+                        />
+                      }
+                    />
+
+                    <ConditionalRender
                       allowedRoles={[Role.ADMIN]}
                       allowedStages={[
                         Stage.PROJECT_SUBMISSION,
                         Stage.STUDENT_BIDDING,
                       ]}
-                    >
-                      <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
-                        <YesNoActionTrigger
-                          trigger={
+                      allowed={
+                        <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
+                          <YesNoActionTrigger
+                            trigger={
+                              <button className="flex items-center gap-2">
+                                <Trash2Icon className="h-4 w-4" />
+                                <span>
+                                  Delete {selectedProjectIds.length} Selected
+                                  Projects
+                                </span>
+                              </button>
+                            }
+                          />
+                        </DropdownMenuItem>
+                      }
+                      denied={(denialData) => (
+                        <WithTooltip
+                          tip={
+                            <FormatDenials
+                              {...denialData}
+                              action="Deleting projects"
+                            />
+                          }
+                          forDisabled
+                        >
+                          <DropdownMenuItem
+                            className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
+                            disabled
+                          >
                             <button className="flex items-center gap-2">
                               <Trash2Icon className="h-4 w-4" />
-                              <span>Delete Selected Projects</span>
+                              <span>
+                                Delete {selectedProjectIds.length} Selected
+                                Projects
+                              </span>
                             </button>
-                          }
-                        />
-                      </DropdownMenuItem>
-                    </AccessControl>
+                          </DropdownMenuItem>
+                        </WithTooltip>
+                      )}
+                    />
                   </DropdownMenuContent>
                 </YesNoActionContainer>
               </DropdownMenu>
@@ -372,7 +404,10 @@ export function useAllProjectsColumns({
                   <DropdownMenuItem className="group/item">
                     <Link
                       className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                      href={getPath(`projects/${project.id}`)}
+                      href={getInstancePath([
+                        PAGES.allProjects.href,
+                        project.id,
+                      ])}
                     >
                       <CornerDownRightIcon className="h-4 w-4" />
                       <p className="flex items-center">
@@ -382,48 +417,128 @@ export function useAllProjectsColumns({
                       </p>
                     </Link>
                   </DropdownMenuItem>
-                  <AccessControl
+                  <ConditionalRender
                     allowedRoles={[Role.STUDENT]}
-                    allowedStages={[Stage.STUDENT_BIDDING]}
-                    extraConditions={{ RBAC: { AND: !hasSelfDefinedProject } }}
-                  >
-                    <StudentPreferenceActionSubMenu
-                      defaultType={projectPreferences[project.id] ?? "None"}
-                      changePreference={async (t) =>
-                        void changePreference(t, project.id)
-                      }
-                    />
-                  </AccessControl>
-                  <AccessControl
-                    allowedRoles={[Role.ADMIN]}
-                    allowedStages={[
-                      Stage.PROJECT_SUBMISSION,
-                      Stage.STUDENT_BIDDING,
-                    ]}
-                    extraConditions={{
-                      RBAC: { OR: supervisor.id === user.id },
-                    }}
-                  >
-                    <DropdownMenuItem className="group/item">
-                      <Link
-                        className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                        href={getPath(`projects/${project.id}/edit`)}
-                      >
-                        <PenIcon className="h-4 w-4" />
-                        <span>Edit Project details</span>
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
-                      <YesNoActionTrigger
-                        trigger={
-                          <button className="flex items-center gap-2">
-                            <Trash2Icon className="h-4 w-4" />
-                            <span>Delete Project</span>
-                          </button>
+                    overrides={{ roles: { AND: !hasSelfDefinedProject } }}
+                    allowed={
+                      <ConditionalRender
+                        allowedStages={[Stage.STUDENT_BIDDING]}
+                        allowed={
+                          <StudentPreferenceActionSubMenu
+                            defaultType={
+                              projectPreferences[project.id] ?? "None"
+                            }
+                            changePreference={async (t) =>
+                              void updatePreference(t, project.id)
+                            }
+                          />
                         }
+                        denied={(data) => (
+                          <WithTooltip
+                            forDisabled
+                            tip={
+                              <FormatDenials
+                                action="Changing student preferences"
+                                {...data}
+                              />
+                            }
+                          >
+                            <DropdownMenuItem disabled>
+                              <button className="flex items-center gap-2 text-primary">
+                                <BookmarkIcon className="size-4" />
+                                <span>Change preference type to</span>
+                              </button>
+                            </DropdownMenuItem>
+                          </WithTooltip>
+                        )}
                       />
-                    </DropdownMenuItem>
-                  </AccessControl>
+                    }
+                  />
+                  <ConditionalRender
+                    allowedRoles={[Role.ADMIN]}
+                    overrides={{ roles: { OR: supervisor.id === user.id } }}
+                    allowed={
+                      <ConditionalRender
+                        allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                        allowed={
+                          <DropdownMenuItem className="group/item">
+                            <Link
+                              className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
+                              href={getInstancePath([
+                                PAGES.allProjects.href,
+                                project.id,
+                                PAGES.editProject.href,
+                              ])}
+                            >
+                              <PenIcon className="h-4 w-4" />
+                              <span>Edit Project details</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        }
+                        denied={(data) => (
+                          <WithTooltip
+                            forDisabled
+                            tip={
+                              <FormatDenials
+                                action="Editing Project Details"
+                                {...data}
+                              />
+                            }
+                          >
+                            <DropdownMenuItem disabled>
+                              <button className="flex items-center gap-2 text-primary">
+                                <PenIcon className="h-4 w-4" />
+                                <span>Edit Project details</span>
+                              </button>
+                            </DropdownMenuItem>
+                          </WithTooltip>
+                        )}
+                      />
+                    }
+                  />
+
+                  <ConditionalRender
+                    allowedRoles={[Role.ADMIN]}
+                    overrides={{ roles: { OR: supervisor.id === user.id } }}
+                    allowed={
+                      <ConditionalRender
+                        allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                        allowed={
+                          <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
+                            <YesNoActionTrigger
+                              trigger={
+                                <button className="flex items-center gap-2">
+                                  <Trash2Icon className="h-4 w-4" />
+                                  <span>Delete Project</span>
+                                </button>
+                              }
+                            />
+                          </DropdownMenuItem>
+                        }
+                        denied={(denialData) => (
+                          <WithTooltip
+                            forDisabled
+                            tip={
+                              <FormatDenials
+                                action="Deleting a project"
+                                {...denialData}
+                              />
+                            }
+                          >
+                            <DropdownMenuItem
+                              className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
+                              disabled
+                            >
+                              <button className="flex items-center gap-2">
+                                <Trash2Icon className="h-4 w-4" />
+                                <span>Delete Project</span>
+                              </button>
+                            </DropdownMenuItem>
+                          </WithTooltip>
+                        )}
+                      />
+                    }
+                  />
                 </DropdownMenuContent>
               </YesNoActionContainer>
             </DropdownMenu>
@@ -437,10 +552,7 @@ export function useAllProjectsColumns({
     return !hasSelfDefinedProject ? [selectCol, ...baseCols] : baseCols;
   }
 
-  if (
-    roles.has(Role.ADMIN) &&
-    stageIn(stage, [Stage.PROJECT_SUBMISSION, Stage.STUDENT_BIDDING])
-  ) {
+  if (roles.has(Role.ADMIN)) {
     return [selectCol, ...baseCols];
   }
 

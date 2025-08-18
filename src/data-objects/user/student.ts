@@ -192,27 +192,22 @@ export class Student extends User {
   }
 
   public async setStudentFlag(flagId: string): Promise<StudentDTO> {
-    return await this.db.studentDetails
-      .update({
-        where: {
-          studentDetailsId: {
-            userId: this.id,
-            ...expand(this.instance.params),
-          },
+    const studentData = await this.db.studentDetails.update({
+      where: {
+        studentDetailsId: { userId: this.id, ...expand(this.instance.params) },
+      },
+      data: {
+        studentFlag: {
+          connect: { flagId: { ...expand(this.instance.params), id: flagId } },
         },
-        data: {
-          studentFlag: {
-            connect: {
-              flagId: { ...expand(this.instance.params), id: flagId },
-            },
-          },
-        },
-        include: {
-          studentFlag: true,
-          userInInstance: { include: { user: true } },
-        },
-      })
-      .then((x) => T.toStudentDTO(x));
+      },
+      include: {
+        studentFlag: true,
+        userInInstance: { include: { user: true } },
+      },
+    });
+
+    return T.toStudentDTO(studentData);
   }
 
   public async updateDraftPreferenceType(
@@ -264,39 +259,6 @@ export class Student extends User {
     });
   }
 
-  public async updateDraftPreferenceRank(
-    projectId: string,
-    updatedRank: number,
-    preferenceType: PreferenceType,
-  ): Promise<{ project: ProjectDTO; rank: number }> {
-    return await this.db.studentDraftPreference
-      .update({
-        where: {
-          draftPreferenceId: {
-            projectId,
-            userId: this.id,
-            ...expand(this.instance.params),
-          },
-        },
-        data: { type: preferenceType, score: updatedRank },
-        include: {
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-              supervisor: {
-                include: { userInInstance: { include: { user: true } } },
-              },
-            },
-          },
-        },
-      })
-      .then((data) => ({
-        project: T.toProjectDTO(data.project),
-        rank: updatedRank,
-      }));
-  }
-
   public async updateManyDraftPreferenceTypes(
     projectIds: string[],
     preferenceType: PreferenceType | undefined,
@@ -346,6 +308,40 @@ export class Student extends User {
     });
   }
 
+  public async updateDraftPreferenceRank(
+    projectId: string,
+    updatedRank: number,
+    preferenceType: PreferenceType,
+  ): Promise<{ project: ProjectDTO; rank: number }> {
+    const preferenceData = await this.db.studentDraftPreference.update({
+      where: {
+        draftPreferenceId: {
+          projectId,
+          userId: this.id,
+          ...expand(this.instance.params),
+        },
+      },
+      data: { type: preferenceType, score: updatedRank },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+            supervisor: {
+              include: { userInInstance: { include: { user: true } } },
+            },
+          },
+        },
+      },
+    });
+
+    return {
+      project: T.toProjectDTO(preferenceData.project),
+      rank: updatedRank,
+    };
+  }
+
+  // ? maybe make non-interactive
   public async submitPreferences(): Promise<Date> {
     const newSubmissionDateTime = new Date();
 

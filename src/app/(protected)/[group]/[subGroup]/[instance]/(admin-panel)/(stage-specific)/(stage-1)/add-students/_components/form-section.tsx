@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, TextCursorInputIcon } from "lucide-react";
+import { PlusIcon, TextCursorInputIcon } from "lucide-react";
 
 import { INSTITUTION } from "@/config/institution";
 
@@ -27,13 +27,6 @@ import {
 
 import { type NewStudent, buildNewStudentSchema } from "./new-student-schema";
 
-const blankStudentForm = {
-  fullName: "",
-  institutionId: "",
-  email: "",
-  flagId: "",
-};
-
 export function FormSection({
   handleAddStudent,
   flags,
@@ -43,12 +36,17 @@ export function FormSection({
 }) {
   const form = useForm<NewStudent>({
     resolver: zodResolver(buildNewStudentSchema(flags)),
-    defaultValues: blankStudentForm,
+    defaultValues: { fullName: "", institutionId: "", email: "", flagId: "" },
   });
 
   async function onSubmit(data: NewStudent) {
     await handleAddStudent(data).then(() => {
-      form.reset(blankStudentForm);
+      form.reset({
+        fullName: "",
+        institutionId: "",
+        email: "",
+        flagId: data.flagId,
+      });
     });
   }
 
@@ -58,12 +56,10 @@ export function FormSection({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex w-full flex-col items-start gap-3"
       >
-        <SectionHeading className="mb-2 flex items-center">
-          <TextCursorInputIcon className="mr-2 h-6 w-6 text-indigo-500" />
-          <span>Manually create Student</span>
+        <SectionHeading icon={TextCursorInputIcon} className="mb-2">
+          Manually create Student
         </SectionHeading>
         <div className="flex w-full items-center justify-start gap-5">
-          {/* // TODO: don't allow special characters */}
           <FormField
             control={form.control}
             name="fullName"
@@ -92,7 +88,7 @@ export function FormSection({
             control={form.control}
             name="email"
             render={({ field }) => (
-              <FormItem className="w-1/3">
+              <FormItem className="w-1/4">
                 <FormControl>
                   <Input placeholder="Email" {...field} />
                 </FormControl>
@@ -104,7 +100,7 @@ export function FormSection({
             control={form.control}
             name="flagId"
             render={({ field }) => (
-              <FormItem className="w-1/4">
+              <FormItem className="w-1/3">
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -127,7 +123,7 @@ export function FormSection({
             )}
           />
           <Button size="icon" variant="secondary">
-            <Plus className="h-4 w-4 stroke-white stroke-[3]" />
+            <PlusIcon className="h-4 w-4 stroke-white stroke-3" />
           </Button>
         </div>
       </form>

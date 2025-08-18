@@ -63,16 +63,18 @@ export function NewPreferenceButton({
 }) {
   const params = useParams<PageParams>();
   const router = useRouter();
-  const addProject = useBoardDetails((s) => s.addProject);
+
   const [open, setOpen] = useState(false);
+
+  const addProject = useBoardDetails((s) => s.addProject);
 
   const form = useForm<NewProjectPreferenceDto>({
     resolver: zodResolver(newProjectPreferenceDtoSchema),
     defaultValues: { preferenceType: PreferenceType.PREFERENCE },
   });
 
-  const { mutateAsync: api_updatePreferencesAsync } =
-    api.user.student.preference.makeUpdate.useMutation();
+  const { mutateAsync: api_updateStudentPreference } =
+    api.institution.instance.updateStudentPreference.useMutation();
 
   function onSubmit(data: NewProjectPreferenceDto) {
     const listType =
@@ -80,26 +82,29 @@ export function NewPreferenceButton({
         ? "preference list"
         : "shortlist";
 
-    void toast.promise(
-      api_updatePreferencesAsync({
-        params,
-        studentId: params.id,
-        projectId: data.projectId,
-        preferenceType: data.preferenceType,
-      }).then((projects) => {
+    void toast
+      .promise(
+        api_updateStudentPreference({
+          params,
+          studentId: params.id,
+          projectId: data.projectId,
+          preferenceType: data.preferenceType,
+        }),
+        {
+          loading: `Adding project to student's ${listType}...`,
+          success: `Successfully added project to student's ${listType}`,
+          error: `Failed to add project to student's ${listType}`,
+        },
+      )
+      .unwrap()
+      .then((projects) => {
         const columnId = data.preferenceType;
         const i = projects[columnId].findIndex((p) => p.id === data.projectId);
         addProject(projects[columnId][i], columnId);
         form.reset();
         router.refresh();
         setOpen(false);
-      }),
-      {
-        loading: `Adding project to student's ${listType}...`,
-        success: `Successfully added project to student's ${listType}`,
-        error: `Failed to add project to student's ${listType}`,
-      },
-    );
+      });
   }
 
   return (

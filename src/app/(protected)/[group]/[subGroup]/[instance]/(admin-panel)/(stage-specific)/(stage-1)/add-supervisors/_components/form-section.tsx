@@ -5,7 +5,7 @@ import {
   newSupervisorSchema,
 } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-1)/add-supervisors/_components/new-supervisor-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus, TextCursorInputIcon } from "lucide-react";
+import { PlusIcon, TextCursorInputIcon } from "lucide-react";
 
 import { INSTITUTION } from "@/config/institution";
 
@@ -51,9 +51,8 @@ export function FormSection({
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex w-full flex-col items-start gap-3"
       >
-        <SectionHeading className="mb-2 flex items-center">
-          <TextCursorInputIcon className="mr-2 h-6 w-6 text-indigo-500" />
-          <span>Manually create Supervisor</span>
+        <SectionHeading icon={TextCursorInputIcon} className="mb-2">
+          Manually create Supervisor
         </SectionHeading>
         <div className="flex w-full items-center justify-start gap-5">
           {/* // TODO: don't allow special characters */}
@@ -118,7 +117,7 @@ export function FormSection({
             )}
           />
           <Button size="icon" variant="secondary">
-            <Plus className="h-4 w-4 stroke-white stroke-[3]" />
+            <PlusIcon className="h-4 w-4 stroke-white stroke-3" />
           </Button>
         </div>
       </form>

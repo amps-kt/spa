@@ -18,6 +18,12 @@ import { StudentProjectSection } from "./_components/student-project-section";
 type PageParams = InstanceParams & { id: string };
 
 export async function generateMetadata({ params }: { params: PageParams }) {
+  const exists = await api.user.student.exists({
+    params,
+    studentId: params.id,
+  });
+  if (!exists) notFound();
+
   const { displayName } = await api.institution.instance.get({ params });
   const { name } = await api.user.getById({ userId: params.id });
 
@@ -45,9 +51,8 @@ export default async function Page({ params }: { params: PageParams }) {
     <PanelWrapper>
       <Heading>{student.name}</Heading>
 
-      <SectionHeading className="mt-6 mb-2 flex items-center">
-        <User2Icon className="mr-2 h-6 w-6 text-indigo-500" />
-        <span>Details</span>
+      <SectionHeading icon={User2Icon} className="mt-6 mb-2">
+        Details
       </SectionHeading>
       <section className="flex gap-10">
         <StudentDetailsCard className="w-1/2" student={student} flags={flags} />

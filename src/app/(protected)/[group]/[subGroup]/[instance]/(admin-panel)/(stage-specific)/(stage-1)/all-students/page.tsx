@@ -19,7 +19,9 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 
 export default async function Students({ params }: { params: InstanceParams }) {
   const roles = await api.user.roles({ params });
-  const tableData = await api.institution.instance.students({ params });
+  const data = await api.institution.instance.getStudentsWithAllocation({
+    params,
+  });
   const projectDescriptors =
     await api.institution.instance.getAllProjectDescriptors({ params });
 
@@ -28,7 +30,7 @@ export default async function Students({ params }: { params: InstanceParams }) {
       <Heading>{PAGES.allStudents.title}</Heading>
       <StudentsDataTable
         roles={roles}
-        data={tableData}
+        data={data}
         projectDescriptors={projectDescriptors}
       />
     </PanelWrapper>
