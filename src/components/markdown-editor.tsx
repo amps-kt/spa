@@ -18,7 +18,7 @@ export function MarkdownEditor(props: JSX.IntrinsicAttributes & MDEditorProps) {
         {...props}
         commands={[]}
         previewOptions={{
-          className: "prose max-w-full",
+          className: "prose max-w-full prose-code:text-foreground",
           remarkPlugins: [[remarkMath]],
           rehypePlugins: [[rehypeSanitize], [rehypeKatex]],
         }}
