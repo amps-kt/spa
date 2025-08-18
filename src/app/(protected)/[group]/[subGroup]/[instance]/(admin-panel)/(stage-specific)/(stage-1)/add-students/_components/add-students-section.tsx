@@ -52,7 +52,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
     api.institution.instance.addStudent.useMutation();
 
   const { mutateAsync: api_addManyStudents } =
-    api.institution.instance.addStudents.useMutation();
+    api.institution.instance.addManyStudents.useMutation();
 
   const { mutateAsync: api_deleteStudent } =
     api.institution.instance.deleteStudent.useMutation();

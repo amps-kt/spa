@@ -52,7 +52,7 @@ export function AddSupervisorsSection() {
     api.institution.instance.addSupervisor.useMutation();
 
   const { mutateAsync: api_addManySupervisors } =
-    api.institution.instance.addSupervisors.useMutation();
+    api.institution.instance.addManySupervisors.useMutation();
 
   const { mutateAsync: api_deleteSupervisor } =
     api.institution.instance.deleteSupervisor.useMutation();

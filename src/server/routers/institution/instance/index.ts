@@ -72,6 +72,29 @@ export const instanceRouter = createTRPCRouter({
     .output(instanceDtoSchema)
     .query(async ({ ctx: { instance } }) => await instance.get()),
 
+  edit: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        updatedInstance: instanceDtoSchema.omit({
+          stage: true,
+          supervisorAllocationAccess: true,
+          studentAllocationAccess: true,
+        }),
+        flags: z.array(flagDtoSchema),
+        tags: z.array(tagDtoSchema.omit({ id: true })),
+      }),
+    )
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { updatedInstance, flags, tags },
+      }) => {
+        audit("Instance Updated", { data: { updatedInstance, flags, tags } });
+        return await instance.edit({ flags, tags, instance: updatedInstance });
+      },
+    ),
+
   /**
    * Returns the current stage of an instance with the ID provided
    * @throws if the instance doesn't exist
@@ -94,7 +117,6 @@ export const instanceRouter = createTRPCRouter({
       return await instance.setStage(stage);
     }),
 
-  // BREAKING returns undefined, and ID instead of alg name
   /**
    * Returns the ID and display name of the currently selected algorithm
    * return empty strings if none is selected
@@ -189,9 +211,21 @@ export const instanceRouter = createTRPCRouter({
       flags: await instance.getFlags(),
     })),
 
-  supervisors: procedure.instance.user
-    .output(z.array(supervisorDtoSchema))
-    .query(async ({ ctx: { instance } }) => await instance.getSupervisors()),
+  getFlags: procedure.instance.user
+    .output(z.array(flagDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getFlags()),
+
+  getAllPreviousProjects: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          instanceData: instanceDtoSchema,
+        }),
+      ),
+    )
+    .query(async ({ ctx: { group } }) => await group.getAllProjects()),
 
   getSupervisors: procedure.instance.subGroupAdmin
     .output(z.array(supervisorDtoSchema))
@@ -236,8 +270,7 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  // BREAKING input/output type changed
-  addSupervisors: procedure.instance.subGroupAdmin
+  addManySupervisors: procedure.instance.subGroupAdmin
     .input(z.object({ newSupervisors: z.array(supervisorDtoSchema) }))
     .output(z.array(LinkUserResultSchema))
     .mutation(
@@ -321,34 +354,11 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  invitedSupervisors: procedure.instance.subGroupAdmin
-    .output(
-      z.object({
-        supervisors: z.array(
-          z.object({
-            id: z.string(),
-            name: z.string(),
-            email: z.string(),
-            joined: z.boolean(),
-          }),
-        ),
-      }),
-    )
-    .query(async ({ ctx: { instance } }) => {
-      const invitedUsers = await instance.getSupervisors();
+  getStudents: procedure.instance.subGroupAdmin
+    .output(z.array(studentDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getStudents()),
 
-      return {
-        supervisors: invitedUsers.map((u) => ({
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          joined: u.joined,
-        })),
-      };
-    }),
-
-  //  BREAKING output type changed
-  students: procedure.instance.user
+  getStudentsWithAllocation: procedure.instance.user
     .output(
       z.array(
         z.object({
@@ -362,12 +372,6 @@ export const instanceRouter = createTRPCRouter({
         await instance.getStudentAllocationDetails(),
     ),
 
-  // BREAKING output type changed
-  getStudents: procedure.instance.subGroupAdmin
-    .output(z.array(studentDtoSchema))
-    .query(async ({ ctx: { instance } }) => await instance.getStudents()),
-
-  // BREAKING input/output types changed
   addStudent: procedure.instance.subGroupAdmin
     .input(z.object({ newStudent: studentDtoSchema }))
     .output(LinkUserResultSchema)
@@ -407,7 +411,7 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  addStudents: procedure.instance.subGroupAdmin
+  addManyStudents: procedure.instance.subGroupAdmin
     .input(z.object({ newStudents: z.array(studentDtoSchema) }))
     .output(z.array(LinkUserResultSchema))
     .mutation(
@@ -467,7 +471,7 @@ export const instanceRouter = createTRPCRouter({
       await instance.deleteManyStudents(studentIds);
     }),
 
-  invitedStudents: procedure.instance.subGroupAdmin
+  getStudentsByJoinedStatus: procedure.instance.subGroupAdmin
     .output(
       z.object({
         all: z.array(
@@ -513,7 +517,6 @@ export const instanceRouter = createTRPCRouter({
     ),
 
   // todo: standardise error reporting
-  // pin - [#f9a8d4]
   /**
    * Sub-group admin updating a student's preference over a particular project
    */
@@ -566,7 +569,6 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  // pin - [#f9a8d4]
   // ? maybe duplicate of `updateStudentPreference`
   /**
    * Sub-group admin changing a Student's preference
@@ -603,8 +605,6 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  // pin - [#f9a8d4]
-  // move - also maybe rename?
   /**
    * Sub-group admin changing multiple of a Student's preferences
    */
@@ -642,7 +642,6 @@ export const instanceRouter = createTRPCRouter({
       },
     ),
 
-  // pin - [#f9a8d4]
   // ? maybe merge all of these into a single update
   /**
    * Sub-group admin reordering a student's preferences
@@ -704,119 +703,6 @@ export const instanceRouter = createTRPCRouter({
         });
       },
     ),
-
-  edit: procedure.instance.subGroupAdmin
-    .input(
-      z.object({
-        updatedInstance: instanceDtoSchema.omit({
-          stage: true,
-          supervisorAllocationAccess: true,
-          studentAllocationAccess: true,
-        }),
-        flags: z.array(flagDtoSchema),
-        tags: z.array(tagDtoSchema.omit({ id: true })),
-      }),
-    )
-    .output(z.void())
-    .mutation(
-      async ({
-        ctx: { instance, audit },
-        input: { updatedInstance, flags, tags },
-      }) => {
-        audit("Instance Updated", { data: { updatedInstance, flags, tags } });
-        return await instance.edit({ flags, tags, instance: updatedInstance });
-      },
-    ),
-
-  getHeaderTabs: procedure.user
-    .input(z.object({ params: instanceParamsSchema.partial() }))
-    .query(async ({ ctx, input }) => {
-      const result = instanceParamsSchema.safeParse(input.params);
-
-      // TODO consider moving this control flow to client
-      if (!result.success) return { headerTabs: [], instancePath: "" };
-
-      const instance = new AllocationInstance(ctx.db, result.data);
-
-      const instanceData = await instance.get();
-
-      const roles = await ctx.user.getRolesInInstance(instance.params);
-
-      const instancePath = formatParamsAsPath(instance.params);
-
-      if (!roles.has(Role.ADMIN)) {
-        return {
-          headerTabs: [PAGES.instanceHome, PAGES.allProjects],
-          instancePath,
-        };
-      }
-
-      const headerTabs =
-        instanceData.stage === Stage.SETUP
-          ? [PAGES.instanceHome]
-          : [PAGES.instanceHome, PAGES.allProjects];
-
-      return { headerTabs, instancePath };
-    }),
-
-  getSidePanelTabs: procedure.instance.user
-    .output(z.array(tabGroupSchema))
-    .query(async ({ ctx: { instance, user } }) => {
-      const { stage } = await instance.get();
-      const roles = await user.getRolesInInstance(instance.params);
-      const preAllocatedProject = await user.hasSelfDefinedProject(
-        instance.params,
-      );
-
-      const tabGroups = [];
-
-      if (roles.has(Role.ADMIN)) {
-        tabGroups.push({
-          title: "General",
-          tabs: [
-            PAGES.stageControl,
-            PAGES.settings,
-            PAGES.allSupervisors,
-            PAGES.allStudents,
-            PAGES.allProjects,
-          ],
-        });
-
-        tabGroups.push({
-          title: "Stage-specific",
-          tabs: await instance.getAdminTabs(),
-        });
-      }
-
-      if (roles.has(Role.SUPERVISOR)) {
-        const isSecondRole = roles.size > 1;
-        const supervisorTabs = await instance.getSupervisorTabs();
-
-        if (!isSecondRole) {
-          tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-          supervisorTabs.unshift(PAGES.instanceTasks);
-        } else if (stage !== Stage.SETUP) {
-          supervisorTabs.unshift(PAGES.nonAdminSupervisorTasks);
-        }
-
-        tabGroups.push({ title: "Supervisor", tabs: supervisorTabs });
-      }
-
-      if (roles.has(Role.STUDENT)) {
-        const isSecondRole = roles.size > 1;
-        const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
-
-        tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-        tabGroups.push({
-          title: "Student",
-          tabs: isSecondRole
-            ? studentTabs
-            : [PAGES.instanceTasks, ...studentTabs],
-        });
-      }
-
-      return tabGroups;
-    }),
 
   getAllocatedStudents: procedure.instance.subGroupAdmin
     .output(
@@ -1017,9 +903,95 @@ export const instanceRouter = createTRPCRouter({
       return results;
     }),
 
-  getFlags: procedure.instance.user
-    .output(z.array(flagDtoSchema))
-    .query(async ({ ctx: { instance } }) => await instance.getFlags()),
+  getHeaderTabs: procedure.user
+    .input(z.object({ params: instanceParamsSchema.partial() }))
+    .query(async ({ ctx, input }) => {
+      const result = instanceParamsSchema.safeParse(input.params);
+
+      // TODO consider moving this control flow to client
+      if (!result.success) return { headerTabs: [], instancePath: "" };
+
+      const instance = new AllocationInstance(ctx.db, result.data);
+
+      const instanceData = await instance.get();
+
+      const roles = await ctx.user.getRolesInInstance(instance.params);
+
+      const instancePath = formatParamsAsPath(instance.params);
+
+      if (!roles.has(Role.ADMIN)) {
+        return {
+          headerTabs: [PAGES.instanceHome, PAGES.allProjects],
+          instancePath,
+        };
+      }
+
+      const headerTabs =
+        instanceData.stage === Stage.SETUP
+          ? [PAGES.instanceHome]
+          : [PAGES.instanceHome, PAGES.allProjects];
+
+      return { headerTabs, instancePath };
+    }),
+
+  getSidePanelTabs: procedure.instance.user
+    .output(z.array(tabGroupSchema))
+    .query(async ({ ctx: { instance, user } }) => {
+      const { stage } = await instance.get();
+      const roles = await user.getRolesInInstance(instance.params);
+      const preAllocatedProject = await user.hasSelfDefinedProject(
+        instance.params,
+      );
+
+      const tabGroups = [];
+
+      if (roles.has(Role.ADMIN)) {
+        tabGroups.push({
+          title: "General",
+          tabs: [
+            PAGES.stageControl,
+            PAGES.settings,
+            PAGES.allSupervisors,
+            PAGES.allStudents,
+            PAGES.allProjects,
+          ],
+        });
+
+        tabGroups.push({
+          title: "Stage-specific",
+          tabs: await instance.getAdminTabs(),
+        });
+      }
+
+      if (roles.has(Role.SUPERVISOR)) {
+        const isSecondRole = roles.size > 1;
+        const supervisorTabs = await instance.getSupervisorTabs();
+
+        if (!isSecondRole) {
+          tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
+          supervisorTabs.unshift(PAGES.instanceTasks);
+        } else if (stage !== Stage.SETUP) {
+          supervisorTabs.unshift(PAGES.nonAdminSupervisorTasks);
+        }
+
+        tabGroups.push({ title: "Supervisor", tabs: supervisorTabs });
+      }
+
+      if (roles.has(Role.STUDENT)) {
+        const isSecondRole = roles.size > 1;
+        const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
+
+        tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
+        tabGroups.push({
+          title: "Student",
+          tabs: isSecondRole
+            ? studentTabs
+            : [PAGES.instanceTasks, ...studentTabs],
+        });
+      }
+
+      return tabGroups;
+    }),
 
   getMarkerSubmissions: procedure.instance.subGroupAdmin
     .input(z.object({ unitOfAssessmentId: z.string() }))
@@ -1244,16 +1216,4 @@ export const instanceRouter = createTRPCRouter({
           .then((u) => u.title);
       },
     ),
-
-  getAllPreviousProjects: procedure.instance.subGroupAdmin
-    .output(
-      z.array(
-        z.object({
-          project: projectDtoSchema,
-          supervisor: supervisorDtoSchema,
-          instanceData: instanceDtoSchema,
-        }),
-      ),
-    )
-    .query(async ({ ctx: { group } }) => await group.getAllProjects()),
 });

@@ -82,7 +82,6 @@ export const preferenceRouter = createTRPCRouter({
       );
     }),
 
-  // pin - [#f9a8d4]
   /**
    * Student updating their own preference over a particular project
    */
@@ -133,7 +132,6 @@ export const preferenceRouter = createTRPCRouter({
       },
     ),
 
-  // pin - [#f9a8d4]
   /**
    * Student updating their own preference over multiple projects
    */
@@ -188,7 +186,6 @@ export const preferenceRouter = createTRPCRouter({
       },
     ),
 
-  // pin - [#f9a8d4]
   /**
    * Student reordering their own preference over a project
    */

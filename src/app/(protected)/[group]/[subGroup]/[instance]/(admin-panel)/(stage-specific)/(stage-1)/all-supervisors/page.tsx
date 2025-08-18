@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 
 export default async function Page({ params }: { params: InstanceParams }) {
   const roles = await api.user.roles({ params });
-  const data = await api.institution.instance.supervisors({ params });
+  const data = await api.institution.instance.getSupervisors({ params });
 
   return (
     <PanelWrapper>

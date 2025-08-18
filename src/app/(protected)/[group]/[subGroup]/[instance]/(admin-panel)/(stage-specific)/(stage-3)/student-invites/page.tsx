@@ -31,7 +31,9 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const students = await api.institution.instance.invitedStudents({ params });
+  const students = await api.institution.instance.getStudentsByJoinedStatus({
+    params,
+  });
   const projectDescriptors =
     await api.institution.instance.getAllProjectDescriptors({ params });
 

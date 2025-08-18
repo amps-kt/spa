@@ -26,9 +26,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const { supervisors } = await api.institution.instance.invitedSupervisors({
-    params,
-  });
+  const supervisors = await api.institution.instance.getSupervisors({ params });
 
   const incomplete = supervisors.filter((supervisor) => !supervisor.joined);
 
