@@ -126,8 +126,8 @@ importers:
         specifier: 18.2.19
         version: 18.2.19
       '@uiw/react-md-editor':
-        specifier: ^4.0.7
-        version: 4.0.7(@types/react@18.2.58)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^4.0.8
+        version: 4.0.8(@types/react@18.2.58)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       autoprefixer:
         specifier: 10.4.17
         version: 10.4.17(postcss@8.5.5)
@@ -2297,8 +2297,8 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
 
-  '@uiw/react-md-editor@4.0.7':
-    resolution: {integrity: sha512-fKUJDo/f6ty1R5CRfYCIgt2eWNCWnwkEZhj65zv3cLsywAw13rsOL0/TuG8khpcV9mSnDHPWAz43xgKcjk5VJA==}
+  '@uiw/react-md-editor@4.0.8':
+    resolution: {integrity: sha512-S3mOzZeGmJNhzdXJxRTCwsFMDp8nBWeQUf59cK3L6QHzDUHnRoHpcmWpfVRyKGKSg8zaI2+meU5cYWf8kYn3mQ==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -3669,9 +3669,6 @@ packages:
 
   ini@1.3.8:
     resolution: {integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==}
-
-  inline-style-parser@0.2.3:
-    resolution: {integrity: sha512-qlD8YNDqyTKTyuITrDOffsl6Tdhv+UC4hcdAVuQsK4IMQ99nSgd1MIA/Q+jQYoh9r3hVUXhYh7urSRmXPkW04g==}
 
   inline-style-parser@0.2.4:
     resolution: {integrity: sha512-0aO8FkhNZlj/ZIbNi7Lxxr12obT7cL1moPfE4tg1LkX7LlLfC6DeX4l2ZEud1ukP9jNQyNnfzQVqwbwmAATY4Q==}
@@ -5193,9 +5190,6 @@ packages:
 
   style-to-js@1.1.16:
     resolution: {integrity: sha512-/Q6ld50hKYPH3d/r6nr117TZkHR0w0kGGIVfpG9N6D8NymRPM9RqCUv4pRpJ62E5DqOYx2AFpbZMyCPnjQCnOw==}
-
-  style-to-object@1.0.6:
-    resolution: {integrity: sha512-khxq+Qm3xEyZfKd/y9L3oIWQimxuc4STrQKtQn8aSDRHb8mFgpukgX1hdzfrMEW6JCjyJ8p89x+IUMVnCBI1PA==}
 
   style-to-object@1.0.8:
     resolution: {integrity: sha512-xT47I/Eo0rwJmaXC4oilDGDWLohVhR6o/xAQcPQN8q6QBuZVL8qMYL85kLmST5cPjAorwvqIA4qXTRQoYHaL6g==}
@@ -7572,7 +7566,7 @@ snapshots:
       - '@types/react'
       - supports-color
 
-  '@uiw/react-md-editor@4.0.7(@types/react@18.2.58)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@uiw/react-md-editor@4.0.8(@types/react@18.2.58)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@babel/runtime': 7.25.0
       '@uiw/react-markdown-preview': 5.1.2(@types/react@18.2.58)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -9129,7 +9123,7 @@ snapshots:
       mdast-util-mdxjs-esm: 2.0.1
       property-information: 6.5.0
       space-separated-tokens: 2.0.2
-      style-to-object: 1.0.6
+      style-to-object: 1.0.8
       unist-util-position: 5.0.0
       vfile-message: 4.0.2
     transitivePeerDependencies:
@@ -9244,8 +9238,6 @@ snapshots:
   inherits@2.0.4: {}
 
   ini@1.3.8: {}
-
-  inline-style-parser@0.2.3: {}
 
   inline-style-parser@0.2.4: {}
 
@@ -11265,10 +11257,6 @@ snapshots:
   style-to-js@1.1.16:
     dependencies:
       style-to-object: 1.0.8
-
-  style-to-object@1.0.6:
-    dependencies:
-      inline-style-parser: 0.2.3
 
   style-to-object@1.0.8:
     dependencies:
