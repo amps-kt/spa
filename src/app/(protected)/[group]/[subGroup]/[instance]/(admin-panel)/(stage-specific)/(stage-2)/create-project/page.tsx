@@ -31,8 +31,6 @@ export default async function Page({ params }: { params: InstanceParams }) {
   const user = await api.user.get();
   const formInitData = await api.project.getFormInitialisationData({ params });
 
-  // todo: fetch all projects by every supervisor, from every instance in the allocation group
-
   const prevProjects = await api.institution.instance.getAllPreviousProjects({
     params,
   });

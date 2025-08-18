@@ -53,11 +53,11 @@ type StudentWithAllocation = { student: StudentDTO; allocation?: ProjectDTO };
 export function useAllStudentsColumns({
   roles,
   deleteStudent,
-  deleteSelectedStudents,
+  deleteManyStudents,
 }: {
   roles: Set<Role>;
   deleteStudent: (id: string) => Promise<void>;
-  deleteSelectedStudents: (ids: string[]) => Promise<void>;
+  deleteManyStudents: (ids: string[]) => Promise<void>;
 }): ColumnDef<StudentWithAllocation>[] {
   const stage = useInstanceStage();
   const { getInstancePath } = usePathInInstance();
@@ -189,7 +189,7 @@ export function useAllStudentsColumns({
               </DropdownMenuTrigger>
               <YesNoActionContainer
                 action={async () =>
-                  void deleteSelectedStudents(selectedStudentIds).then(() =>
+                  void deleteManyStudents(selectedStudentIds).then(() =>
                     table.toggleAllRowsSelected(false),
                   )
                 }

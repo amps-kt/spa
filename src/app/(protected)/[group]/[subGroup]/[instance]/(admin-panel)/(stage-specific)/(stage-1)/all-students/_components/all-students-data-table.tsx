@@ -57,8 +57,8 @@ export function StudentsDataTable({
 
   const columns = useAllStudentsColumns({
     roles,
-    deleteStudent: deleteStudent,
-    deleteSelectedStudents: deleteManyStudents,
+    deleteStudent,
+    deleteManyStudents,
   });
 
   const filters = [
