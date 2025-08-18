@@ -18,6 +18,12 @@ import { InstanceDetailsCard } from "./_components/instance-details-card";
 import { SupervisorProjectsDataTable } from "./_components/supervisor-projects-data-table";
 
 export async function generateMetadata({ params }: { params: PageParams }) {
+  const exists = await api.user.supervisor.exists({
+    params,
+    supervisorId: params.id,
+  });
+  if (!exists) notFound();
+
   const { displayName } = await api.institution.instance.get({ params });
   const { name } = await api.user.getById({ userId: params.id });
 
