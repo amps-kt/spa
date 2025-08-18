@@ -21,6 +21,8 @@ export async function generateMetadata({
 }: {
   params: PageParams;
 }) {
+  // todo: add necessary exist checks
+
   const { displayName } = await api.institution.instance.get({ params });
   const project = await api.user.student.getAllocatedProject({
     params,

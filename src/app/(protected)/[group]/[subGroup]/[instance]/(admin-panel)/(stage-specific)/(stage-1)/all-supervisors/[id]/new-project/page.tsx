@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
@@ -15,6 +17,12 @@ import { type InstanceParams } from "@/lib/validations/params";
 type PageParams = InstanceParams & { id: string };
 
 export async function generateMetadata({ params }: { params: PageParams }) {
+  const exists = await api.user.supervisor.exists({
+    params,
+    supervisorId: params.id,
+  });
+  if (!exists) notFound();
+
   const { displayName } = await api.institution.instance.get({ params });
   const { name } = await api.user.getById({ userId: params.id });
 

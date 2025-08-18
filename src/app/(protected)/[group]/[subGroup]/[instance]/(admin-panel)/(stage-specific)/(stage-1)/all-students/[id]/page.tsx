@@ -18,6 +18,12 @@ import { StudentProjectSection } from "./_components/student-project-section";
 type PageParams = InstanceParams & { id: string };
 
 export async function generateMetadata({ params }: { params: PageParams }) {
+  const exists = await api.user.student.exists({
+    params,
+    studentId: params.id,
+  });
+  if (!exists) notFound();
+
   const { displayName } = await api.institution.instance.get({ params });
   const { name } = await api.user.getById({ userId: params.id });
 
