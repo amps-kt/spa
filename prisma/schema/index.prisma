@@ -86,7 +86,6 @@ model AllocationInstance {
   @@map("allocation_instance")
 }
 
-// TODO: flag ID has to be unique across all instances which means this blows up
 model Flag {
   id                   String
   displayName          String             @map("display_name")

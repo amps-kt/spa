@@ -1,4 +1,3 @@
-// TODO: fix
 enum StudentPreferenceType {
   SHORTLIST
   PREFERENCE
