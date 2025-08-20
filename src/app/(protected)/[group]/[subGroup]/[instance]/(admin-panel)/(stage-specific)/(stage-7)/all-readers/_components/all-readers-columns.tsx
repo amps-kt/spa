@@ -93,17 +93,17 @@ export function useAllReadersColumns({
       ),
     },
     {
-      id: "Workload Quota",
-      accessorFn: (s) => s.workloadQuota,
+      id: "Reading Workload Quota",
+      accessorFn: (s) => s.readingWorkloadQuota,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="w-24"
           column={column}
-          title="Workload Quota"
+          title="Reading Workload Quota"
         />
       ),
       cell: ({ row: { original: s } }) => (
-        <p className="w-24 text-center">{s.workloadQuota}</p>
+        <p className="w-24 text-center">{s.readingWorkloadQuota}</p>
       ),
     },
   ];

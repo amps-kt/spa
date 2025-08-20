@@ -343,10 +343,7 @@ export class AllocationInstance extends DataObject {
     await this.db.readerDetails.createMany({
       data: newReaders.map((r) => ({
         ...expand(this.params),
-        // TODO [#9a3412]: revisit post Data Model rework merge
-        projectAllocationLowerBound: 0,
-        projectAllocationTarget: r.workloadQuota,
-        projectAllocationUpperBound: r.workloadQuota,
+        readingWorkloadQuota: r.readingWorkloadQuota,
         userId: r.id,
       })),
       skipDuplicates: true,

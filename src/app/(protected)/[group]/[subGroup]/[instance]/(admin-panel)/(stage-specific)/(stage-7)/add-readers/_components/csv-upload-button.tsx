@@ -115,7 +115,7 @@ export function CSVUploadButton({
           name: reader.fullName,
           email: reader.email,
           joined: false,
-          workloadQuota: reader.workloadQuota,
+          readingWorkloadQuota: reader.readingWorkloadQuota,
         }));
 
         try {

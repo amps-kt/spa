@@ -24,7 +24,7 @@ const blankReaderForm = {
   fullName: "",
   institutionId: "",
   email: "",
-  workloadQuota: "" as unknown as number,
+  readingWorkloadQuota: "" as unknown as number,
 };
 
 // TODO: refactor csv upload to use more standard data shapes
@@ -93,11 +93,11 @@ export function FormSection({
           />
           <FormField
             control={form.control}
-            name="workloadQuota"
+            name="readingWorkloadQuota"
             render={({ field }) => (
               <FormItem className="w-1/6">
                 <FormControl>
-                  <Input placeholder="Workload Quota" {...field} />
+                  <Input placeholder="Reading Workload Quota" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
