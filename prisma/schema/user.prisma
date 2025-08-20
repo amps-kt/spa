@@ -52,14 +52,14 @@ model SupervisorDetails {
 model ReaderDetails {
   readingWorkloadQuota Int                       @map("reading_workload_quota")
   // ---
-  userId                      String                    @map("user_id")
-  allocationGroupId           String                    @map("allocation_group_id")
-  allocationSubGroupId        String                    @map("allocation_sub_group_id")
-  allocationInstanceId        String                    @map("allocation_instance_id")
+  userId               String                    @map("user_id")
+  allocationGroupId    String                    @map("allocation_group_id")
+  allocationSubGroupId String                    @map("allocation_sub_group_id")
+  allocationInstanceId String                    @map("allocation_instance_id")
   // ---
-  userInInstance              UserInInstance            @relation("reader_details", fields: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "reader_user")
-  projectAllocations          ReaderProjectAllocation[] @relation("reader_project_allocation")
-  preferences                 ReaderPreference[]
+  userInInstance       UserInInstance            @relation("reader_details", fields: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "reader_user")
+  projectAllocations   ReaderProjectAllocation[] @relation("reader_project_allocation")
+  preferences          ReaderPreference[]
 
   @@id([userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "readerDetailsId", map: "reader_details_id")
   @@map("reader_details")
@@ -95,6 +95,7 @@ model GroupAdmin {
   user              User            @relation(fields: [userId], references: [id], onDelete: Cascade, map: "group_admin_user")
   // ---
   allocationGroupId String          @map("allocation_group_id")
+  // ---
   allocationGroup   AllocationGroup @relation(fields: [allocationGroupId], references: [id], onDelete: Cascade, map: "group_admin_group")
 
   @@id([userId, allocationGroupId], name: "groupAdminId", map: "group_admin_id")
@@ -106,8 +107,9 @@ model SubGroupAdmin {
   user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade, map: "sub_group_admin_user")
   // ---
   allocationGroupId    String             @map("allocation_group_id")
-  allocationGroup      AllocationGroup    @relation(fields: [allocationGroupId], references: [id], onDelete: Cascade, map: "sub_group_admin_group")
   allocationSubGroupId String             @map("allocation_sub_group_id")
+  // ---
+  allocationGroup      AllocationGroup    @relation(fields: [allocationGroupId], references: [id], onDelete: Cascade, map: "sub_group_admin_group")
   allocationSubGroup   AllocationSubGroup @relation(fields: [allocationGroupId, allocationSubGroupId], references: [allocationGroupId, id], onDelete: Cascade, map: "sub_group_admin_sub_group")
 
   @@id([userId, allocationGroupId, allocationSubGroupId], name: "subGroupAdminId", map: "sub_group_admin_id")
