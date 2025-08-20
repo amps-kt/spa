@@ -2,7 +2,9 @@ import { unparse } from "papaparse";
 
 import { INSTITUTION } from "@/config/institution";
 
-import { csvReaderSchema, type NewReader } from "./new-reader-schema";
+import { Reader } from "@/data-objects";
+
+import { type NewReader } from "./types";
 
 export type FieldError = { field: string; message: string };
 
@@ -37,7 +39,7 @@ export function validateCSVRows(
   data.forEach((row, index) => {
     const errors: FieldError[] = [];
 
-    const schemaResult = csvReaderSchema.safeParse(row);
+    const schemaResult = Reader.newCSVSchema.safeParse(row);
 
     if (!schemaResult.success) {
       schemaResult.error.issues.forEach((issue) => {

@@ -1,19 +1,6 @@
 import { z } from "zod";
 
-export const supervisorProjectSubmissionDetailsSchema = z.object({
-  userId: z.string(),
-  name: z.string(),
-  email: z.string(),
-  submittedProjectsCount: z.number(),
-  projectAllocationTarget: z.number(),
-  allocatedCount: z.number(),
-  submissionTarget: z.number(),
-});
-
-export type SupervisorProjectSubmissionDetails = z.infer<
-  typeof supervisorProjectSubmissionDetailsSchema
->;
-
+// TODO: infer this from the newSupervisorSchema
 export const supervisorCapacitiesSchema = z
   .object({
     projectTarget: z.coerce

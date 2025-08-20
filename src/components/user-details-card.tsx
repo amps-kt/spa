@@ -22,7 +22,7 @@ export function UserDetailsCard({
   children?: ReactNode;
 }) {
   return (
-    <Card className={cn("w-full", className)}>
+    <Card className={cn("h-full w-full", className)}>
       <CardHeader className="pb-4">
         {full ? (
           <div className="flex items-center space-x-4">

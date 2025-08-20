@@ -115,7 +115,7 @@ export const PAGES = {
   allReaders: {
     title: "All Readers",
     href: "all-readers",
-    icon: "users",
+    icon: "book-open",
     level: 4,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: true,

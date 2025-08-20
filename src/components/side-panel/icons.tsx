@@ -1,5 +1,6 @@
 import {
   BarChart3,
+  BookOpenIcon,
   BriefcaseIcon,
   FileCheck2Icon,
   FilePlus2Icon,
@@ -29,6 +30,9 @@ export function Icon({ type }: { type: string }) {
   switch (type) {
     case "bar-chart":
       return <BarChart3 className="mr-2 h-4 w-4" />;
+
+    case "book-open":
+      return <BookOpenIcon className="mr-2 h-4 w-4" />;
 
     case "briefcase":
       return <BriefcaseIcon className="mr-2 h-4 w-4" />;

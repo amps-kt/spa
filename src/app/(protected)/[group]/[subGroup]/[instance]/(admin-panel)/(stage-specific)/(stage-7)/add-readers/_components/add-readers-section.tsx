@@ -12,6 +12,8 @@ import { spacesLabels } from "@/config/spaces";
 import { type ReaderDTO } from "@/dto";
 import { type LinkUserResult } from "@/dto/result/link-user-result";
 
+import { Reader } from "@/data-objects";
+
 import { CodeSnippet } from "@/components/code-snippet";
 import { SectionHeading } from "@/components/heading";
 import { useInstanceParams } from "@/components/params-context";
@@ -27,7 +29,7 @@ import { CSVUploadButton } from "./csv-upload-button";
 import { type ProcessingResult } from "./csv-validation-utils";
 import { FormSection } from "./form-section";
 import { useNewReaderColumns } from "./new-reader-columns";
-import { newReaderSchema, type NewReader } from "./new-reader-schema";
+import { type NewReader } from "./types";
 
 export function AddReadersSection() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export function AddReadersSection() {
   const [processingResult, setProcessingResult] =
     useState<ProcessingResult | null>(null);
 
-  const addReadersCsvHeaders = newReaderSchema.keyof().options.toSorted();
+  const addReadersCsvHeaders = Reader.newCSVSchema.keyof().options.toSorted();
 
   const { data, isLoading, refetch } =
     api.institution.instance.getReaders.useQuery({ params });
