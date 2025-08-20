@@ -40,7 +40,7 @@ import {
   StudentProjectAllocationData,
   type StudentProjectAllocationDTO,
 } from "../student-project-allocation-data";
-import { User, type Student, type Supervisor } from "../user";
+import { type Reader, User, type Student, type Supervisor } from "../user";
 
 import { Project } from "..";
 
@@ -748,6 +748,10 @@ export class AllocationInstance extends DataObject {
 
   public async getSupervisor(userId: string): Promise<Supervisor> {
     return new User(this.db, userId).toSupervisor(this.params);
+  }
+
+  public async getReader(readerId: string): Promise<Reader> {
+    return new User(this.db, readerId).toReader(this.params);
   }
 
   public async isStudent(userId: string): Promise<boolean> {

@@ -18,7 +18,7 @@ import {
   type ProcessingResult,
 } from "./csv-validation-utils";
 import { ErrorReportModal } from "./error-report-modal";
-import { type NewReader } from "./new-reader-schema";
+import { type NewReader } from "./types";
 
 interface CSVUploadButtonProps {
   handleUpload: (data: ReaderDTO[]) => Promise<LinkUserResult[]>;

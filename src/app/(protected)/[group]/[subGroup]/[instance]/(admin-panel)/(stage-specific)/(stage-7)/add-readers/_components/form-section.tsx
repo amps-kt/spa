@@ -5,6 +5,8 @@ import { PlusIcon, TextCursorInputIcon } from "lucide-react";
 
 import { INSTITUTION } from "@/config/institution";
 
+import { Reader } from "@/data-objects";
+
 import { SectionHeading } from "@/components/heading";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
-import { type NewReader, newReaderSchema } from "./new-reader-schema";
+import { type NewReader } from "./types";
 
 const blankReaderForm = {
   fullName: "",
@@ -32,7 +34,7 @@ export function FormSection({
   handleAddReader: (newReader: NewReader) => Promise<void>;
 }) {
   const form = useForm<NewReader>({
-    resolver: zodResolver(newReaderSchema),
+    resolver: zodResolver(Reader.newCSVSchema),
     defaultValues: blankReaderForm,
   });
 
