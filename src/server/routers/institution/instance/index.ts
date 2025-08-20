@@ -1124,6 +1124,9 @@ export const instanceRouter = createTRPCRouter({
       );
     }),
 
+  /**
+   * @deprecated
+   */
   assignReaders: procedure.instance
     .inStage([Stage.READER_BIDDING, Stage.READER_ALLOCATION])
     .subGroupAdmin.input(

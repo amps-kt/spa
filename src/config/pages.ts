@@ -380,10 +380,10 @@ export const PAGES = {
     hasSubRoute: false,
   },
 
-  uploadReadings: {
-    title: "Upload Readings",
-    href: "upload-readings",
-    icon: "file-plus-2",
+  addReaders: {
+    title: "Add Readers",
+    href: "add-readers",
+    icon: "user-plus",
     level: 4,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
