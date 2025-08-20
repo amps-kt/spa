@@ -42,7 +42,7 @@ export function InstanceDetailsCard({ reader }: { reader: ReaderDTO }) {
 
   const {
     mutateAsync,
-    data: capacities = { workloadQuota: reader.workloadQuota },
+    data: capacities = { readingWorkloadQuota: reader.readingWorkloadQuota },
   } = api.user.reader.updateInstanceCapacities.useMutation();
 
   const form = useForm<ReaderCapacities>({
@@ -85,20 +85,20 @@ export function InstanceDetailsCard({ reader }: { reader: ReaderDTO }) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
             <FormField
               control={form.control}
-              name="workloadQuota"
+              name="readingWorkloadQuota"
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
                     <div className="flex items-center">
                       <TargetIcon className="mr-2 h-4 w-4 opacity-70" />
                       <span className="mr-2 font-semibold">
-                        Workload Quota:
+                        Reading Workload Quota:
                       </span>
                       {editMode ? (
                         <Input className="w-10" {...field} />
                       ) : (
                         <Badge variant="accent">
-                          {capacities.workloadQuota}
+                          {capacities.readingWorkloadQuota}
                         </Badge>
                       )}
                     </div>

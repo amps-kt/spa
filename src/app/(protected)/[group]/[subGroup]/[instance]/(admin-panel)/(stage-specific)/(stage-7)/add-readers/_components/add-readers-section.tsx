@@ -63,7 +63,7 @@ export function AddReadersSection() {
       name: data.fullName,
       email: data.email,
       joined: false,
-      workloadQuota: data.workloadQuota,
+      readingWorkloadQuota: data.readingWorkloadQuota,
     };
 
     void toast

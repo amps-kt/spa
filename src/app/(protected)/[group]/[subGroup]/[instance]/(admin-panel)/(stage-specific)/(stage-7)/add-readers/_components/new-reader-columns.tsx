@@ -89,16 +89,16 @@ export function useNewReaderColumns({
       ),
     },
     {
-      id: "Workload Quota",
-      accessorFn: ({ workloadQuota }) => workloadQuota,
+      id: "Reading Workload Quota",
+      accessorFn: ({ readingWorkloadQuota }) => readingWorkloadQuota,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Workload Quota" />
+        <DataTableColumnHeader column={column} title="Reading Workload Quota" />
       ),
       cell: ({
         row: {
-          original: { workloadQuota },
+          original: { readingWorkloadQuota },
         },
-      }) => <div className="text-center">{workloadQuota}</div>,
+      }) => <div className="text-center">{readingWorkloadQuota}</div>,
     },
     {
       accessorKey: "actions",

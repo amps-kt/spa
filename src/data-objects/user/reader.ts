@@ -24,17 +24,17 @@ export class Reader extends Marker {
     email: z
       .email("Please enter a valid email address")
       .transform((x) => x.toLowerCase()),
-    workloadQuota: z.coerce
+    readingWorkloadQuota: z.coerce
       .number<number>({
         error: (issue) =>
           issue.input === undefined ? "Required" : "Invalid integer",
       })
-      .int("Please enter an integer for the workload quota")
-      .nonnegative("Workload quota must be a non-negative integer"),
+      .int("Please enter an integer for the reading workload quota")
+      .nonnegative("Reading workload quota must be a non-negative integer"),
   });
 
   public static capacitiesSchema = this.newCSVSchema.pick({
-    workloadQuota: true,
+    readingWorkloadQuota: true,
   });
 
   public async getAllocations(): Promise<
@@ -68,7 +68,6 @@ export class Reader extends Marker {
       },
     });
 
-    // TODO this should probably return an arr?
     return data.map((a) => ({
       project: T.toProjectDTO(a.project),
       student: a.project.studentAllocations.map(({ student }) =>
@@ -87,15 +86,15 @@ export class Reader extends Marker {
   }
 
   public async setCapacityDetails({
-    workloadQuota,
+    readingWorkloadQuota,
   }: {
-    workloadQuota: number;
+    readingWorkloadQuota: number;
   }): Promise<ReaderDTO> {
     const readerData = await this.db.readerDetails.update({
       where: {
         readerDetailsId: { userId: this.id, ...expand(this.instance.params) },
       },
-      data: { projectAllocationTarget: workloadQuota },
+      data: { readingWorkloadQuota },
       include: { userInInstance: { include: { user: true } } },
     });
 
