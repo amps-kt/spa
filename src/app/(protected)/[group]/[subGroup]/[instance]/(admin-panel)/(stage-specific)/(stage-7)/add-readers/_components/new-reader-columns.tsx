@@ -37,8 +37,6 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
-import { previousStages } from "@/lib/utils/permissions/stage-check";
-
 export function useNewReaderColumns({
   deleteReader,
   deleteManyReaders,
@@ -141,7 +139,7 @@ export function useNewReaderColumns({
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <ConditionalRender
-                    allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                    allowedStages={[Stage.READER_BIDDING]}
                     allowed={
                       <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
                         <YesNoActionTrigger
@@ -228,7 +226,7 @@ export function useNewReaderColumns({
                   </Link>
                 </DropdownMenuItem>
                 <ConditionalRender
-                  allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                  allowedStages={[Stage.READER_BIDDING]}
                   allowed={
                     <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
                       <YesNoActionTrigger
@@ -243,10 +241,10 @@ export function useNewReaderColumns({
                   }
                   denied={(data) => (
                     <WithTooltip
+                      forDisabled
                       tip={
                         <FormatDenials action="Deleting Readers" {...data} />
                       }
-                      forDisabled
                     >
                       <DropdownMenuItem
                         className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
