@@ -50,9 +50,7 @@ model SupervisorDetails {
 }
 
 model ReaderDetails {
-  projectAllocationLowerBound Int                       @map("project_allocation_lower_bound")
-  projectAllocationTarget     Int                       @map("project_allocation_target")
-  projectAllocationUpperBound Int                       @map("project_allocation_upper_bound")
+  readingWorkloadQuota Int                       @map("reading_workload_quota")
   // ---
   userId                      String                    @map("user_id")
   allocationGroupId           String                    @map("allocation_group_id")
