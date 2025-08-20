@@ -1058,7 +1058,8 @@ export const instanceRouter = createTRPCRouter({
           })
 
           .map((a) => {
-            const ra = a.project.readerAllocations.find((r) => !r.thirdMarker);
+            // TODO fix
+            const ra = a.project.readerAllocations[0];
             if (!ra) {
               throw new Error(
                 "instance.getMarkerSubmissions: Reader allocation not found",
