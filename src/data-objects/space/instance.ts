@@ -325,7 +325,7 @@ export class AllocationInstance extends DataObject {
     });
   }
 
-  public async linkSupervisors(newSupervisors: SupervisorDTO[]) {
+  public async linkManySupervisors(newSupervisors: SupervisorDTO[]) {
     await this.db.supervisorDetails.createMany({
       data: newSupervisors.map((user) => ({
         ...expand(this.params),
@@ -339,7 +339,21 @@ export class AllocationInstance extends DataObject {
     });
   }
 
-  public async linkStudents(newStudents: StudentDTO[]) {
+  public async linkManyReaders(newReaders: ReaderDTO[]) {
+    await this.db.readerDetails.createMany({
+      data: newReaders.map((r) => ({
+        ...expand(this.params),
+        // TODO [#9a3412]: revisit post Data Model rework merge
+        projectAllocationLowerBound: 0,
+        projectAllocationTarget: r.workloadQuota,
+        projectAllocationUpperBound: r.workloadQuota,
+        userId: r.id,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  public async linkManyStudents(newStudents: StudentDTO[]) {
     await this.db.studentDetails.createMany({
       data: newStudents.map((s) => ({
         ...expand(this.params),
@@ -1218,6 +1232,18 @@ export class AllocationInstance extends DataObject {
 
   public async deleteManySupervisors(userIds: string[]): Promise<void> {
     await this.db.supervisorDetails.deleteMany({
+      where: { userId: { in: userIds }, ...expand(this.params) },
+    });
+  }
+
+  public async deleteReader(userId: string): Promise<void> {
+    await this.db.readerDetails.delete({
+      where: { readerDetailsId: { userId, ...expand(this.params) } },
+    });
+  }
+
+  public async deleteManyReaders(userIds: string[]): Promise<void> {
+    await this.db.readerDetails.deleteMany({
       where: { userId: { in: userIds }, ...expand(this.params) },
     });
   }

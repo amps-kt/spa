@@ -296,7 +296,7 @@ export const instanceRouter = createTRPCRouter({
 
         await instance.linkUsers(newSupervisors);
 
-        await instance.linkSupervisors(newSupervisors);
+        await instance.linkManySupervisors(newSupervisors);
 
         const res = newSupervisors.map((s) => {
           if (existingSupervisorIds.includes(s.id)) {
@@ -393,7 +393,7 @@ export const instanceRouter = createTRPCRouter({
         if (!userExists) await institution.createUser(newStudent);
 
         await instance.linkUser(newStudent);
-        await instance.linkStudents([newStudent]);
+        await instance.linkManyStudents([newStudent]);
 
         if (!userExists) {
           audit("Added new student", {
@@ -433,7 +433,7 @@ export const instanceRouter = createTRPCRouter({
 
         await instance.linkUsers(newStudents);
 
-        await instance.linkStudents(newStudents);
+        await instance.linkManyStudents(newStudents);
 
         const res = newStudents.map((s) => {
           if (existingStudentIds.includes(s.id)) {
@@ -901,6 +901,107 @@ export const instanceRouter = createTRPCRouter({
       }
 
       return results;
+    }),
+
+  getReaders: procedure.instance.subGroupAdmin
+    .output(z.array(readerDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getReaders()),
+
+  addReader: procedure.instance.subGroupAdmin
+    .input(z.object({ newReader: readerDtoSchema }))
+    .output(LinkUserResultSchema)
+    .mutation(
+      async ({
+        ctx: { instance, institution, audit },
+        input: { newReader },
+      }) => {
+        if (await instance.isReader(newReader.id)) {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.PRE_EXISTING,
+          });
+          return LinkUserResult.PRE_EXISTING;
+        }
+
+        const userExists = await institution.userExists(newReader.id);
+
+        if (!userExists) await institution.createUser(newReader);
+
+        await instance.linkUser(newReader);
+        await instance.linkManyReaders([newReader]);
+
+        if (!userExists) {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.CREATED_NEW,
+          });
+          return LinkUserResult.CREATED_NEW;
+        } else {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.OK,
+          });
+          return LinkUserResult.OK;
+        }
+      },
+    ),
+
+  addManyReaders: procedure.instance.subGroupAdmin
+    .input(z.object({ newReaders: z.array(readerDtoSchema) }))
+    .output(z.array(LinkUserResultSchema))
+    .mutation(
+      async ({
+        ctx: { instance, institution, audit },
+        input: { newReaders },
+      }) => {
+        const existingReaderIds = await instance
+          .getReaders()
+          .then((data) => data.map(({ id }) => id));
+
+        const existingUserIds = await institution
+          .getUsers()
+          .then((data) => data.map(({ id }) => id));
+
+        await institution.createUsers(
+          newReaders.map((s) => ({ id: s.id, name: s.name, email: s.email })),
+        );
+
+        await instance.linkUsers(newReaders);
+
+        await instance.linkManyReaders(newReaders);
+
+        const res = newReaders.map((s) => {
+          if (existingReaderIds.includes(s.id)) {
+            return LinkUserResult.PRE_EXISTING;
+          }
+          if (existingUserIds.includes(s.id)) {
+            return LinkUserResult.CREATED_NEW;
+          }
+          return LinkUserResult.OK;
+        });
+
+        audit("Added new readers", { data: res });
+
+        return res;
+      },
+    ),
+
+  deleteReader: procedure.instance
+    .inStage(previousStages(Stage.READER_BIDDING))
+    .subGroupAdmin.input(z.object({ readerId: z.string() }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { readerId } }) => {
+      audit("Deleted reader", { readerId });
+      return await instance.deleteReader(readerId);
+    }),
+
+  deleteManyReaders: procedure.instance
+    .inStage(previousStages(Stage.READER_BIDDING))
+    .subGroupAdmin.input(z.object({ readerIds: z.array(z.string()) }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { readerIds } }) => {
+      audit("Deleted readers", { readerIds });
+      return await instance.deleteManyReaders(readerIds);
     }),
 
   getHeaderTabs: procedure.user
