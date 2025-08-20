@@ -117,9 +117,8 @@ model ReaderPreference {
 }
 
 enum ReaderPreferenceType {
-  preferred
-  rejected
-
+  PREFERRED
+  UNACCEPTABLE
   @@map("reader_preference_type")
 }
 
