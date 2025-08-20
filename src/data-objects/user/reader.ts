@@ -19,30 +19,37 @@ export class Reader extends Marker {
     const data = await this.db.readerProjectAllocation.findMany({
       where: { ...expand(this.instance.params), readerId: this.id },
       include: {
-        student: {
+        project: {
           include: {
-            userInInstance: { include: { user: true } },
-            studentFlag: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+            studentAllocations: {
               include: {
-                unitsOfAssessment: {
-                  include: { assessmentCriteria: true, flag: true },
+                student: {
+                  include: {
+                    userInInstance: { include: { user: true } },
+                    studentFlag: {
+                      include: {
+                        unitsOfAssessment: {
+                          include: { assessmentCriteria: true, flag: true },
+                        },
+                      },
+                    },
+                  },
                 },
               },
             },
           },
         },
-        project: {
-          include: {
-            flagsOnProject: { include: { flag: true } },
-            tagsOnProject: { include: { tag: true } },
-          },
-        },
       },
     });
 
+    // TODO this should probably return an arr?
     return data.map((a) => ({
       project: T.toProjectDTO(a.project),
-      student: T.toStudentDTO(a.student),
+      student: a.project.studentAllocations.map(({ student }) =>
+        T.toStudentDTO(student),
+      )[0],
     }));
   }
 }

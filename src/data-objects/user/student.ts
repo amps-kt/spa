@@ -408,7 +408,13 @@ export class Student extends User {
 
   public async getReader(): Promise<ReaderDTO> {
     const data = await this.db.readerDetails.findFirstOrThrow({
-      where: { projectAllocations: { some: { studentId: this.id } } },
+      where: {
+        projectAllocations: {
+          some: {
+            project: { studentAllocations: { some: { userId: this.id } } },
+          },
+        },
+      },
       include: { userInInstance: { include: { user: true } } },
     });
 

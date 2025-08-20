@@ -1,4 +1,8 @@
-import { PreferenceType, type PrismaClient, Stage } from "@prisma/client";
+import {
+  StudentPreferenceType as PreferenceType,
+  type PrismaClient,
+  Stage,
+} from "@prisma/client";
 import { z } from "zod";
 
 type PrismaTransactionClient = Omit<
@@ -26,9 +30,7 @@ export type {
   MatchingResult as DB_MatchingResult,
   Project as DB_Project,
   ReaderDetails as DB_ReaderDetails,
-  ReaderDraftPreference as DB_ReaderDraftPreference,
   ReaderProjectAllocation as DB_ReaderProjectAllocation,
-  ReaderSubmittedPreference as DB_ReaderSubmittedPreference,
   StudentDetails as DB_StudentDetails,
   StudentDraftPreference as DB_StudentDraftPreference,
   StudentProjectAllocation as DB_StudentProjectAllocation,
@@ -135,7 +137,7 @@ export type ExtendedPreferenceType = z.infer<
 
 export {
   AlgorithmFlag,
-  PreferenceType,
+  StudentPreferenceType as PreferenceType,
   Stage,
   MarkerType,
   AllocationMethod,

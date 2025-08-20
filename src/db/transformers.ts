@@ -164,9 +164,7 @@ export class Transformers {
       name: data.userInInstance.user.name,
       email: data.userInInstance.user.email,
       joined: data.userInInstance.joined,
-      allocationLowerBound: data.projectAllocationLowerBound,
-      allocationTarget: data.projectAllocationTarget,
-      allocationUpperBound: data.projectAllocationUpperBound,
+      readingWorkloadQuota: data.readingWorkloadQuota,
     };
   }
 

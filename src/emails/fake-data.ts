@@ -29,9 +29,7 @@ export const fakeReader = {
   email: "sam.blankman@uni.ac.uk",
   name: "Sam Blankman",
   joined: false,
-  allocationTarget: 0,
-  allocationLowerBound: 0,
-  allocationUpperBound: 0,
+  readingWorkloadQuota: 0,
 };
 
 export const fakeThirdMarker = {
