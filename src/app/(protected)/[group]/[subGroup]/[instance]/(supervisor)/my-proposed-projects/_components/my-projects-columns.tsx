@@ -8,10 +8,16 @@ import {
 import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
+import { PAGES } from "@/config/pages";
 
 import { Stage } from "@/db/types";
 
-import { useInstancePath, useInstanceStage } from "@/components/params-context";
+import { ConditionalRender } from "@/components/access-control";
+import { FormatDenials } from "@/components/access-control/format-denial";
+import {
+  useInstanceStage,
+  usePathInInstance,
+} from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -31,7 +37,11 @@ import {
 } from "@/components/yes-no-action";
 
 import { cn } from "@/lib/utils";
-import { stageGt } from "@/lib/utils/permissions/stage-check";
+import {
+  previousStages,
+  stageGt,
+  stageLte,
+} from "@/lib/utils/permissions/stage-check";
 
 export type SupervisorProjectDataDto = {
   id: string;
@@ -49,7 +59,7 @@ export function useMyProjectColumns({
   deleteSelectedProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<SupervisorProjectDataDto>[] {
   const stage = useInstanceStage();
-  const instancePath = useInstancePath();
+  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<SupervisorProjectDataDto>();
 
@@ -86,7 +96,7 @@ export function useMyProjectColumns({
               buttonVariants({ variant: "link" }),
               "inline-block w-52 truncate px-0 text-start",
             )}
-            href={`${instancePath}/projects/${id}`}
+            href={getInstancePath([PAGES.allProjects.href, id])}
           >
             {title}
           </Link>
@@ -151,17 +161,11 @@ export function useMyProjectColumns({
       const someSelected =
         table.getIsAllPageRowsSelected() || table.getIsSomePageRowsSelected();
 
-      const selectedProjectIds = table
+      const selectedProjects = table
         .getSelectedRowModel()
-        .rows.map((e) => e.original.id);
+        .rows.map((e) => e.original);
 
-      async function handleDeleteSelected() {
-        void deleteSelectedProjects(selectedProjectIds).then(() => {
-          table.toggleAllRowsSelected(false);
-        });
-      }
-
-      if (someSelected) {
+      if (someSelected && stageLte(stage, Stage.STUDENT_BIDDING)) {
         return (
           <div className="flex w-24 items-center justify-center">
             <DropdownMenu>
@@ -172,12 +176,18 @@ export function useMyProjectColumns({
                 </Button>
               </DropdownMenuTrigger>
               <YesNoActionContainer
-                action={handleDeleteSelected}
+                action={async () => {
+                  void deleteSelectedProjects(
+                    selectedProjects.map((x) => x.id),
+                  ).then(() => {
+                    table.toggleAllRowsSelected(false);
+                  });
+                }}
                 title="Delete Projects?"
                 description={
-                  selectedProjectIds.length === 1
-                    ? `You are about to delete "${selectedProjectIds[0]}". Do you wish to proceed?`
-                    : `You are about to delete ${selectedProjectIds.length} projects. Do you wish to proceed?`
+                  selectedProjects.length === 1
+                    ? `You are about to delete "${selectedProjects[0].title}". Do you wish to proceed?`
+                    : `You are about to delete ${selectedProjects.length} projects. Do you wish to proceed?`
                 }
               >
                 <DropdownMenuContent align="center" side="bottom">
@@ -188,7 +198,9 @@ export function useMyProjectColumns({
                       trigger={
                         <button className="flex items-center gap-2">
                           <Trash2Icon className="h-4 w-4" />
-                          <span>Delete Selected Projects</span>
+                          <span>
+                            Delete {selectedProjects.length} selected projects
+                          </span>
                         </button>
                       }
                     />
@@ -201,11 +213,7 @@ export function useMyProjectColumns({
       }
       return <ActionColumnLabel className="w-24" />;
     },
-    cell: ({
-      row: {
-        original: { id, title },
-      },
-    }) => (
+    cell: ({ row: { original: project } }) => (
       <div className="flex w-24 items-center justify-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -215,9 +223,9 @@ export function useMyProjectColumns({
             </Button>
           </DropdownMenuTrigger>
           <YesNoActionContainer
-            action={() => deleteProject(id)}
+            action={() => deleteProject(project.id)}
             title="Delete Project?"
-            description={`You are about to delete project ${id}. Do you wish to proceed?`}
+            description={`You are about to delete project ${project.title}. Do you wish to proceed?`}
           >
             <DropdownMenuContent align="center" side="bottom">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -225,35 +233,88 @@ export function useMyProjectColumns({
               <DropdownMenuItem className="group/item">
                 <Link
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`${instancePath}/projects/${id}`}
+                  href={getInstancePath([PAGES.allProjects.href, project.id])}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <p className="flex items-center">
                     View &quot;
-                    <p className="max-w-40 truncate">{title}</p>
+                    <p className="max-w-40 truncate">{project.title}</p>
                     &quot;
                   </p>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="group/item">
-                <Link
-                  className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`${instancePath}/projects/${id}/edit`}
-                >
-                  <PenIcon className="h-4 w-4" />
-                  <span>Edit Project details</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
-                <YesNoActionTrigger
-                  trigger={
-                    <button className="flex items-center gap-2">
-                      <Trash2Icon className="h-4 w-4" />
-                      <span>Delete Project</span>
-                    </button>
-                  }
-                />
-              </DropdownMenuItem>
+              <ConditionalRender
+                allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                allowed={
+                  <DropdownMenuItem className="group/item">
+                    <Link
+                      className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
+                      href={getInstancePath([
+                        PAGES.allProjects.href,
+                        project.id,
+                        PAGES.editProject.href,
+                      ])}
+                    >
+                      <PenIcon className="h-4 w-4" />
+                      <span>Edit Project details</span>
+                    </Link>
+                  </DropdownMenuItem>
+                }
+                denied={(data) => (
+                  <WithTooltip
+                    forDisabled
+                    tip={
+                      <FormatDenials
+                        action="Editing Project Details"
+                        {...data}
+                      />
+                    }
+                  >
+                    <DropdownMenuItem disabled>
+                      <button className="flex items-center gap-2 text-primary">
+                        <PenIcon className="h-4 w-4" />
+                        <span>Edit Project details</span>
+                      </button>
+                    </DropdownMenuItem>
+                  </WithTooltip>
+                )}
+              />
+              <ConditionalRender
+                allowedStages={previousStages(Stage.STUDENT_BIDDING)}
+                allowed={
+                  <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
+                    <YesNoActionTrigger
+                      trigger={
+                        <button className="flex items-center gap-2">
+                          <Trash2Icon className="h-4 w-4" />
+                          <span>Delete Project</span>
+                        </button>
+                      }
+                    />
+                  </DropdownMenuItem>
+                }
+                denied={(denialData) => (
+                  <WithTooltip
+                    forDisabled
+                    tip={
+                      <FormatDenials
+                        action="Deleting a project"
+                        {...denialData}
+                      />
+                    }
+                  >
+                    <DropdownMenuItem
+                      className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
+                      disabled
+                    >
+                      <button className="flex items-center gap-2">
+                        <Trash2Icon className="h-4 w-4" />
+                        <span>Delete Project</span>
+                      </button>
+                    </DropdownMenuItem>
+                  </WithTooltip>
+                )}
+              />
             </DropdownMenuContent>
           </YesNoActionContainer>
         </DropdownMenu>
@@ -261,6 +322,6 @@ export function useMyProjectColumns({
     ),
   };
 
-  if (stageGt(stage, Stage.STUDENT_BIDDING)) return userCols;
+  if (stageGt(stage, Stage.STUDENT_BIDDING)) return [...userCols, actionCol];
   return [selectCol, ...userCols, actionCol];
 }

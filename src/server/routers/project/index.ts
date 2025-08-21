@@ -303,7 +303,7 @@ export const projectRouter = createTRPCRouter({
       return PermissionResult.UNAUTHORISED;
     }),
 
-  deleteSelected: procedure.instance
+  deleteMany: procedure.instance
     .inStage(previousStages(Stage.PROJECT_ALLOCATION))
     .withRoles([Role.ADMIN, Role.SUPERVISOR])
     .input(z.object({ projectIds: z.array(z.string()) }))

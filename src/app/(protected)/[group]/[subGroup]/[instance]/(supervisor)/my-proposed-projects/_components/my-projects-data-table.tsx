@@ -23,7 +23,7 @@ export function MyProjectsDataTable({
 
   const { mutateAsync: deleteAsync } = api.project.delete.useMutation();
   const { mutateAsync: deleteSelectedAsync } =
-    api.project.deleteSelected.useMutation();
+    api.project.deleteMany.useMutation();
 
   async function handleDelete(projectId: string) {
     void toast.promise(
@@ -33,6 +33,7 @@ export function MyProjectsDataTable({
       {
         loading: "Deleting Project...",
         error: "Something went wrong",
+        // TODO [#14532d] use title instead of ID
         success: `Project ${projectId} deleted successfully`,
       },
     );
@@ -54,11 +55,5 @@ export function MyProjectsDataTable({
     deleteSelectedProjects: handleDeleteSelected,
   });
 
-  return (
-    <DataTable
-      className="w-full"
-      columns={columns}
-      data={projects}
-    />
-  );
+  return <DataTable className="w-full" columns={columns} data={projects} />;
 }
