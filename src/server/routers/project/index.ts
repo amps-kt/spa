@@ -16,7 +16,7 @@ import {
   linkProjectTagIds,
 } from "@/db/transactions/project-flags";
 import { Transformers as T } from "@/db/transformers";
-import { PreferenceType, Stage } from "@/db/types";
+import { PreferenceType, readerPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -164,6 +164,43 @@ export const projectRouter = createTRPCRouter({
       ),
     )
     .query(async ({ ctx: { instance } }) => await instance.getPreAllocations()),
+
+  // move to reader router
+  getAllAvailableForReadingForUser: procedure.instance.reader
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance, user } }) => {
+      const allProjects = await instance.getProjectDetails();
+
+      const readingPreferences = await user.getPreferences();
+
+      return allProjects
+        .filter((x) => x.project.supervisorId !== user.id)
+        .sort((a, b) => a.project.title.localeCompare(b.project.title))
+        .map(({ project }) => ({
+          project,
+          readingPreference: readingPreferences.get(project.id),
+        }));
+    }),
+  // move to reader router
+  updateReaderPreference: procedure.instance.reader
+    .input(
+      z.object({
+        projectId: z.string(),
+        readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
+      }),
+    )
+    .output(readerPreferenceTypeSchema.or(z.undefined()))
+    .mutation(
+      async ({ ctx: { user }, input: { projectId, readingPreference } }) =>
+        await user.updateReadingPreference(projectId, readingPreference),
+    ),
 
   getById: procedure.project.user
     .output(projectDtoSchema)

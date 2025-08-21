@@ -282,6 +282,23 @@ export const PAGES = {
     allowedRoles: [Role.SUPERVISOR],
     hasSubRoute: false,
   },
+  nonAdminReaderTasks: {
+    title: "Tasks",
+    href: "reader-tasks",
+    icon: "list-checks",
+    level: 3,
+    allowedRoles: [Role.READER],
+    hasSubRoute: false,
+  },
+
+  allAvailableProjects: {
+    title: "All Available Projects",
+    href: "all-available-projects",
+    icon: "folder",
+    level: 4,
+    allowedRoles: [Role.READER],
+    hasSubRoute: false,
+  },
 
   unitsOfAssessment: {
     title: "Units of Assessment",

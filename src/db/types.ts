@@ -1,5 +1,6 @@
 import {
   StudentPreferenceType as PreferenceType,
+  ReaderPreferenceType,
   type PrismaClient,
   Stage,
 } from "@prisma/client";
@@ -125,19 +126,46 @@ export const preferenceTypeSchema = z.enum([
   PreferenceType.PREFERENCE,
 ]);
 
+// I hate this name
 export const extendedPreferenceTypeSchema = z.enum([
   PreferenceType.SHORTLIST,
   PreferenceType.PREFERENCE,
   "SUBMITTED",
 ]);
 
+// I hate this name
 export type ExtendedPreferenceType = z.infer<
   typeof extendedPreferenceTypeSchema
+>;
+
+export const readerPreferenceTypeSchema = z.enum([
+  ReaderPreferenceType.PREFERRED,
+  ReaderPreferenceType.UNACCEPTABLE,
+]);
+
+export type MaybeReaderPreferenceType = ReaderPreferenceType | undefined;
+
+// I hate this name
+export const ExtendedReaderPreferenceType = {
+  ACCEPTABLE: "ACCEPTABLE",
+  [ReaderPreferenceType.PREFERRED]: ReaderPreferenceType.PREFERRED,
+  [ReaderPreferenceType.UNACCEPTABLE]: ReaderPreferenceType.UNACCEPTABLE,
+} as const;
+
+export const extendedReaderPreferenceTypeSchema = z.enum([
+  ExtendedReaderPreferenceType.PREFERRED,
+  ExtendedReaderPreferenceType.UNACCEPTABLE,
+  ExtendedReaderPreferenceType.ACCEPTABLE,
+]);
+
+export type ExtendedReaderPreferenceType = z.infer<
+  typeof extendedReaderPreferenceTypeSchema
 >;
 
 export {
   AlgorithmFlag,
   StudentPreferenceType as PreferenceType,
+  ReaderPreferenceType,
   Stage,
   MarkerType,
   AllocationMethod,
