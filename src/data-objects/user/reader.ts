@@ -3,7 +3,7 @@ import { z } from "zod";
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
+import { type ReaderPreferenceType, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { institutionIdSchema } from "@/lib/validations/institution-id";
@@ -99,5 +99,40 @@ export class Reader extends Marker {
     });
 
     return T.toReaderDTO(readerData);
+  }
+
+  public async getPreferences(): Promise<Map<string, ReaderPreferenceType>> {
+    const data = await this.db.readerPreference.findMany({
+      where: { ...expand(this.instance.params), readerId: this.id },
+    });
+
+    return data.reduce(
+      (acc, val) => acc.set(val.projectId, val.type),
+      new Map<string, ReaderPreferenceType>(),
+    );
+  }
+
+  public async updateReadingPreference(
+    projectId: string,
+    readingPreference: ReaderPreferenceType | undefined,
+  ): Promise<ReaderPreferenceType | undefined> {
+    if (!readingPreference) {
+      await this.db.readerPreference.delete({
+        where: { readerId_projectId: { readerId: this.id, projectId } },
+      });
+      return;
+    }
+
+    const { type } = await this.db.readerPreference.upsert({
+      where: { readerId_projectId: { readerId: this.id, projectId } },
+      update: { type: readingPreference },
+      create: {
+        ...expand(this.instance.params),
+        readerId: this.id,
+        projectId,
+        type: readingPreference,
+      },
+    });
+    return type;
   }
 }

@@ -841,6 +841,25 @@ export class AllocationInstance extends DataObject {
     return tabs[stage];
   }
 
+  public async getReaderTabs(): Promise<TabType[]> {
+    const { stage } = await this.get();
+
+    const tabs = {
+      [Stage.SETUP]: [],
+      [Stage.PROJECT_SUBMISSION]: [],
+      [Stage.STUDENT_BIDDING]: [],
+      [Stage.PROJECT_ALLOCATION]: [],
+      [Stage.ALLOCATION_ADJUSTMENT]: [],
+      [Stage.ALLOCATION_PUBLICATION]: [],
+      [Stage.READER_BIDDING]: [PAGES.allAvailableProjects, PAGES.myMarking],
+      [Stage.READER_ALLOCATION]: [PAGES.allAvailableProjects, PAGES.myMarking],
+      [Stage.MARK_SUBMISSION]: [PAGES.myMarking],
+      [Stage.GRADE_PUBLICATION]: [PAGES.myMarking],
+    };
+
+    return tabs[stage];
+  }
+
   // ---
   public async getSupervisorSubmissionDetails(): Promise<
     {

@@ -1078,6 +1078,20 @@ export const instanceRouter = createTRPCRouter({
         tabGroups.push({ title: "Supervisor", tabs: supervisorTabs });
       }
 
+      if (roles.has(Role.READER)) {
+        const isSecondRole = roles.size > 1;
+        const readerTabs = await instance.getReaderTabs();
+
+        if (!isSecondRole) {
+          tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
+          readerTabs.unshift(PAGES.instanceTasks);
+        } else if (stage !== Stage.SETUP) {
+          readerTabs.unshift(PAGES.nonAdminReaderTasks);
+        }
+
+        tabGroups.push({ title: "Reader", tabs: readerTabs });
+      }
+
       if (roles.has(Role.STUDENT)) {
         const isSecondRole = roles.size > 1;
         const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
