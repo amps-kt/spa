@@ -8,6 +8,7 @@ import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllAvailableProjectsDataTable } from "./_components/all-available-projects-data-table";
+import { HelpSection } from "./_components/help-section";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
@@ -32,6 +33,7 @@ export default async function Projects({ params }: { params: InstanceParams }) {
   return (
     <PanelWrapper>
       <Heading>{PAGES.allAvailableProjects.title}</Heading>
+      <HelpSection />
       <AllAvailableProjectsDataTable
         data={projectData}
         projectDescriptors={projectDescriptors}

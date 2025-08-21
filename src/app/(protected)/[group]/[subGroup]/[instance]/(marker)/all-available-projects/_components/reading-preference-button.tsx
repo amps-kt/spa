@@ -8,28 +8,38 @@ import {
 } from "@/db/types";
 
 import { Button } from "@/components/ui/button";
+import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
 import { fromExtended, toExtended } from "@/lib/utils/reader-preference";
 
 const preferenceConfigs: Record<
   ExtendedReaderPreferenceType,
-  { label: string; color: string; bgColor: string; hoverColor: string }
+  {
+    label: string;
+    tip: string;
+    color: string;
+    bgColor: string;
+    hoverColor: string;
+  }
 > = {
   [ExtendedReaderPreferenceType.ACCEPTABLE]: {
     label: "Acceptable",
+    tip: "Project is currently considered acceptable, click to change status to Preferred",
     color: "text-amber-800",
     bgColor: "bg-amber-100 border-amber-300",
     hoverColor: "hover:bg-amber-200",
   },
   [ExtendedReaderPreferenceType.PREFERRED]: {
     label: "Preferred",
+    tip: "Click to change preference",
     color: "text-green-800",
     bgColor: "bg-green-100 border-green-300",
     hoverColor: "hover:bg-green-200",
   },
   [ExtendedReaderPreferenceType.UNACCEPTABLE]: {
     label: "Rejected",
+    tip: "Click to change preference",
     color: "text-red-800",
     bgColor: "bg-red-100 border-red-300",
     hoverColor: "hover:bg-red-200",
@@ -37,9 +47,9 @@ const preferenceConfigs: Record<
 };
 
 const preferenceOrder = [
-  ExtendedReaderPreferenceType.UNACCEPTABLE,
-  ExtendedReaderPreferenceType.PREFERRED,
   ExtendedReaderPreferenceType.ACCEPTABLE,
+  ExtendedReaderPreferenceType.PREFERRED,
+  ExtendedReaderPreferenceType.UNACCEPTABLE,
 ];
 
 export function ReadingPreferenceButton({
@@ -72,27 +82,32 @@ export function ReadingPreferenceButton({
     preferenceConfigs[current ?? ExtendedReaderPreferenceType.ACCEPTABLE];
 
   return (
-    <Button
-      onClick={onPreferenceChange}
-      variant="outline"
-      size="sm"
-      className={cn(
-        "transition-all duration-200 border-2 font-medium flex items-center gap-2",
-        config.color,
-        config.bgColor,
-        config.hoverColor,
-        className,
-      )}
-    >
-      <div
+    <WithTooltip tip={config.tip}>
+      <Button
+        onClick={onPreferenceChange}
+        variant="outline"
+        size="sm"
         className={cn(
-          "w-3 h-3 rounded-full",
-          current === ExtendedReaderPreferenceType.ACCEPTABLE && "bg-amber-500",
-          current === ExtendedReaderPreferenceType.PREFERRED && "bg-green-500",
-          current === ExtendedReaderPreferenceType.UNACCEPTABLE && "bg-red-500",
+          "transition-all duration-200 border-2 font-medium flex items-center gap-2 hover:cursor-pointer",
+          config.color,
+          config.bgColor,
+          config.hoverColor,
+          className,
         )}
-      />
-      <p>{config.label}</p>
-    </Button>
+      >
+        <div
+          className={cn(
+            "w-3 h-3 rounded-full",
+            current === ExtendedReaderPreferenceType.ACCEPTABLE &&
+              "bg-amber-500",
+            current === ExtendedReaderPreferenceType.PREFERRED &&
+              "bg-green-500",
+            current === ExtendedReaderPreferenceType.UNACCEPTABLE &&
+              "bg-red-500",
+          )}
+        />
+        <p>{config.label}</p>
+      </Button>
+    </WithTooltip>
   );
 }
