@@ -22,7 +22,10 @@ import { Stage } from "@/db/types";
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
 import { CircleCheckSolidIcon } from "@/components/icons/circle-check";
-import { useInstancePath, useInstanceStage } from "@/components/params-context";
+import {
+  useInstanceStage,
+  usePathInInstance,
+} from "@/components/params-context";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -58,13 +61,13 @@ type ProjectWithAllocation = {
 
 export function useSupervisorProjectsColumns({
   deleteProject,
-  deleteSelectedProjects,
+  deleteManyProjects,
 }: {
   deleteProject: (id: string) => Promise<void>;
-  deleteSelectedProjects: (ids: string[]) => Promise<void>;
+  deleteManyProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<ProjectWithAllocation>[] {
   const stage = useInstanceStage();
-  const instancePath = useInstancePath();
+  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<ProjectWithAllocation>();
 
@@ -105,7 +108,7 @@ export function useSupervisorProjectsColumns({
             buttonVariants({ variant: "link" }),
             "inline-block h-max w-60 px-0 text-start",
           )}
-          href={`${instancePath}/projects/${project.id}`}
+          href={getInstancePath([PAGES.allProjects.href, project.id])}
         >
           {project.title}
         </Link>
@@ -255,7 +258,10 @@ export function useSupervisorProjectsColumns({
                 buttonVariants({ variant: "link" }),
                 "items-center gap-2",
               )}
-              href={`../${PAGES.allStudents.href}/${allocatedStudent.id}`}
+              href={getInstancePath([
+                PAGES.allStudents.href,
+                allocatedStudent.id,
+              ])}
             >
               <span>{allocatedStudent.id}</span>
               {allocatedStudent.id === project.preAllocatedStudentId && (
@@ -296,9 +302,9 @@ export function useSupervisorProjectsColumns({
       const someSelected =
         table.getIsAllPageRowsSelected() || table.getIsSomePageRowsSelected();
 
-      const selectedProjectIds = table
+      const selectedProjects = table
         .getSelectedRowModel()
-        .rows.map(({ original: { project } }) => project.id);
+        .rows.map(({ original: { project } }) => project);
 
       if (someSelected && stageLt(stage, Stage.PROJECT_ALLOCATION)) {
         return (
@@ -312,14 +318,13 @@ export function useSupervisorProjectsColumns({
               </DropdownMenuTrigger>
               <YesNoActionContainer
                 action={async () =>
-                  void deleteSelectedProjects(selectedProjectIds)
+                  void deleteManyProjects(selectedProjects.map((x) => x.id))
                 }
                 title="Delete Projects?"
                 description={
-                  selectedProjectIds.length === 1
-                    ? // TODO: display the title, not the ID
-                      `You are about to delete "${selectedProjectIds[0]}". Do you wish to proceed?`
-                    : `You are about to delete ${selectedProjectIds.length} projects. Do you wish to proceed?`
+                  selectedProjects.length === 1
+                    ? `You are about to delete "${selectedProjects[0].title}". Do you wish to proceed?`
+                    : `You are about to delete ${selectedProjects.length} projects. Do you wish to proceed?`
                 }
               >
                 <DropdownMenuContent align="center" side="bottom">
@@ -331,7 +336,7 @@ export function useSupervisorProjectsColumns({
                         <button className="flex items-center gap-2">
                           <Trash2Icon className="h-4 w-4" />
                           <span>
-                            Delete {selectedProjectIds.length} selected Projects
+                            Delete {selectedProjects.length} selected Projects
                           </span>
                         </button>
                       }
@@ -368,7 +373,7 @@ export function useSupervisorProjectsColumns({
             <YesNoActionContainer
               action={handleDelete}
               title="Delete Project?"
-              description={`You are about to delete project ${project.id}. Do you wish to proceed?`}
+              description={`You are about to delete project "${project.title}". Do you wish to proceed?`}
             >
               <DropdownMenuContent side="bottom">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -376,7 +381,7 @@ export function useSupervisorProjectsColumns({
                 <DropdownMenuItem className="group/item">
                   <Link
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={`../projects/${project.id}`}
+                    href={getInstancePath([PAGES.allProjects.href, project.id])}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <p className="flex items-center">
@@ -392,7 +397,11 @@ export function useSupervisorProjectsColumns({
                     <DropdownMenuItem className="group/item">
                       <Link
                         className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                        href={`${instancePath}/projects/${project.id}/edit`}
+                        href={getInstancePath([
+                          PAGES.allProjects.href,
+                          project.id,
+                          PAGES.editProject.href,
+                        ])}
                       >
                         <PenIcon className="h-4 w-4" />
                         <span>Edit Project details</span>
@@ -410,13 +419,10 @@ export function useSupervisorProjectsColumns({
                       forDisabled
                     >
                       <DropdownMenuItem className="group/item" disabled>
-                        <Link
-                          className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                          href={`${instancePath}/projects/${project.id}/edit`}
-                        >
+                        <button className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline">
                           <PenIcon className="h-4 w-4" />
                           <span>Edit Project details</span>
-                        </Link>
+                        </button>
                       </DropdownMenuItem>
                     </WithTooltip>
                   )}

@@ -38,6 +38,7 @@ export function ProjectRemovalButton({
         router.refresh();
       }),
       {
+        // TODO [#14532d] use title to reference project being deleted
         loading: "Deleting Project...",
         error: "Something went wrong",
         success: "Success",
