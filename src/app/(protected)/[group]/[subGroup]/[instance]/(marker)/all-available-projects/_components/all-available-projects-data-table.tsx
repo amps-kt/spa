@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type TagDTO, type FlagDTO, type ProjectDTO } from "@/dto";
@@ -26,6 +27,7 @@ export function AllAvailableProjectsDataTable({
 
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
 }) {
+  const router = useRouter();
   const params = useInstanceParams();
 
   const { mutateAsync: api_updatePreference } =
@@ -48,7 +50,11 @@ export function AllAvailableProjectsDataTable({
           success: `Successfully updated preference over project (${project.title})`,
         },
       )
-      .unwrap();
+      .unwrap()
+      .then((data) => {
+        router.refresh();
+        return data;
+      });
   }
 
   const filters = [

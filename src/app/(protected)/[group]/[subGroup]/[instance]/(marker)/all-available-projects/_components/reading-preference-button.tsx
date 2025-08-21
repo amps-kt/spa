@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
-
 import {
   ExtendedReaderPreferenceType,
   type MaybeReaderPreferenceType,
@@ -13,44 +11,7 @@ import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 import { cn } from "@/lib/utils";
 import { fromExtended, toExtended } from "@/lib/utils/reader-preference";
 
-const preferenceConfigs: Record<
-  ExtendedReaderPreferenceType,
-  {
-    label: string;
-    tip: string;
-    color: string;
-    bgColor: string;
-    hoverColor: string;
-  }
-> = {
-  [ExtendedReaderPreferenceType.ACCEPTABLE]: {
-    label: "Acceptable",
-    tip: "Project is currently considered acceptable, click to change status to Preferred",
-    color: "text-amber-800",
-    bgColor: "bg-amber-100 border-amber-300",
-    hoverColor: "hover:bg-amber-200",
-  },
-  [ExtendedReaderPreferenceType.PREFERRED]: {
-    label: "Preferred",
-    tip: "Click to change preference",
-    color: "text-green-800",
-    bgColor: "bg-green-100 border-green-300",
-    hoverColor: "hover:bg-green-200",
-  },
-  [ExtendedReaderPreferenceType.UNACCEPTABLE]: {
-    label: "Rejected",
-    tip: "Click to change preference",
-    color: "text-red-800",
-    bgColor: "bg-red-100 border-red-300",
-    hoverColor: "hover:bg-red-200",
-  },
-};
-
-const preferenceOrder = [
-  ExtendedReaderPreferenceType.ACCEPTABLE,
-  ExtendedReaderPreferenceType.PREFERRED,
-  ExtendedReaderPreferenceType.UNACCEPTABLE,
-];
+import { preferenceOrder, preferenceConfigs } from "./config";
 
 export function ReadingPreferenceButton({
   currentPreference,
@@ -63,7 +24,6 @@ export function ReadingPreferenceButton({
   ) => Promise<MaybeReaderPreferenceType>;
   className?: string;
 }) {
-  const router = useRouter();
   const [current, setCurrent] = useState<ExtendedReaderPreferenceType>(
     toExtended(currentPreference),
   );
@@ -75,7 +35,6 @@ export function ReadingPreferenceButton({
 
     const changedTo = await handleToggle(fromExtended(nextPreference));
     setCurrent(toExtended(changedTo));
-    router.refresh();
   }
 
   const config =
