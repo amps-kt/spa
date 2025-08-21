@@ -38,7 +38,7 @@ export function SupervisorProjectsDataTable({
       .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
         loading: "Deleting Project...",
         error: "Something went wrong",
-        // TODO [#14532d] use title instead of ID
+        // [#14532d] use title instead of ID
         success: `Project ${projectId} deleted successfully`,
       })
       .unwrap()
