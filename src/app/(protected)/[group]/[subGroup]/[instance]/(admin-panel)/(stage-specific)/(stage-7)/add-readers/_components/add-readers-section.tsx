@@ -42,8 +42,11 @@ export function AddReadersSection() {
 
   const addReadersCsvHeaders = Reader.newCSVSchema.keyof().options.toSorted();
 
-  const { data, isLoading, refetch } =
-    api.institution.instance.getReaders.useQuery({ params });
+  const {
+    data,
+    isLoading,
+    refetch: refetchReaderData,
+  } = api.institution.instance.getReaders.useQuery({ params });
 
   const { mutateAsync: api_addReader } =
     api.institution.instance.addReader.useMutation();
@@ -70,7 +73,7 @@ export function AddReadersSection() {
       .promise(api_addReader({ params, newReader }), {
         loading: "Adding reader...",
         success: `Successfully added reader ${newReader.id} to ${spacesLabels.instance.short}`,
-        // todo: revisit error reporting method
+        // [#b91c1c] revisit error reporting method
         error: (err) =>
           err instanceof TRPCClientError
             ? err.message
@@ -79,7 +82,7 @@ export function AddReadersSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchReaderData();
       });
   }
 
@@ -98,7 +101,7 @@ export function AddReadersSection() {
       .unwrap()
       .then(async (results) => {
         router.refresh();
-        await refetch();
+        await refetchReaderData();
         return results;
       });
   }
@@ -113,7 +116,7 @@ export function AddReadersSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchReaderData();
       });
   }
 
@@ -127,7 +130,7 @@ export function AddReadersSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchReaderData();
       });
   }
 
