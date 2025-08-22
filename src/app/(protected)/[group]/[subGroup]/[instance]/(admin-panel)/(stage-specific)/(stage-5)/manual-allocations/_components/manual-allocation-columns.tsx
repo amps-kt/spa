@@ -82,7 +82,7 @@ export function useManualAllocationColumns({
     },
 
     {
-      id: "flags",
+      id: "Flags",
       accessorFn: (row) => row.flag.id,
       header: () => null,
       cell: () => null,
@@ -97,7 +97,7 @@ export function useManualAllocationColumns({
         projects.find(
           (project) =>
             project.id === (row.selectedProjectId ?? row.originalProjectId),
-        )?.title,
+        )?.title ?? "",
       header: "Project",
       cell: ({ row }) => {
         const student = row.original;
@@ -118,7 +118,7 @@ export function useManualAllocationColumns({
         supervisors.find(
           (s) =>
             s.id === (row.selectedSupervisorId ?? row.originalSupervisorId),
-        )?.name,
+        )?.name ?? "",
 
       header: "Supervisor",
       cell: ({ row }) => {

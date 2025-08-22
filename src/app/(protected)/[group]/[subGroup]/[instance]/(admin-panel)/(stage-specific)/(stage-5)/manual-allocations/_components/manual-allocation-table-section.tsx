@@ -2,12 +2,14 @@
 
 import { useCallback, useMemo, useState } from "react";
 
+import { SaveAll } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { ProjectAllocationStatus } from "@/dto";
+import { type FlagDTO, ProjectAllocationStatus } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
+import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
@@ -27,12 +29,14 @@ interface ManualAllocationDataTableSectionProps {
   initialStudents: ManualAllocationStudent[];
   initialProjects: ManualAllocationProject[];
   initialSupervisors: ManualAllocationSupervisor[];
+  projectDescriptors: { flags: FlagDTO[] };
 }
 
 export function ManualAllocationDataTableSection({
   initialStudents,
   initialProjects,
   initialSupervisors,
+  projectDescriptors: { flags },
 }: ManualAllocationDataTableSectionProps) {
   const params = useInstanceParams();
   const router = useRouter();
@@ -392,6 +396,19 @@ export function ManualAllocationDataTableSection({
     );
   }, []);
 
+  const filters = useMemo(() => {
+    return [
+      {
+        title: "filter by Flags",
+        columnId: "Flags",
+        options: flags.map((flag) => ({
+          id: flag.id,
+          displayName: flag.displayName,
+        })),
+      },
+    ];
+  }, [flags]);
+
   const columns = useManualAllocationColumns({
     projects,
     supervisors,
@@ -401,26 +418,30 @@ export function ManualAllocationDataTableSection({
     onReset: handleReset,
   });
 
-  // The jankyness level of this to me indicates that data table may be a poor abstraction
-  // What does data table give us here that we really need?
-  return (
-    <DataTable
-      columns={columns}
-      data={students}
-      CustomRow={ManualAllocationRow}
-    />
+  const { hasChanges, dirtyCount } = useMemo(
+    () => ({
+      hasChanges: students.some((s) => s.isDirty),
+      dirtyCount: students.filter((s) => s.isDirty).length,
+    }),
+    [students],
   );
 
-  // return (
-  //   <ManualAllocationDataTable
-  //     students={students}
-  //     projects={projects}
-  //     supervisors={supervisors}
-  //     onUpdateAllocation={handleUpdateAllocation}
-  //     onRemoveAllocation={handleRemoveAllocation}
-  //     onSave={handleSave}
-  //     onSaveAll={handleSaveAll}
-  //     onReset={handleReset}
-  //   />
-  // );
+  return (
+    <section>
+      <Button
+        onClick={handleSaveAll}
+        disabled={!hasChanges}
+        className="ml-auto flex w-64 items-center gap-2"
+      >
+        <SaveAll className="h-4 w-4" />
+        Save All Changes ({dirtyCount})
+      </Button>
+      <DataTable
+        columns={columns}
+        data={students}
+        filters={filters}
+        CustomRow={ManualAllocationRow}
+      />
+    </section>
+  );
 }
