@@ -6,7 +6,7 @@ export const preferenceConfigs: Record<
   ExtendedReaderPreferenceType,
   {
     label: string;
-    tip: () => ReactNode;
+    tip: ReactNode;
     color: string;
     bgColor: string;
     hoverColor: string;
@@ -14,7 +14,7 @@ export const preferenceConfigs: Record<
 > = {
   [ExtendedReaderPreferenceType.ACCEPTABLE]: {
     label: "Acceptable",
-    tip: () => (
+    tip: (
       <p>
         Project is currently considered{" "}
         <span className="font-semibold">Acceptable</span>, click to change
@@ -27,7 +27,7 @@ export const preferenceConfigs: Record<
   },
   [ExtendedReaderPreferenceType.PREFERRED]: {
     label: "Preferred",
-    tip: () => (
+    tip: (
       <p>
         Project is currently considered{" "}
         <span className="font-semibold">Preferred</span>, click to change status
@@ -40,7 +40,7 @@ export const preferenceConfigs: Record<
   },
   [ExtendedReaderPreferenceType.UNACCEPTABLE]: {
     label: "Unacceptable",
-    tip: () => (
+    tip: (
       <p>
         Project is currently considered{" "}
         <span className="font-semibold">Unacceptable</span>, click to change
