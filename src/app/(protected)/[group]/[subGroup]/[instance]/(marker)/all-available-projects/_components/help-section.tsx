@@ -28,12 +28,15 @@ export function HelpSection() {
   return (
     <Dialog>
       <DialogTrigger className="ml-auto w-max">
-        <Button variant="outline" className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          className="hover:bg-indigo-100 flex items-center gap-2"
+        >
           <InfoIcon className="text-indigo-600 size-5" />{" "}
           <span className="text-indigo-700">Help</span>
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-w-6xl">
         <DialogHeader>
           <DialogTitle>Reader Preferences Help</DialogTitle>
         </DialogHeader>
@@ -47,11 +50,13 @@ export function HelpSection() {
           Preferences for readers come in three kinds, as laid out below:
         </div>
 
-        <ol className="mx-auto flex flex-row p-3 bg-accent text-accent-foreground rounded-md drop-shadow-lg">
+        <ol className="mx-auto flex flex-row p-3 bg-accent text-accent-foreground rounded-md drop-shadow-md">
           <li className="p-3 flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2 text-lg">
               <div className="size-8 border-1 border-amber-300 bg-amber-100 rounded-full" />
-              <h1>{preferenceConfigs.ACCEPTABLE.label}</h1>
+              <h1 className="font-semibold text-foreground">
+                {preferenceConfigs.ACCEPTABLE.label}
+              </h1>
             </div>
             <div>You are OK with reading this project</div>
           </li>
@@ -59,7 +64,9 @@ export function HelpSection() {
           <li className="p-3 flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2 text-lg">
               <div className="size-8 border-1 border-green-300 bg-green-100 rounded-full" />
-              <h1>{preferenceConfigs.PREFERRED.label}</h1>
+              <h1 className="font-semibold text-foreground">
+                {preferenceConfigs.PREFERRED.label}
+              </h1>
             </div>
             <div>You would prefer to read this project</div>
           </li>
@@ -67,7 +74,9 @@ export function HelpSection() {
           <li className="p-3 flex flex-col gap-1">
             <div className="flex flex-row items-center gap-2 text-lg">
               <div className="size-8 border-1 border-red-300 bg-red-100 rounded-full  " />
-              <h1>{preferenceConfigs.UNACCEPTABLE.label}</h1>
+              <h1 className="font-semibold text-foreground">
+                {preferenceConfigs.UNACCEPTABLE.label}
+              </h1>
             </div>
             <div>You would prefer not to read this project</div>
           </li>
