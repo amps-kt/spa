@@ -1324,6 +1324,49 @@ export const instanceRouter = createTRPCRouter({
       }));
     }),
 
+  getProjectsWithReadingAllocationStatus: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema.extend({ supervisor: supervisorDtoSchema }),
+          student: studentDtoSchema,
+          currentReaderId: z.string().optional(),
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance } }) => {
+      // TODO: implement procedure
+      return [];
+    }),
+
+  getReadersWithWorkload: procedure.instance.subGroupAdmin
+    .output(z.array(readerDtoSchema.extend({ currentAllocations: z.number() })))
+    .query(async ({ ctx: { instance } }) => {
+      // TODO: implement procedure
+      return [];
+    }),
+
+  saveManualReaderAllocations: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        allocations: z.array(
+          z.object({ projectId: z.string(), readerId: z.string().optional() }),
+        ),
+      }),
+    )
+    .output(z.array(z.object({ projectId: z.string(), success: z.boolean() })))
+    .mutation(async ({ ctx: { instance }, input: { allocations } }) => {
+      // TODO: implement procedure
+      return [];
+    }),
+
+  removeReaderAllocation: procedure.instance.subGroupAdmin
+    .input(z.object({ projectId: z.string() }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance }, input: { projectId } }) => {
+      // TODO: implement procedure
+    }),
+
   setUnitOfAssessmentAccess: procedure.instance
     .inStage([Stage.MARK_SUBMISSION])
     .subGroupAdmin.input(
