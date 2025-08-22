@@ -8,10 +8,12 @@ import { toast } from "sonner";
 import { ProjectAllocationStatus } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
+import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
 
-import { ManualAllocationDataTable } from "./manual-allocation-data-table";
+import { useManualAllocationColumns } from "./manual-allocation-columns";
+import { ManualAllocationRow } from "./manual-allocation-row";
 import {
   type ManualAllocationProject,
   type ManualAllocationStudent,
@@ -390,16 +392,35 @@ export function ManualAllocationDataTableSection({
     );
   }, []);
 
+  const columns = useManualAllocationColumns({
+    projects,
+    supervisors,
+    onUpdateAllocation: handleUpdateAllocation,
+    onRemoveAllocation: (x) => void handleRemoveAllocation(x),
+    onSave: handleSave,
+    onReset: handleReset,
+  });
+
+  // The jankyness level of this to me indicates that data table may be a poor abstraction
+  // What does data table give us here that we really need?
   return (
-    <ManualAllocationDataTable
-      students={students}
-      projects={projects}
-      supervisors={supervisors}
-      onUpdateAllocation={handleUpdateAllocation}
-      onRemoveAllocation={handleRemoveAllocation}
-      onSave={handleSave}
-      onSaveAll={handleSaveAll}
-      onReset={handleReset}
+    <DataTable
+      columns={columns}
+      data={students}
+      CustomRow={ManualAllocationRow}
     />
   );
+
+  // return (
+  //   <ManualAllocationDataTable
+  //     students={students}
+  //     projects={projects}
+  //     supervisors={supervisors}
+  //     onUpdateAllocation={handleUpdateAllocation}
+  //     onRemoveAllocation={handleRemoveAllocation}
+  //     onSave={handleSave}
+  //     onSaveAll={handleSaveAll}
+  //     onReset={handleReset}
+  //   />
+  // );
 }

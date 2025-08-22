@@ -1,6 +1,8 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import { type ReactNode } from "react";
+
+import type { ColumnDef, Row } from "@tanstack/react-table";
 import {
   flexRender,
   getCoreRowModel,
@@ -34,6 +36,11 @@ import {
   useGlobalFilterSearchParams,
 } from "./hooks";
 
+export type CustomRowType<TData> = (props: {
+  row: Row<TData>;
+  defaultRow: ReactNode;
+}) => ReactNode;
+
 interface DataTableProps<TData, TValue> {
   searchParamPrefix?: string;
   className?: string;
@@ -41,6 +48,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   filters?: TableFilter[];
   removeRow?: () => void;
+  CustomRow?: CustomRowType<TData>;
 }
 
 export default function DataTable<TData, TValue>({
@@ -50,6 +58,7 @@ export default function DataTable<TData, TValue>({
   data,
   filters = [],
   removeRow,
+  CustomRow,
 }: DataTableProps<TData, TValue>) {
   const [pagination, setPagination] = usePaginationSearchParams(prefix);
   const [columnVisibility, setColumnVisibility] = useVisibilitySearchParams(
@@ -73,28 +82,21 @@ export default function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
 
-    // Pagination [x]
     getPaginationRowModel: getPaginationRowModel(),
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    onPaginationChange: setPagination,
 
-    // Col Visibility [x]
+    onPaginationChange: (x) => void setPagination(x),
+
     onColumnVisibilityChange: setColumnVisibility,
 
-    // Sorting [x]
     getSortedRowModel: getSortedRowModel(),
     enableMultiSort: false,
     onSortingChange: setSorting,
 
-    // Col filtering [x]
     getFilteredRowModel: getFilteredRowModel(),
     onColumnFiltersChange: setColumnFilters,
 
-    // Global filtering [x]
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    onGlobalFilterChange: setGlobalFilter,
+    onGlobalFilterChange: (x: string) => void setGlobalFilter(x),
 
-    // Row selection [ ]
     onRowSelectionChange: setRowSelection,
     state: {
       globalFilter,
@@ -132,21 +134,31 @@ export default function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
+              table.getRowModel().rows.map((row) => {
+                const defaultRow = (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                );
+
+                if (CustomRow) {
+                  return (
+                    <CustomRow key={row.id} row={row} defaultRow={defaultRow} />
+                  );
+                }
+
+                return defaultRow;
+              })
             ) : (
               <TableRow>
                 <TableCell
