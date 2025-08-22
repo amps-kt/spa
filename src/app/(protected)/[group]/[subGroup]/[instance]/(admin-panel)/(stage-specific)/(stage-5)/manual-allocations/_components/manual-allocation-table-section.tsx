@@ -2,14 +2,12 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { SaveAll } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type FlagDTO, ProjectAllocationStatus } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
-import { Button } from "@/components/ui/button";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
@@ -324,62 +322,6 @@ export function ManualAllocationDataTableSection({
     [api_saveAllocations, params, refetchData, router, students],
   );
 
-  const handleSaveAll = useCallback(async () => {
-    const dirtyStudents = students.filter((s) => s.isDirty);
-
-    if (dirtyStudents.length === 0) {
-      toast.info("No allocations to save");
-      return;
-    }
-
-    const invalidStudents = dirtyStudents.filter(
-      (student) => !student.selectedProjectId || !student.selectedSupervisorId,
-    );
-
-    const allocations = dirtyStudents
-      .map((student) => {
-        if (student.selectedProjectId && student.selectedSupervisorId)
-          return {
-            studentId: student.id,
-            projectId: student.selectedProjectId,
-            supervisorId: student.selectedSupervisorId,
-          };
-      })
-      .filter(Boolean);
-
-    if (invalidStudents.length > 0) {
-      toast.error(
-        `${invalidStudents.length} student(s) have missing project or supervisor selections.`,
-      );
-    }
-
-    toast.promise(
-      api_saveAllocations({ params, allocations }).then(async () => {
-        router.refresh();
-        await refetchData();
-        setStudents((prev) =>
-          prev.map((s) => {
-            const dirtyStudent = dirtyStudents.find((ds) => ds.id === s.id);
-            if (!dirtyStudent) return s;
-
-            return {
-              ...s,
-              originalProjectId: s.selectedProjectId,
-              originalSupervisorId: s.selectedSupervisorId,
-              isDirty: false,
-              warnings: [],
-            };
-          }),
-        );
-      }),
-      {
-        loading: `Saving ${dirtyStudents.length} allocation(s)...`,
-        success: `Successfully saved ${dirtyStudents.length} allocation(s)`,
-        error: "Failed to save allocations",
-      },
-    );
-  }, [api_saveAllocations, params, refetchData, router, students]);
-
   const handleReset = useCallback((studentId: string) => {
     setStudents((prev) =>
       prev.map((student) => {
@@ -418,24 +360,8 @@ export function ManualAllocationDataTableSection({
     onReset: handleReset,
   });
 
-  const { hasChanges, dirtyCount } = useMemo(
-    () => ({
-      hasChanges: students.some((s) => s.isDirty),
-      dirtyCount: students.filter((s) => s.isDirty).length,
-    }),
-    [students],
-  );
-
   return (
     <section>
-      <Button
-        onClick={handleSaveAll}
-        disabled={!hasChanges}
-        className="ml-auto flex w-64 items-center gap-2"
-      >
-        <SaveAll className="h-4 w-4" />
-        Save All Changes ({dirtyCount})
-      </Button>
       <DataTable
         columns={columns}
         data={students}

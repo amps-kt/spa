@@ -6,8 +6,8 @@ import { TableCell, TableRow } from "@/components/ui/table";
 
 import { cn } from "@/lib/utils";
 
-import { WarningsDisplay } from "./manual-allocation-data-table";
 import { type ManualAllocationStudent } from "./manual-allocation-types";
+import { WarningsDisplay } from "./warnings-display";
 
 export const ManualAllocationRow: CustomRowType<ManualAllocationStudent> =
   function ({ row, defaultRow }) {
