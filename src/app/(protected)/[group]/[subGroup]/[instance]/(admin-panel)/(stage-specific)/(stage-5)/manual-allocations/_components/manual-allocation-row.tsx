@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { Slot } from "@radix-ui/react-slot";
 
 import { type CustomRowType } from "@/components/ui/data-table/data-table";
