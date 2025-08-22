@@ -311,14 +311,6 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
-  manualReadingAllocations: {
-    title: "Manual Reading Allocations",
-    href: "manual-reading-allocations",
-    icon: "book-open",
-    level: 4,
-    allowedRoles: [Role.ADMIN],
-    hasSubRoute: false,
-  },
   allocationOverview: {
     title: "Allocation Overview",
     href: "allocation-overview",
