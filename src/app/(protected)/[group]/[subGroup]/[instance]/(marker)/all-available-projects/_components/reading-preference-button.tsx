@@ -41,7 +41,7 @@ export function ReadingPreferenceButton({
     preferenceConfigs[current ?? ExtendedReaderPreferenceType.ACCEPTABLE];
 
   return (
-    <WithTooltip tip={config.tip}>
+    <WithTooltip tip={config.tip()}>
       <Button
         onClick={onPreferenceChange}
         variant="outline"
