@@ -42,15 +42,14 @@ export function useManualReadingAllocationColumns({
   return [
     {
       id: "project",
-      accessorFn: (row) =>
-        `${row.project.title} ${row.project.supervisor.name}`,
+      accessorFn: (row) => `${row.project.title} ${row.supervisor.name}`,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Project" />
       ),
       cell: ({ row }) => {
         const projectData = row.original;
         return (
-          <div className="space-y-2">
+          <div className="flex flex-col gap-1 items-start max-w-xl">
             <Link
               href={getPath(
                 `${PAGES.allProjects.href}/${projectData.project.id}`,
@@ -71,7 +70,7 @@ export function useManualReadingAllocationColumns({
                 "p-0 text-xs text-muted-foreground",
               )}
             >
-              {projectData.project.supervisor.name}
+              {projectData.supervisor.name}
             </Link>
           </div>
         );

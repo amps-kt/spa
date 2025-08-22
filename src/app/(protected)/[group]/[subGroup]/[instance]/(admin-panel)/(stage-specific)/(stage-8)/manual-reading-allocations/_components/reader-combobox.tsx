@@ -41,11 +41,11 @@ export function ReaderCombobox({
 }: ReaderComboboxProps) {
   const [open, setOpen] = useState(false);
 
-  const availableReaders = readers.filter(reader => reader.id !== excludeReaderId);
-  
-  const selectedReader = availableReaders.find(
-    (reader) => reader.id === value,
+  const availableReaders = readers.filter(
+    (reader) => reader.id !== excludeReaderId,
   );
+
+  const selectedReader = availableReaders.find((reader) => reader.id === value);
 
   const filterReaders = (
     searchTerm: string,
@@ -95,7 +95,8 @@ export function ReaderCombobox({
                   key={reader.id}
                   value={reader.id}
                   onSelect={(currentValue) => {
-                    const newValue = currentValue === value ? null : currentValue;
+                    const newValue =
+                      currentValue === value ? null : currentValue;
                     onValueChange(newValue);
                     setOpen(false);
                   }}
@@ -133,7 +134,7 @@ function ReaderCell({
     if (total === reader.readingWorkloadQuota) return "text-orange-600";
     return "text-gray-500";
   };
-  
+
   const formatReaderDetails = (reader: ManualReadingAllocationReader) => {
     const total = reader.currentAllocations + reader.pendingAllocations;
     return `(${total}/${reader.readingWorkloadQuota} projects)`;
@@ -142,12 +143,8 @@ function ReaderCell({
   if (selected) {
     return (
       <div className="flex w-full min-w-0 flex-col items-start">
-        <span className="truncate pr-2 text-sm font-medium">
-          {reader.name}
-        </span>
-        <span
-          className={cn("mt-1 text-xs", getReaderStatusColor(reader))}
-        >
+        <span className="truncate pr-2 text-sm font-medium">{reader.name}</span>
+        <span className={cn("mt-1 text-xs", getReaderStatusColor(reader))}>
           {formatReaderDetails(reader)}
         </span>
       </div>

@@ -1328,43 +1328,91 @@ export const instanceRouter = createTRPCRouter({
     .output(
       z.array(
         z.object({
-          project: projectDtoSchema.extend({ supervisor: supervisorDtoSchema }),
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
           student: studentDtoSchema,
           currentReaderId: z.string().optional(),
         }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => {
-      // TODO: implement procedure
-      return [];
+    .query(async ({ ctx: { db, instance } }) => {
+      const projectData = await db.studentProjectAllocation.findMany({
+        where: expand(instance.params),
+        include: {
+          project: {
+            include: {
+              flagsOnProject: { include: { flag: true } },
+              tagsOnProject: { include: { tag: true } },
+              supervisor: {
+                include: { userInInstance: { include: { user: true } } },
+              },
+              readerAllocations: { include: { reader: true } },
+            },
+          },
+          student: {
+            include: {
+              studentFlag: true,
+              userInInstance: { include: { user: true } },
+            },
+          },
+        },
+      });
+
+      return projectData.map(({ project, student }) => ({
+        project: T.toProjectDTO(project),
+        supervisor: T.toSupervisorDTO(project.supervisor),
+        student: T.toStudentDTO(student),
+        currentReaderId: project.readerAllocations[0]?.readerId,
+      }));
     }),
 
   getReadersWithWorkload: procedure.instance.subGroupAdmin
     .output(z.array(readerDtoSchema.extend({ currentAllocations: z.number() })))
-    .query(async ({ ctx: { instance } }) => {
-      // TODO: implement procedure
-      return [];
+    .query(async ({ ctx: { db, instance } }) => {
+      const readerData = await db.readerDetails.findMany({
+        where: expand(instance.params),
+        include: {
+          userInInstance: { include: { user: true } },
+          projectAllocations: true,
+        },
+      });
+
+      return readerData.map((reader) => ({
+        ...T.toReaderDTO(reader),
+        currentAllocations: reader.projectAllocations.length,
+      }));
     }),
 
-  saveManualReaderAllocations: procedure.instance.subGroupAdmin
-    .input(
-      z.object({
-        allocations: z.array(
-          z.object({ projectId: z.string(), readerId: z.string().optional() }),
-        ),
-      }),
-    )
-    .output(z.array(z.object({ projectId: z.string(), success: z.boolean() })))
-    .mutation(async ({ ctx: { instance }, input: { allocations } }) => {
-      // TODO: implement procedure
-      return [];
-    }),
+  saveManualReaderAllocation: procedure.instance.subGroupAdmin
+    .input(z.object({ projectId: z.string(), readerId: z.string() }))
+    .output(z.void())
+    .mutation(
+      async ({ ctx: { db, instance }, input: { projectId, readerId } }) => {
+        await db.readerProjectAllocation.upsert({
+          where: {
+            instanceReaderProjectAllocation: {
+              ...expand(instance.params),
+              projectId,
+            },
+          },
+          update: { readerId },
+          create: { ...expand(instance.params), projectId, readerId },
+        });
+      },
+    ),
 
   removeReaderAllocation: procedure.instance.subGroupAdmin
     .input(z.object({ projectId: z.string() }))
     .output(z.void())
-    .mutation(async ({ ctx: { instance }, input: { projectId } }) => {
-      // TODO: implement procedure
+    .mutation(async ({ ctx: { db, instance }, input: { projectId } }) => {
+      await db.readerProjectAllocation.delete({
+        where: {
+          instanceReaderProjectAllocation: {
+            ...expand(instance.params),
+            projectId,
+          },
+        },
+      });
     }),
 
   setUnitOfAssessmentAccess: procedure.instance
