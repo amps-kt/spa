@@ -47,7 +47,7 @@ export function ManualReadingAllocationDataTableSection({
   }, [utils]);
 
   const { mutateAsync: api_saveAllocations } =
-    api.institution.instance.saveManualReaderAllocations.useMutation({});
+    api.institution.instance.saveManualReaderAllocation.useMutation({});
 
   const { mutateAsync: api_removeAllocations } =
     api.institution.instance.removeReaderAllocation.useMutation({});
@@ -153,20 +153,23 @@ export function ManualReadingAllocationDataTableSection({
   const handleSave = useCallback(
     async (projectId: string) => {
       const projectData = projects.find((p) => p.project.id === projectId);
+
       if (!projectData) {
         toast.error(`Project with ID ${projectId} not found`);
         return;
       }
 
-      const allocations = [
-        {
-          projectId: projectData.project.id,
-          readerId: projectData.selectedReaderId,
-        },
-      ];
+      if (!projectData.selectedReaderId) {
+        toast.error(`No reader selected for project ${projectId}`);
+        return;
+      }
 
       toast.promise(
-        api_saveAllocations({ params, allocations }).then(async () => {
+        api_saveAllocations({
+          params,
+          projectId: projectId,
+          readerId: projectData.selectedReaderId,
+        }).then(async () => {
           router.refresh();
           await refetchData();
           setProjects((prev) =>
@@ -183,7 +186,7 @@ export function ManualReadingAllocationDataTableSection({
           );
         }),
         {
-          loading: `Saving reader allocation for project ${projectId}...`,
+          loading: `Saving reader allocation for project ${projectData.project.title}...`,
           success: "Successfully saved reader allocation",
           error: "Failed to save reader allocation",
         },

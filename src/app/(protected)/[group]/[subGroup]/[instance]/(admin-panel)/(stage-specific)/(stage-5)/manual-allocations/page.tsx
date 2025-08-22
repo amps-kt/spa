@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
     await api.institution.instance.getSupervisorsWithAllocations({ params });
 
   const projectDescriptors =
-    await api.institution.instance.getUsedProjectDescriptors({ params });
+    await api.institution.instance.getAllProjectDescriptors({ params });
 
   const students = allStudents.map(({ student, project }) => ({
     ...student,

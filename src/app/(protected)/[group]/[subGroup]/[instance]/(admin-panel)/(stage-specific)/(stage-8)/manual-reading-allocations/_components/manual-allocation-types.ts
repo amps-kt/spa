@@ -29,7 +29,8 @@ export type ValidationWarning = {
 
 // Types for reading allocations
 export type ManualReadingAllocationRow = {
-  project: ProjectDTO & { supervisor: SupervisorDTO };
+  project: ProjectDTO;
+  supervisor: SupervisorDTO;
   student: StudentDTO;
   originalReaderId?: string;
   selectedReaderId?: string;

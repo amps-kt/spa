@@ -137,6 +137,7 @@ model ReaderProjectAllocation {
   allocationInstance   AllocationInstance @relation(map: "allocation_instance", fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade)
 
   @@id([readerId, projectId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "readerProjectAllocationId", map: "reader_project_allocation_id")
+  @@unique([projectId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "instanceReaderProjectAllocation", map: "instance_reader_project_allocation")
   @@map("reader_project_allocation")
 }
 

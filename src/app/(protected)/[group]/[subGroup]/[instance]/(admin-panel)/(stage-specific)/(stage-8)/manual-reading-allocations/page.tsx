@@ -32,16 +32,19 @@ export default async function Page({ params }: { params: InstanceParams }) {
   });
 
   const projectDescriptors =
-    await api.institution.instance.getUsedProjectDescriptors({ params });
+    await api.institution.instance.getAllProjectDescriptors({ params });
 
-  const projects = projectData.map(({ project, student, currentReaderId }) => ({
-    project,
-    student,
-    originalReaderId: currentReaderId,
-    selectedReaderId: undefined,
-    isDirty: false,
-    warnings: [],
-  }));
+  const projects = projectData.map(
+    ({ project, student, supervisor, currentReaderId }) => ({
+      project,
+      student,
+      supervisor,
+      originalReaderId: currentReaderId,
+      selectedReaderId: undefined,
+      isDirty: false,
+      warnings: [],
+    }),
+  );
 
   const readers = readerData.map((reader) => ({
     ...reader,
