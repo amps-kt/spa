@@ -292,7 +292,7 @@ export const PAGES = {
     hasSubRoute: false,
   },
   manualAllocations: {
-    title: "Manual Allocations & Overrides",
+    title: "Manual Allocations",
     href: "manual-allocations",
     mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
       `/${group}/${subGroup}/${instance}/manual-allocations`,
@@ -382,6 +382,16 @@ export const PAGES = {
     icon: "folder",
     level: 4,
     allowedRoles: [Role.READER],
+    hasSubRoute: true,
+  },
+  manualReadingAllocations: {
+    title: "Manual Allocations",
+    href: "manual-reading-allocations",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/manual-reading-allocations`,
+    icon: "mouse-pointer",
+    level: 4,
+    allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
 
