@@ -191,7 +191,7 @@ export function ManualAllocationDataTable({
   );
 }
 
-function WarningsDisplay({
+export function WarningsDisplay({
   warnings,
 }: {
   warnings: ManualAllocationStudent["warnings"];
