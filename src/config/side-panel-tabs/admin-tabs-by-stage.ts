@@ -50,7 +50,11 @@ export const ADMIN_TABS_BY_STAGE: Record<Stage, TabType[]> = {
   ],
   // TODO: fill these in
   [Stage.READER_BIDDING]: [PAGES.allReaders, PAGES.addReaders],
-  [Stage.READER_ALLOCATION]: [PAGES.allReaders, PAGES.addReaders],
+  [Stage.READER_ALLOCATION]: [
+    PAGES.allReaders,
+    PAGES.addReaders,
+    PAGES.manualReadingAllocations,
+  ],
   [Stage.MARK_SUBMISSION]: [PAGES.unitsOfAssessment, PAGES.markingOverview],
   [Stage.GRADE_PUBLICATION]: [],
 };

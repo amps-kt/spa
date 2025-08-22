@@ -866,6 +866,9 @@ export const instanceRouter = createTRPCRouter({
       // TODO: Emit audit for this
       const results = [];
 
+      // todo: convert to single allocation variant
+      // we won't support many allocations at once
+
       for (const allocation of allocations) {
         const { studentId, projectId, supervisorId } = allocation;
 
