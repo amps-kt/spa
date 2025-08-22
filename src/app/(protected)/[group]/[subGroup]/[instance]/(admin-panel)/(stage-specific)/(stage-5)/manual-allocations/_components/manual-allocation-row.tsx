@@ -1,4 +1,4 @@
-import { flexRender } from "@tanstack/react-table";
+import { Slot } from "@radix-ui/react-slot";
 
 import { type CustomRowType } from "@/components/ui/data-table/data-table";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -9,27 +9,22 @@ import { WarningsDisplay } from "./manual-allocation-data-table";
 import { type ManualAllocationStudent } from "./manual-allocation-types";
 
 export const ManualAllocationRow: CustomRowType<ManualAllocationStudent> =
-  function ({ row }) {
+  function ({ row, defaultRow }) {
     const student = row.original;
     const hasWarnings = student.warnings.length > 0;
 
     return (
       <>
-        <TableRow
-          key={row.id}
-          data-state={row.getIsSelected() && "selected"}
+        {/* Evil hack (cool): Use a slot to apply styles to the child */}
+        <Slot
           className={cn(
             "transition-colors",
             student.isDirty ? "bg-blue-50/50" : "hover:bg-muted/50",
             hasWarnings ? "border-b-0" : "border-b",
           )}
         >
-          {row.getVisibleCells().map((cell) => (
-            <TableCell key={cell.id} className="px-4 py-4">
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </TableCell>
-          ))}
-        </TableRow>
+          {defaultRow}
+        </Slot>
 
         {hasWarnings && (
           <TableRow
