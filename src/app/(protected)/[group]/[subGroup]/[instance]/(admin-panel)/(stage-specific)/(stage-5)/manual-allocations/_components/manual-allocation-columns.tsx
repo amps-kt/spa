@@ -93,6 +93,11 @@ export function useManualAllocationColumns({
     },
     {
       id: "project",
+      accessorFn: (row) =>
+        projects.find(
+          (project) =>
+            project.id === (row.selectedProjectId ?? row.originalProjectId),
+        )?.title,
       header: "Project",
       cell: ({ row }) => {
         const student = row.original;
@@ -109,6 +114,12 @@ export function useManualAllocationColumns({
     },
     {
       id: "supervisor",
+      accessorFn: (row) =>
+        supervisors.find(
+          (s) =>
+            s.id === (row.selectedSupervisorId ?? row.originalSupervisorId),
+        )?.name,
+
       header: "Supervisor",
       cell: ({ row }) => {
         const student = row.original;
@@ -128,6 +139,7 @@ export function useManualAllocationColumns({
     {
       id: "actions",
       header: "Actions",
+      enableHiding: true,
       cell: ({ row: { original: student } }) => (
         <div>
           <div className="flex items-center gap-2">
