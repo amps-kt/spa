@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { type PageName } from "@/config/pages";
 
+import { cn } from "../utils";
+
 import { type InstancePopulated, type LinkArgs, useInstanceHref } from ".";
 
 /**
@@ -23,14 +25,20 @@ export function AppInstanceLink<T extends PageName>({
   linkArgs,
   disabled = false,
   children,
+  className,
 }: {
   page: T;
   linkArgs: InstancePopulated<LinkArgs<T>>;
   disabled?: boolean;
   children?: ReactNode;
+  className?: string;
 }) {
   const mkHref = useInstanceHref();
 
-  if (disabled) return <div>{children}</div>;
-  return <Link href={mkHref(page, linkArgs)}>{children}</Link>;
+  if (disabled) return <div className={cn(className)}>{children}</div>;
+  return (
+    <Link className={cn(className)} href={mkHref(page, linkArgs)}>
+      {children}
+    </Link>
+  );
 }
