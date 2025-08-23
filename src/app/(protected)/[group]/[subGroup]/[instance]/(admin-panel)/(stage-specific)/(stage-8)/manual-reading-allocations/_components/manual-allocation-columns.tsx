@@ -26,7 +26,7 @@ type ManualReadingAllocationColumnsProps = {
     projectId: string,
     { readerId }: { readerId?: string },
   ) => void;
-  onRemoveAllocation: (projectId: string) => void;
+  onRemoveAllocation: (projectId: string) => Promise<void>;
   onSave: (projectId: string) => Promise<void>;
   onReset: (projectId: string) => void;
 };
@@ -103,10 +103,13 @@ export function useManualReadingAllocationColumns({
       header: "Reader",
       cell: ({ row }) => {
         const projectData = row.original;
+        const currentReaderId =
+          projectData.selectedReaderId ?? projectData.originalReaderId;
+
         return (
           <ReaderCombobox
             readers={readers}
-            value={projectData.selectedReaderId ?? projectData.originalReaderId}
+            value={currentReaderId}
             excludeReaderId={projectData.project.supervisorId}
             onValueChange={(value) =>
               onUpdateAllocation(projectData.project.id, {
@@ -152,7 +155,7 @@ export function useManualReadingAllocationColumns({
               <Button
                 size="sm"
                 variant="destructive"
-                onClick={() => onRemoveAllocation(projectData.project.id)}
+                onClick={async () => onRemoveAllocation(projectData.project.id)}
                 disabled={projectData.originalReaderId === undefined}
                 className={cn(
                   "h-8 w-8 p-0",
