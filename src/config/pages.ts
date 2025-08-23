@@ -6,7 +6,7 @@ import {
   type SubGroupParams,
 } from "@/lib/validations/params";
 
-type PageLevel = 1 | 2 | 3 | 4 | 5;
+type PageLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface PageConfig {
   title: string;
