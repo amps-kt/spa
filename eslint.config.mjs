@@ -86,6 +86,7 @@ export default tseslint.config(
           paths: [
             {
               name: "next/navigation",
+              allowImportNames: ["notFound"],
               message:
                 "Do not cal next builtins directly; instead use the new routing tools from @/lib/routing",
             },
