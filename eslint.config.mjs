@@ -36,13 +36,18 @@ const disallowDayPicker = {
   importNames: ["Button"],
 };
 
+const disallowAppImports = {
+  group: ["@/app/*"],
+  message: "App imports should be relative, or refactored to components",
+};
+
 /**
  * utility function for adding import disallow exceptions
- * @param  {...("nextBuiltins" | "prisma" | "radix" | "emails" | "none")} from
+ * @param  {...("nextBuiltins" | "prisma" | "radix" | "emails" | "app" | "none")} from
  * @returns
  */
 function AllowImportsFrom(...from) {
-  const patterns = [disallowLucide, disallowDayPicker];
+  const patterns = [disallowLucide, disallowDayPicker, disallowAppImports];
 
   if (!from.includes("nextBuiltins")) patterns.push(disallowNextBuiltins);
   if (!from.includes("prisma")) patterns.push(disallowPrisma);
