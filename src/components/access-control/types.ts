@@ -1,8 +1,6 @@
 "use client";
 
-import type { Stage } from "@prisma/client";
-
-import type { Role } from "@/db/types";
+import type { Stage, Role } from "@/db/types";
 
 export interface AccessControlContext {
   userRoles: Role[];
