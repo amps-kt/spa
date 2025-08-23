@@ -7,12 +7,20 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
 import { type ManualReadingAllocationRow } from "./manual-allocation-types";
+import { useWarningContext } from "./warning-context";
 import { WarningsDisplay } from "./warnings-display";
 
 export const ManualAllocationRow: CustomRowType<ManualReadingAllocationRow> =
   function ({ row, defaultRow }) {
     const projectData = row.original;
-    const hasWarnings = projectData.warnings.length > 0;
+    const { getReaderQuotaWarning } = useWarningContext();
+
+    const currentReaderId =
+      projectData.selectedReaderId ?? projectData.originalReaderId;
+
+    const warning = currentReaderId
+      ? getReaderQuotaWarning(currentReaderId)
+      : null;
 
     return (
       <>
@@ -20,13 +28,13 @@ export const ManualAllocationRow: CustomRowType<ManualReadingAllocationRow> =
           className={cn(
             "transition-colors",
             projectData.isDirty ? "bg-blue-50/50" : "hover:bg-muted/50",
-            hasWarnings ? "border-b-0" : "border-b",
+            warning ? "border-b-0" : "border-b",
           )}
         >
           {defaultRow}
         </Slot>
 
-        {hasWarnings && (
+        {warning && (
           <TableRow
             className={cn(
               "border-b",
@@ -37,7 +45,7 @@ export const ManualAllocationRow: CustomRowType<ManualReadingAllocationRow> =
               colSpan={row.getVisibleCells().length}
               className="px-4 py-3"
             >
-              <WarningsDisplay warnings={projectData.warnings} />
+              <WarningsDisplay warning={warning} />
             </TableCell>
           </TableRow>
         )}

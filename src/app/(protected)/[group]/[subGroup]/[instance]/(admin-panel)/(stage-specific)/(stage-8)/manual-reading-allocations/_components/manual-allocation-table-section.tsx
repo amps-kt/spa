@@ -17,10 +17,8 @@ import { ManualAllocationRow } from "./manual-allocation-row";
 import {
   type ManualReadingAllocationRow,
   type ManualReadingAllocationReader,
-  type ValidationWarning,
-  ValidationWarningSeverity,
-  ValidationWarningType,
 } from "./manual-allocation-types";
+import { WarningProvider } from "./warning-context";
 
 interface ManualReadingAllocationDataTableSectionProps {
   initialProjects: ManualReadingAllocationRow[];
@@ -66,33 +64,23 @@ export function ManualReadingAllocationDataTableSection({
 
     return baseReaders.map((reader) => ({
       ...reader,
-      pendingAllocations: pendingCounts[reader.id] || 0,
+      pendingAllocations: pendingCounts[reader.id] ?? 0,
     }));
   }, [projects, baseReaders]);
 
-  const calculateWarnings = useCallback(
-    (projectData: ManualReadingAllocationRow): ValidationWarning[] => {
-      const warnings: ValidationWarning[] = [];
+  const getReaderQuotaWarning = useCallback(
+    (readerId: string) => {
+      const reader = readers.find((r) => r.id === readerId);
+      if (!reader) return;
 
-      if (!projectData.selectedReaderId) {
-        return warnings;
-      }
-
-      const reader = readers.find((r) => r.id === projectData.selectedReaderId);
-      if (!reader) return warnings;
-
-      const totalReaderAllocations =
+      const totalAllocations =
         reader.currentAllocations + reader.pendingAllocations;
-
-      if (totalReaderAllocations > reader.readingWorkloadQuota) {
-        warnings.push({
-          type: ValidationWarningType.EXCEEDS_READING_QUOTA,
-          message: `Exceeds reader quota (${totalReaderAllocations}/${reader.readingWorkloadQuota})`,
-          severity: ValidationWarningSeverity.WARNING,
-        });
+      if (totalAllocations > reader.readingWorkloadQuota) {
+        return {
+          message: `Exceeds reader quota (${totalAllocations}/${reader.readingWorkloadQuota})`,
+        };
       }
-
-      return warnings;
+      return;
     },
     [readers],
   );
@@ -112,19 +100,23 @@ export function ManualReadingAllocationDataTableSection({
             updatedProjectData.selectedReaderId !==
             updatedProjectData.originalReaderId;
 
-          const warnings = calculateWarnings(updatedProjectData);
-
-          return { ...updatedProjectData, isDirty, warnings };
+          return { ...updatedProjectData, isDirty };
         }),
       );
     },
-    [calculateWarnings],
+    [],
   );
 
   const handleRemoveAllocation = useCallback(
     async (projectId: string) => {
-      toast.promise(
-        api_removeAllocations({ params, projectId }).then(async () => {
+      return await toast
+        .promise(api_removeAllocations({ params, projectId }), {
+          loading: "Removing reader allocation...",
+          success: "Successfully removed reader allocation",
+          error: "Failed to remove reader allocation",
+        })
+        .unwrap()
+        .then(async () => {
           await refetchData();
           setProjects((prev) =>
             prev.map((projectData) => {
@@ -135,17 +127,10 @@ export function ManualReadingAllocationDataTableSection({
                 originalReaderId: undefined,
                 selectedReaderId: undefined,
                 isDirty: false,
-                warnings: [],
               };
             }),
           );
-        }),
-        {
-          loading: "Removing reader allocation...",
-          success: "Successfully removed reader allocation",
-          error: "Failed to remove reader allocation",
-        },
-      );
+        });
     },
     [api_removeAllocations, params, refetchData],
   );
@@ -164,12 +149,21 @@ export function ManualReadingAllocationDataTableSection({
         return;
       }
 
-      toast.promise(
-        api_saveAllocations({
-          params,
-          projectId: projectId,
-          readerId: projectData.selectedReaderId,
-        }).then(async () => {
+      return await toast
+        .promise(
+          api_saveAllocations({
+            params,
+            projectId: projectId,
+            readerId: projectData.selectedReaderId,
+          }),
+          {
+            loading: `Saving reader allocation for project ${projectData.project.title}...`,
+            success: "Successfully saved reader allocation",
+            error: "Failed to save reader allocation",
+          },
+        )
+        .unwrap()
+        .then(async () => {
           router.refresh();
           await refetchData();
           setProjects((prev) =>
@@ -180,17 +174,10 @@ export function ManualReadingAllocationDataTableSection({
                 ...p,
                 originalReaderId: p.selectedReaderId,
                 isDirty: false,
-                warnings: [],
               };
             }),
           );
-        }),
-        {
-          loading: `Saving reader allocation for project ${projectData.project.title}...`,
-          success: "Successfully saved reader allocation",
-          error: "Failed to save reader allocation",
-        },
-      );
+        });
     },
     [api_saveAllocations, params, refetchData, router, projects],
   );
@@ -204,7 +191,6 @@ export function ManualReadingAllocationDataTableSection({
           ...projectData,
           selectedReaderId: projectData.originalReaderId,
           isDirty: false,
-          warnings: [],
         };
       }),
     );
@@ -226,19 +212,21 @@ export function ManualReadingAllocationDataTableSection({
   const columns = useManualReadingAllocationColumns({
     readers,
     onUpdateAllocation: handleUpdateAllocation,
-    onRemoveAllocation: (x) => void handleRemoveAllocation(x),
+    onRemoveAllocation: handleRemoveAllocation,
     onSave: handleSave,
     onReset: handleReset,
   });
 
   return (
     <section>
-      <DataTable
-        columns={columns}
-        data={projects}
-        filters={filters}
-        CustomRow={ManualAllocationRow}
-      />
+      <WarningProvider getReaderQuotaWarning={getReaderQuotaWarning}>
+        <DataTable
+          columns={columns}
+          data={projects}
+          filters={filters}
+          CustomRow={ManualAllocationRow}
+        />
+      </WarningProvider>
     </section>
   );
 }
