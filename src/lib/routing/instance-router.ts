@@ -18,7 +18,7 @@ export function useAppInstanceRouter() {
     <T extends PageName>(
       page: T,
       args: InstancePopulated<LinkArgs<T>>,
-      opts: PrefetchOptions | undefined,
+      opts?: PrefetchOptions,
     ) => {
       nextRouter.prefetch(mkHref(page, args), opts);
     },
@@ -29,7 +29,7 @@ export function useAppInstanceRouter() {
     <T extends PageName>(
       page: T,
       args: InstancePopulated<LinkArgs<T>>,
-      opts: NavigateOptions | undefined,
+      opts?: NavigateOptions,
     ) => {
       nextRouter.push(mkHref(page, args), opts);
     },
@@ -40,7 +40,7 @@ export function useAppInstanceRouter() {
     <T extends PageName>(
       page: T,
       args: InstancePopulated<LinkArgs<T>>,
-      opts: NavigateOptions | undefined,
+      opts?: NavigateOptions,
     ) => {
       nextRouter.replace(mkHref(page, args), opts);
     },
