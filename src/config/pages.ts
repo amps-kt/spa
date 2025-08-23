@@ -1,6 +1,7 @@
 import { Role } from "@/db/types";
 
 import {
+  type InstanceParams,
   type GroupParams,
   type SubGroupParams,
 } from "@/lib/validations/params";
@@ -79,6 +80,8 @@ export const PAGES = {
   settings: {
     title: "Settings",
     href: "settings",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/settings`,
     icon: "settings",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -88,6 +91,8 @@ export const PAGES = {
     title: "Edit",
     href: "edit",
     icon: "pen",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/edit`,
     level: 4,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
@@ -95,6 +100,8 @@ export const PAGES = {
   stageControl: {
     title: "Stage Control",
     href: "stage-control",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/stage-control`,
     icon: "layers",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -103,6 +110,8 @@ export const PAGES = {
   allSupervisors: {
     title: "All Supervisors",
     href: "all-supervisors",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/all-supervisors`,
     icon: "users",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -111,14 +120,23 @@ export const PAGES = {
   newSupervisorProject: {
     title: "New Project",
     href: "new-project",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      supervisorId,
+    }: InstanceParams & { supervisorId: string }) =>
+      `/${group}/${subGroup}/${instance}/all-supervisors/${supervisorId}/new-project`,
     icon: "file-plus-2",
-    level: 5,
+    level: 5, // <- straight up lie
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
   createProject: {
     title: "Create Project",
     href: "create-project",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/create-project`,
     icon: "file-plus-2",
     level: 3,
     allowedRoles: [Role.ADMIN],
@@ -129,6 +147,8 @@ export const PAGES = {
   allReaders: {
     title: "All Readers",
     href: "all-readers",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/all-readers`,
     icon: "book-open",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -138,6 +158,8 @@ export const PAGES = {
   allStudents: {
     title: "All Students",
     href: "all-students",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/all-students`,
     icon: "graduation-cap",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -146,6 +168,13 @@ export const PAGES = {
   studentPreferences: {
     title: "Preferences",
     href: "preferences",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      studentId,
+    }: InstanceParams & { studentId: string }) =>
+      `/${group}/${subGroup}/${instance}/all-students/${studentId}/preferences`,
     icon: "folder",
     level: 5,
     allowedRoles: [Role.ADMIN],
@@ -154,6 +183,8 @@ export const PAGES = {
   addSupervisors: {
     title: "Add Supervisors",
     href: "add-supervisors",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/add-supervisors`,
     icon: "user-plus",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -162,6 +193,8 @@ export const PAGES = {
   addStudents: {
     title: "Add Students",
     href: "add-students",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/add-students`,
     icon: "user-plus",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -170,14 +203,19 @@ export const PAGES = {
   supervisorInvites: {
     title: "Supervisor Invites",
     href: "supervisor-invites",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/supervisor-invites`,
     icon: "users",
     level: 4,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
+
   projectSubmissions: {
     title: "Project Submissions",
     href: "project-submissions",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/project-submissions`,
     icon: "folder",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -186,6 +224,8 @@ export const PAGES = {
   preAllocatedProjects: {
     title: "Pre-Allocated Projects",
     href: "pre-allocated-projects",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/pre-allocated-project`,
     icon: "folder-lock",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -194,6 +234,8 @@ export const PAGES = {
   studentInvites: {
     title: "Student Invites",
     href: "student-invites",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/student-invites`,
     icon: "users",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -202,6 +244,8 @@ export const PAGES = {
   preferenceSubmissions: {
     title: "Preference Submissions",
     href: "preference-submissions",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/preference-submissions`,
     icon: "folder-heart",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -210,6 +254,8 @@ export const PAGES = {
   lateProposals: {
     title: "Late Proposals",
     href: "late-proposals",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/late-proposals`,
     icon: "folder-clock",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -218,6 +264,8 @@ export const PAGES = {
   algorithms: {
     title: "Algorithms",
     href: "algorithms",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/algorithms`,
     icon: "server",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -226,6 +274,8 @@ export const PAGES = {
   results: {
     title: "Results",
     href: "results",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/results`,
     icon: "square-kanban",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -234,6 +284,8 @@ export const PAGES = {
   preferenceStatistics: {
     title: "Preference Statistics",
     href: "preference-statistics",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/preference-statistics`,
     icon: "bar-chart",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -242,6 +294,8 @@ export const PAGES = {
   manualAllocations: {
     title: "Manual Allocations & Overrides",
     href: "manual-allocations",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/manual-allocations`,
     icon: "mouse-pointer",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -250,6 +304,8 @@ export const PAGES = {
   randomAllocations: {
     title: "Random Allocations",
     href: "random-allocations",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/random-allocations`,
     icon: "shuffle",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -258,6 +314,8 @@ export const PAGES = {
   allocationOverview: {
     title: "Allocation Overview",
     href: "allocation-overview",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/allocation-overview`,
     icon: "folder-lock",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -266,6 +324,8 @@ export const PAGES = {
   manageUserAccess: {
     title: "Manage User Access",
     href: "manage-user-access",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/manage-user-access`,
     icon: "user-cog",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -274,6 +334,8 @@ export const PAGES = {
   exportToCSV: {
     title: "Export to CSV",
     href: "export-to-csv",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/export-to-csv`,
     icon: "file-spreadsheet",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -283,6 +345,8 @@ export const PAGES = {
   multiRoleSupervisorTasks: {
     title: "Tasks",
     href: "supervisor-tasks",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/supervisor-tasks`,
     icon: "list-checks",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -291,6 +355,9 @@ export const PAGES = {
   nonAdminSupervisorTasks: {
     title: "Tasks",
     href: "supervisor-tasks",
+    // TODO not sure about this one
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/supervisorTasks`,
     icon: "list-checks",
     level: 3,
     allowedRoles: [Role.SUPERVISOR],
@@ -299,6 +366,8 @@ export const PAGES = {
   nonAdminReaderTasks: {
     title: "Tasks",
     href: "reader-tasks",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/reader-tasks`,
     icon: "list-checks",
     level: 3,
     allowedRoles: [Role.READER],
@@ -308,6 +377,8 @@ export const PAGES = {
   allAvailableProjects: {
     title: "All Available Projects",
     href: "all-available-projects",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/all-available-projects`,
     icon: "folder",
     level: 4,
     allowedRoles: [Role.READER],
@@ -317,6 +388,8 @@ export const PAGES = {
   unitsOfAssessment: {
     title: "Units of Assessment",
     href: "units-of-assessment",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/units-of-assessment`,
     icon: "file-check-2",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -326,6 +399,8 @@ export const PAGES = {
   markingOverview: {
     title: "Marking Overview",
     href: "marking-overview",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/marking-overview`,
     icon: "file-check-2",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -335,6 +410,8 @@ export const PAGES = {
   allProjects: {
     title: "All Projects",
     href: "projects",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/projects`,
     icon: "folder",
     level: 4,
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
@@ -345,6 +422,8 @@ export const PAGES = {
   instanceHome: {
     title: "Instance Home",
     href: "",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}`,
     icon: "home",
     level: 3,
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
@@ -353,6 +432,8 @@ export const PAGES = {
   instanceTasks: {
     title: "Tasks",
     href: "",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}`,
     icon: "list-checks",
     level: 3,
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
@@ -362,6 +443,8 @@ export const PAGES = {
   myProposedProjects: {
     title: "My Proposed Projects",
     href: "my-proposed-projects",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-proposed-projects`,
     icon: "folder",
     level: 4,
     allowedRoles: [Role.SUPERVISOR],
@@ -371,6 +454,8 @@ export const PAGES = {
   newProject: {
     title: "New Project",
     href: "new-project",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/new-project`,
     icon: "file-plus-2",
     level: 4,
     allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
@@ -380,6 +465,13 @@ export const PAGES = {
   editProject: {
     title: "Edit Project",
     href: "edit",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      projectId,
+    }: InstanceParams & { projectId: string }) =>
+      `/${group}/${subGroup}/${instance}/projects/${projectId}/random-allocations`,
     icon: "pen",
     level: 5,
     allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
@@ -388,6 +480,8 @@ export const PAGES = {
   mySupervisions: {
     title: "My Supervisions",
     href: "my-supervisions",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-supervisions`,
     icon: "folder-check",
     level: 4,
     allowedRoles: [Role.SUPERVISOR],
@@ -397,6 +491,8 @@ export const PAGES = {
   myPreferences: {
     title: "My Preferences",
     href: "my-preferences",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-preferences`,
     icon: "folder-heart",
     level: 4,
     allowedRoles: [Role.STUDENT],
@@ -405,6 +501,8 @@ export const PAGES = {
   myAllocation: {
     title: "My Allocation",
     href: "my-allocation",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-allocation`,
     icon: "file-check-2",
     level: 4,
     allowedRoles: [Role.STUDENT],
@@ -414,6 +512,8 @@ export const PAGES = {
   addReaders: {
     title: "Add Readers",
     href: "add-readers",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/add-readers`,
     icon: "user-plus",
     level: 4,
     allowedRoles: [Role.ADMIN],
@@ -422,6 +522,8 @@ export const PAGES = {
   myMarking: {
     title: "My Marking",
     href: "my-marking",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-marking`,
     icon: "file-check-2",
     level: 4,
     allowedRoles: [Role.SUPERVISOR, Role.READER],
