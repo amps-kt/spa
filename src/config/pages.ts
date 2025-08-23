@@ -128,7 +128,7 @@ export const PAGES = {
     }: InstanceParams & { supervisorId: string }) =>
       `/${group}/${subGroup}/${instance}/all-supervisors/${supervisorId}/new-project`,
     icon: "file-plus-2",
-    level: 5, // <- straight up lie
+    level: 6,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
