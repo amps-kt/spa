@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { type PageName } from "@/config/pages";
 
+import { cn } from "../utils";
+
 import { mkHref, type LinkArgs } from ".";
 
 export function AppLink<T extends PageName>({
@@ -11,12 +13,18 @@ export function AppLink<T extends PageName>({
   linkArgs,
   disabled = false,
   children,
+  className,
 }: {
   page: T;
   linkArgs: LinkArgs<T>;
   disabled?: boolean;
   children?: ReactNode;
+  className?: string;
 }) {
-  if (disabled) return <div>{children}</div>;
-  return <Link href={mkHref(page, linkArgs)}>{children}</Link>;
+  if (disabled) return <div className={cn(className)}>{children}</div>;
+  return (
+    <Link className={cn(className)} href={mkHref(page, linkArgs)}>
+      {children}
+    </Link>
+  );
 }
