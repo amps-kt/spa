@@ -18,6 +18,7 @@ const disallowPrisma = {
 
 const disallowRadix = {
   group: ["@radix-ui/*"],
+  allowImportNames: ["Slot"],
   message:
     "Imports directly from radix-ui are generally incorrect; please check and ignore this if necessary",
 };
