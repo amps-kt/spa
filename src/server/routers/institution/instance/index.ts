@@ -844,62 +844,39 @@ export const instanceRouter = createTRPCRouter({
         await instance.getSupervisorAllocationDetails(),
     ),
 
-  saveManualStudentAllocations: procedure.instance.subGroupAdmin
+  saveManualStudentAllocation: procedure.instance.subGroupAdmin
     .input(
       z.object({
-        allocations: z.array(
-          z.object({
-            studentId: z.string(),
-            projectId: z.string(),
-            supervisorId: z.string(),
-          }),
-        ),
+        studentId: z.string(),
+        projectId: z.string(),
+        supervisorId: z.string(),
       }),
     )
-    .output(z.array(z.object({ studentId: z.string(), success: z.boolean() })))
-    .mutation(async ({ ctx: { instance }, input: { allocations } }) => {
-      // TODO: Emit audit for this
-      const results = [];
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, projectId, supervisorId },
+      }) => {
+        const conflictStudent = await instance.getProjectAllocation(projectId);
+        const student = await instance.getStudent(studentId);
+        const studentData = await student.get();
 
-      // todo: convert to single allocation variant
-      // we won't support many allocations at once
+        await instance.saveManualAllocationAtomic(
+          studentId,
+          projectId,
+          supervisorId,
+          studentData.flag.id,
+          conflictStudent?.id,
+        );
 
-      for (const allocation of allocations) {
-        const { studentId, projectId, supervisorId } = allocation;
-
-        // todo: this whole thing should be in a transaction
-        try {
-          await instance.deleteStudentAllocation(studentId);
-
-          const conflictStudent =
-            await instance.getProjectAllocation(projectId);
-
-          if (conflictStudent) {
-            await instance.deleteStudentAllocation(conflictStudent.id);
-          }
-
-          const project = instance.getProject(projectId);
-          await project.clearPreAllocation();
-
-          const projectData = await project.get();
-          if (projectData.supervisorId !== supervisorId) {
-            await project.transferSupervisor(supervisorId);
-          }
-
-          const student = await instance.getStudent(studentId);
-          const studentData = await student.get();
-          await project.addFlags([studentData.flag]);
-
-          await instance.createManualAllocation(studentId, projectId);
-
-          results.push({ studentId, success: true });
-        } catch (_err) {
-          results.push({ studentId, success: false });
-        }
-      }
-
-      return results;
-    }),
+        audit("Manual allocation successful", {
+          studentId,
+          projectId,
+          supervisorId,
+        });
+      },
+    ),
 
   getReaders: procedure.instance.subGroupAdmin
     .output(z.array(readerDtoSchema))
@@ -1328,7 +1305,10 @@ export const instanceRouter = createTRPCRouter({
     .input(z.object({ projectId: z.string(), readerId: z.string() }))
     .output(z.void())
     .mutation(
-      async ({ ctx: { db, instance }, input: { projectId, readerId } }) => {
+      async ({
+        ctx: { db, instance, audit },
+        input: { projectId, readerId },
+      }) => {
         await db.readerProjectAllocation.upsert({
           where: {
             instanceReaderProjectAllocation: {
@@ -1339,22 +1319,26 @@ export const instanceRouter = createTRPCRouter({
           update: { readerId },
           create: { ...expand(instance.params), projectId, readerId },
         });
+        audit("Manual reader allocation saved", { projectId, readerId });
       },
     ),
 
   removeReaderAllocation: procedure.instance.subGroupAdmin
     .input(z.object({ projectId: z.string() }))
     .output(z.void())
-    .mutation(async ({ ctx: { db, instance }, input: { projectId } }) => {
-      await db.readerProjectAllocation.delete({
-        where: {
-          instanceReaderProjectAllocation: {
-            ...expand(instance.params),
-            projectId,
+    .mutation(
+      async ({ ctx: { db, instance, audit }, input: { projectId } }) => {
+        await db.readerProjectAllocation.delete({
+          where: {
+            instanceReaderProjectAllocation: {
+              ...expand(instance.params),
+              projectId,
+            },
           },
-        },
-      });
-    }),
+        });
+        audit("Reader allocation removed", { projectId });
+      },
+    ),
 
   setUnitOfAssessmentAccess: procedure.instance
     .inStage([Stage.MARK_SUBMISSION])
