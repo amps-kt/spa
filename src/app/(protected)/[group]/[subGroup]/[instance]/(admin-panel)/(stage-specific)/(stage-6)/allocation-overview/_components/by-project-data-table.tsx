@@ -13,10 +13,7 @@ export function ByProjectDataTable({
 }) {
   return (
     <div className="w-full">
-      <DataTable
-        columns={byProjectColumns}
-        data={data}
-      />
+      <DataTable columns={byProjectColumns} data={data} />
     </div>
   );
 }

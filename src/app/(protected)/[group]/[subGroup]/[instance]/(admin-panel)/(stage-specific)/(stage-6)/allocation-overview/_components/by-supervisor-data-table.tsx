@@ -13,10 +13,7 @@ export function BySupervisorDataTable({
 }) {
   return (
     <div className="w-full">
-      <DataTable
-        columns={bySupervisorColumns}
-        data={data}
-      />
+      <DataTable columns={bySupervisorColumns} data={data} />
     </div>
   );
 }
