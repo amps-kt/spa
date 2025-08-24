@@ -53,7 +53,7 @@ export function ManualAllocationDataTableSection({
   }, [utils]);
 
   const { mutateAsync: api_saveAllocations } =
-    api.institution.instance.saveManualStudentAllocations.useMutation({});
+    api.institution.instance.saveManualStudentAllocation.useMutation({});
 
   const { mutateAsync: api_removeAllocations } =
     api.institution.instance.matching.removeAllocation.useMutation({});
@@ -244,8 +244,14 @@ export function ManualAllocationDataTableSection({
 
   const handleRemoveAllocation = useCallback(
     async (studentId: string) => {
-      toast.promise(
-        api_removeAllocations({ params, studentId }).then(async () => {
+      await toast
+        .promise(api_removeAllocations({ params, studentId }), {
+          loading: "Removing allocation...",
+          success: "Successfully removed allocation",
+          error: "Failed to remove allocation",
+        })
+        .unwrap()
+        .then(async () => {
           await refetchData();
           setStudents((prev) =>
             prev.map((s) => {
@@ -262,13 +268,7 @@ export function ManualAllocationDataTableSection({
               };
             }),
           );
-        }),
-        {
-          loading: "Removing allocation...",
-          success: "Successfully removed allocation",
-          error: "Failed to remove allocation",
-        },
-      );
+        });
     },
     [api_removeAllocations, params, refetchData],
   );
@@ -286,16 +286,22 @@ export function ManualAllocationDataTableSection({
         return;
       }
 
-      const allocations = [
-        {
-          studentId: student.id,
-          projectId: student.selectedProjectId,
-          supervisorId: student.selectedSupervisorId,
-        },
-      ];
-
-      toast.promise(
-        api_saveAllocations({ params, allocations }).then(async () => {
+      await toast
+        .promise(
+          api_saveAllocations({
+            params,
+            studentId: student.id,
+            projectId: student.selectedProjectId,
+            supervisorId: student.selectedSupervisorId,
+          }),
+          {
+            loading: `Saving allocation for student ${studentId}...`,
+            success: "Successfully saved allocation",
+            error: "Failed to save allocation",
+          },
+        )
+        .unwrap()
+        .then(async () => {
           router.refresh();
           await refetchData();
           setStudents((prev) =>
@@ -311,13 +317,9 @@ export function ManualAllocationDataTableSection({
               };
             }),
           );
-        }),
-        {
-          loading: `Saving allocation for student ${studentId}...`,
-          success: "Successfully saved allocation",
-          error: "Failed to save allocation",
-        },
-      );
+
+          // todo: after saving, remove this project from the list of available projects in all other dropdowns
+        });
     },
     [api_saveAllocations, params, refetchData, router, students],
   );

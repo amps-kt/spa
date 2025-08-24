@@ -589,6 +589,102 @@ export class AllocationInstance extends DataObject {
     });
   }
 
+  public async saveManualAllocation(
+    studentId: string,
+    projectId: string,
+  ): Promise<void> {
+    await this.db.studentProjectAllocation.upsert({
+      where: {
+        studentProjectAllocationId: {
+          ...expand(this.params),
+          userId: studentId,
+        },
+      },
+      create: {
+        ...expand(this.params),
+        userId: studentId,
+        projectId,
+        studentRanking: 1,
+        allocationMethod: AllocationMethod.MANUAL,
+      },
+      update: {
+        projectId,
+        studentRanking: 1,
+        allocationMethod: AllocationMethod.MANUAL,
+      },
+    });
+  }
+
+  public async saveManualAllocationAtomic(
+    studentId: string,
+    projectId: string,
+    supervisorId: string,
+    studentFlagId: string,
+    conflictStudentId?: string,
+  ): Promise<void> {
+    const operations = [];
+
+    operations.push(
+      this.db.studentProjectAllocation.deleteMany({
+        where: { ...expand(this.params), userId: studentId },
+      }),
+    );
+
+    if (conflictStudentId) {
+      operations.push(
+        this.db.studentProjectAllocation.deleteMany({
+          where: { ...expand(this.params), userId: conflictStudentId },
+        }),
+      );
+    }
+
+    operations.push(
+      this.db.project.update({
+        where: { id: projectId, ...expand(this.params) },
+        data: { preAllocatedStudentId: null },
+      }),
+    );
+
+    operations.push(
+      this.db.project.update({
+        where: { id: projectId, ...expand(this.params) },
+        data: { supervisorId },
+      }),
+    );
+
+    operations.push(
+      this.db.flagOnProject.createMany({
+        data: { projectId, flagId: studentFlagId, ...expand(this.params) },
+        skipDuplicates: true,
+      }),
+    );
+
+    operations.push(
+      this.db.studentProjectAllocation.upsert({
+        where: {
+          studentProjectAllocationId: {
+            ...expand(this.params),
+            userId: studentId,
+          },
+        },
+        create: {
+          ...expand(this.params),
+          userId: studentId,
+          projectId,
+          studentRanking: 1,
+          allocationMethod: AllocationMethod.MANUAL,
+        },
+        update: {
+          projectId,
+          studentRanking: 1,
+          allocationMethod: AllocationMethod.MANUAL,
+        },
+      }),
+    );
+
+    await this.db.$transaction(operations);
+  }
+
   public async getSummaryResults() {
     const algorithmData = await this.db.algorithm.findMany({
       where: expand(this.params),
