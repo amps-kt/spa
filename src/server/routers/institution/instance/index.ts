@@ -21,10 +21,6 @@ import {
   LinkUserResult,
   LinkUserResultSchema,
 } from "@/dto/result/link-user-result";
-import {
-  ReaderAssignmentResult,
-  readerAssignmentResultSchema,
-} from "@/dto/result/reader-allocation-result";
 
 import { AllocationInstance } from "@/data-objects";
 
@@ -38,7 +34,6 @@ import { createTRPCRouter } from "@/server/trpc";
 import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
-import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
 import { instanceParamsSchema } from "@/lib/validations/params";
 import {
@@ -1241,60 +1236,6 @@ export const instanceRouter = createTRPCRouter({
           })
       );
     }),
-
-  /**
-   * @deprecated
-   */
-  assignReaders: procedure.instance
-    .inStage([Stage.READER_BIDDING, Stage.READER_ALLOCATION])
-    .subGroupAdmin.input(
-      z.object({ newReaderAllocations: z.array(newReaderAllocationSchema) }),
-    )
-    .output(z.array(readerAssignmentResultSchema))
-    .mutation(
-      // TODO emit audit
-      async ({ ctx: { db, instance }, input: { newReaderAllocations } }) => {
-        const projectAllocationData =
-          await instance.getStudentAllocationDetails();
-        const studentIds = projectAllocationData.map((a) => a.student.id);
-
-        const readers = await instance.getReaders();
-        const readerIds = readers.map(({ id }) => id);
-
-        const allocationData = newReaderAllocations.map((data) => {
-          let status: ReaderAssignmentResult = ReaderAssignmentResult.OK;
-
-          if (!studentIds.includes(data.studentId))
-            status = ReaderAssignmentResult.MISSING_STUDENT;
-
-          if (!readerIds.includes(data.reader.id))
-            status = ReaderAssignmentResult.MISSING_READER;
-
-          return { data, status };
-        });
-
-        const studentProjectMap = projectAllocationData.reduce(
-          // TODO: fix
-          // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-          (acc, val) => ({ ...acc, [val.student.id]: val.allocation?.id! }),
-          {} as Record<string, string>,
-        );
-
-        await db.readerProjectAllocation.createMany({
-          data: allocationData
-            .filter((e) => e.status === ReaderAssignmentResult.OK)
-            .map(({ data: { reader, studentId } }) => ({
-              ...expand(instance.params),
-              readerId: reader.id,
-              studentId,
-              projectId: studentProjectMap[studentId],
-              thirdMarker: false, // TODO needs to come from somewhere
-            })),
-        });
-
-        return allocationData.map((e) => e.status);
-      },
-    ),
 
   getAllUnitsOfAssessment: procedure.instance
     .inStage([Stage.MARK_SUBMISSION])

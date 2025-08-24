@@ -82,10 +82,11 @@ export function useManualAllocationColumns({
     },
 
     {
-      id: "Flags",
+      id: "flags",
       accessorFn: (row) => row.flag.id,
       header: () => null,
       cell: () => null,
+      enableHiding: false,
       filterFn: (row, columnId, value) => {
         const selectedFilters = z.array(z.string()).parse(value);
         return selectedFilters.includes(row.getValue<string>(columnId));
@@ -138,8 +139,6 @@ export function useManualAllocationColumns({
     },
     {
       id: "actions",
-      header: "Actions",
-      enableHiding: true,
       cell: ({ row: { original: student } }) => (
         <div>
           <div className="flex items-center gap-2">

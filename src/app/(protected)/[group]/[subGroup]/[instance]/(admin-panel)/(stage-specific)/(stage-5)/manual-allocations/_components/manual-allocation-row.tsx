@@ -16,7 +16,6 @@ export const ManualAllocationRow: CustomRowType<ManualAllocationStudent> =
 
     return (
       <>
-        {/* Evil hack (cool): Use a slot to apply styles to the child */}
         <Slot
           className={cn(
             "transition-colors",
