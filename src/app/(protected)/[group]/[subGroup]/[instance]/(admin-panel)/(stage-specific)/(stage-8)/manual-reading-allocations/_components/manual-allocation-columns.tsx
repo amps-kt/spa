@@ -83,10 +83,11 @@ export function useManualReadingAllocationColumns({
     },
 
     {
-      id: "Flags",
+      id: "flags",
       accessorFn: (row) => row.student.flag.id,
       header: () => null,
       cell: () => null,
+      enableHiding: false,
       filterFn: (row, columnId, value) => {
         const selectedFilters = z.array(z.string()).parse(value);
         return selectedFilters.includes(row.getValue<string>(columnId));
@@ -123,7 +124,6 @@ export function useManualReadingAllocationColumns({
     {
       id: "actions",
       header: "Actions",
-      enableHiding: true,
       cell: ({ row: { original: projectData } }) => (
         <div>
           <div className="flex items-center gap-2">
