@@ -28,6 +28,7 @@ import { useRowSelectionSearchParams } from "./hooks/row-selection";
 
 import { DataTablePagination } from "./data-table-pagination";
 import { DataTableToolbar, type TableFilter } from "./data-table-toolbar";
+import { DefaultRow } from "./default-row";
 import {
   usePaginationSearchParams,
   useVisibilitySearchParams,
@@ -134,31 +135,19 @@ export default function DataTable<TData, TValue>({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                const defaultRow = (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-
-                if (CustomRow) {
-                  return (
-                    <CustomRow key={row.id} row={row} defaultRow={defaultRow} />
-                  );
-                }
-
-                return defaultRow;
-              })
+              table
+                .getRowModel()
+                .rows.map((row) =>
+                  CustomRow ? (
+                    <CustomRow
+                      key={row.id}
+                      row={row}
+                      defaultRow={<DefaultRow row={row} />}
+                    />
+                  ) : (
+                    <DefaultRow key={row.id} row={row} />
+                  ),
+                )
             ) : (
               <TableRow>
                 <TableCell

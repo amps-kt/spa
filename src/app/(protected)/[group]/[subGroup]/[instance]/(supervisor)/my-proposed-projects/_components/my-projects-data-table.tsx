@@ -54,11 +54,5 @@ export function MyProjectsDataTable({
     deleteSelectedProjects: handleDeleteSelected,
   });
 
-  return (
-    <DataTable
-      className="w-full"
-      columns={columns}
-      data={projects}
-    />
-  );
+  return <DataTable className="w-full" columns={columns} data={projects} />;
 }

@@ -94,10 +94,5 @@ export function RandomAllocationsDataTable({
     removeAllocation,
   });
 
-  return (
-    <DataTable
-      columns={columns}
-      data={studentData}
-    />
-  );
+  return <DataTable columns={columns} data={studentData} />;
 }
