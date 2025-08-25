@@ -1,0 +1,71 @@
+name: "amps"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    networks:
+      - amps-network
+    environment:
+      VALIDATE_ENV_VARS: "true"
+
+      DATABASE_URL: "postgresql://${DB_USER}:${DB_PASSWORD}@db:5432/${DB_NAME}"
+      MATCHING_SERVER_URL: ${MATCHING_SERVER_URL}
+      FRONTEND_SERVER_URL: ${FRONTEND_SERVER_URL}
+
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+
+      AUTH_FROM_HEADERS: "ON"
+
+      AUTH_WHITELIST_ENABLED: ${AUTH_WHITELIST_ENABLED}
+      AUTH_WHITELIST_EMAILS: ${AUTH_WHITELIST_EMAILS}
+
+      AUTH_MASKING_ENABLED: ${AUTH_MASKING_ENABLED}
+      AUTH_MASKING_EMAILS: ${AUTH_MASKING_EMAILS}
+
+      HEADERS_SHIB_GUID: ${HEADERS_SHIB_GUID}
+      HEADERS_SHIB_DISPLAY_NAME: ${HEADERS_SHIB_DISPLAY_NAME}
+      HEADERS_SHIB_EMAIL: ${HEADERS_SHIB_EMAIL}
+
+  db:
+    image: postgres:16-alpine
+    ports:
+      - "127.0.0.1:6565:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: "md5"
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-d", "${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    volumes:
+      - amps-db-data:/var/lib/postgresql/data/
+    networks:
+      - amps-network
+
+  matching-service:
+    image: ghcr.io/pkitazos/matching-service:latest
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - amps-network
+
+networks:
+  amps-network:
+
+volumes:
+  amps-db-data:
