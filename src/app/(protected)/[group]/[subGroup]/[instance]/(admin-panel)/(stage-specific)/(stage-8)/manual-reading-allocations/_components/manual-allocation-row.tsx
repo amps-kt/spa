@@ -1,7 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
-import { Slot } from "@radix-ui/react-slot";
-
 import { type CustomRowType } from "@/components/ui/data-table/data-table";
+import { DefaultRow } from "@/components/ui/data-table/default-row";
 import { TableCell, TableRow } from "@/components/ui/table";
 
 import { cn } from "@/lib/utils";
@@ -11,7 +10,7 @@ import { useWarningContext } from "./warning-context";
 import { WarningsDisplay } from "./warnings-display";
 
 export const ManualAllocationRow: CustomRowType<ManualReadingAllocationRow> =
-  function ({ row, defaultRow }) {
+  function ({ row }) {
     const projectData = row.original;
     const { getReaderQuotaWarning } = useWarningContext();
 
@@ -24,15 +23,14 @@ export const ManualAllocationRow: CustomRowType<ManualReadingAllocationRow> =
 
     return (
       <>
-        <Slot
+        <DefaultRow
+          row={row}
           className={cn(
             "transition-colors",
             projectData.isDirty ? "bg-blue-50/50" : "hover:bg-muted/50",
             warning ? "border-b-0" : "border-b",
           )}
-        >
-          {defaultRow}
-        </Slot>
+        />
 
         {warning && (
           <TableRow

@@ -37,10 +37,7 @@ import {
   useGlobalFilterSearchParams,
 } from "./hooks";
 
-export type CustomRowType<TData> = (props: {
-  row: Row<TData>;
-  defaultRow: ReactNode;
-}) => ReactNode;
+export type CustomRowType<TData> = (props: { row: Row<TData> }) => ReactNode;
 
 interface DataTableProps<TData, TValue> {
   searchParamPrefix?: string;
@@ -139,11 +136,7 @@ export default function DataTable<TData, TValue>({
                 .getRowModel()
                 .rows.map((row) =>
                   CustomRow ? (
-                    <CustomRow
-                      key={row.id}
-                      row={row}
-                      defaultRow={<DefaultRow row={row} />}
-                    />
+                    <CustomRow key={row.id} row={row} />
                   ) : (
                     <DefaultRow key={row.id} row={row} />
                   ),
