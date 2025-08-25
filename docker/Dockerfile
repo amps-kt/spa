@@ -9,8 +9,7 @@ COPY prisma prisma
 RUN corepack enable pnpm
 RUN pnpm i --frozen-lockfile
 
-COPY eslint.config.mjs .   
-COPY next-env.d.ts . 
+COPY eslint.config.mjs .
 COPY next.config.js .
 COPY postcss.config.cjs .
 COPY tsconfig.json .
