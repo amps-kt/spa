@@ -38,3 +38,9 @@ jobs:
             ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-latest
             ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-${{ steps.date.outputs.date }}
             ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-${{ github.sha }}
+
+      - name: "Trigger Staging Pull"
+        run: |
+          curl -X POST -H "Content-Type: application/json" \
+          -d "{ \"secret\": \"${{ secrets.PULL_STAGING_SECRET }}\" }" \
+          ${{ secrets.PULL_STAGING_URL }}
