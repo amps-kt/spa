@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { type CustomRowType } from "@/components/ui/data-table/data-table";
 import { DefaultRow } from "@/components/ui/data-table/default-row";
 import { TableCell, TableRow } from "@/components/ui/table";
