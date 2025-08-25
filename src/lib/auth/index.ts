@@ -47,6 +47,8 @@ async function getRealUser(): Promise<UserDTO> {
     email = env.DEV_EMAIL;
   }
 
+  console.log("shaddap ----> ", { id, name, email });
+
   const user = await retrieveUser(userDtoSchema.parse({ id, name, email }));
   return user;
 }
