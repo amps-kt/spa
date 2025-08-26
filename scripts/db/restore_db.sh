@@ -13,8 +13,9 @@ DB_CONTAINER="amps-db-1"
 DB_NAME="amps-db"
 DB_USER="root"
 
-# The SQL dump file you want to import
-DUMP_FILE="backup.sql"
+# The SQL dump file you want to import (default to backup.sql if not provided)
+DUMP_FILE="${1:-backup.sql}"
+DUMP_FILENAME=$(basename "$DUMP_FILE")
 
 
 # Check if the dump file exists
@@ -26,7 +27,8 @@ fi
 echo "Starting database restore process..."
 
 echo "   - Copying '$DUMP_FILE' to the container..."
-docker cp "$DUMP_FILE" "$DB_CONTAINER:/tmp/$DUMP_FILE"
+
+docker cp "$DUMP_FILE" "$DB_CONTAINER:/tmp/$DUMP_FILENAME"
 
 echo "   - Dropping the existing database '$DB_NAME'..."
 docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS \"$DB_NAME\";"
@@ -35,7 +37,7 @@ echo "   - Creating a new empty database '$DB_NAME'..."
 docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d postgres -c "CREATE DATABASE \"$DB_NAME\" WITH OWNER = $DB_USER TEMPLATE = template0;"
 
 echo "   - Importing data from '$DUMP_FILE'..."
-docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -f "/tmp/$DUMP_FILE"
+docker exec "$DB_CONTAINER" psql -U "$DB_USER" -d "$DB_NAME" -f "/tmp/$DUMP_FILENAME"
 
 
 echo "Success! Database '$DB_NAME' has been restored from '$DUMP_FILE'."
