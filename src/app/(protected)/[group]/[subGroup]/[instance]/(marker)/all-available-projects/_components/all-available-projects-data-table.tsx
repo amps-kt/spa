@@ -31,7 +31,7 @@ export function AllAvailableProjectsDataTable({
   const params = useInstanceParams();
 
   const { mutateAsync: api_updatePreference } =
-    api.project.updateReaderPreference.useMutation();
+    api.user.reader.updateReadingPreference.useMutation();
 
   async function updatePreference(
     project: ProjectDTO,

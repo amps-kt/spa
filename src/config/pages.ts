@@ -428,6 +428,22 @@ export const PAGES = {
     hasSubRoute: true,
   },
 
+  projectById: {
+    title: "",
+    href: "",
+    mkUrl: ({
+      params: { group, subGroup, instance },
+      projectId,
+    }: {
+      params: InstanceParams;
+      projectId: string;
+    }) => `/${group}/${subGroup}/${instance}/projects/${projectId}`,
+    icon: "file",
+    level: 5,
+    allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
+    hasSubRoute: false,
+  },
+
   // pin x2
   instanceHome: {
     title: "Instance Home",
@@ -527,6 +543,16 @@ export const PAGES = {
     icon: "user-plus",
     level: 4,
     allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+  myReadingPreferences: {
+    title: "My Reading Preferences",
+    href: "my-reading-preferences",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/my-reading-preferences`,
+    icon: "book-open",
+    level: 4,
+    allowedRoles: [Role.SUPERVISOR, Role.READER],
     hasSubRoute: false,
   },
   myMarking: {

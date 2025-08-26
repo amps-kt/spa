@@ -101,7 +101,28 @@ export class Reader extends Marker {
     return T.toReaderDTO(readerData);
   }
 
-  public async getPreferences(): Promise<Map<string, ReaderPreferenceType>> {
+  public async getPreferences(): Promise<
+    { project: ProjectDTO; type: ReaderPreferenceType }[]
+  > {
+    const data = await this.db.readerPreference.findMany({
+      where: { ...expand(this.instance.params), readerId: this.id },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+          },
+        },
+      },
+    });
+
+    return data.map((x) => ({
+      project: T.toProjectDTO(x.project),
+      type: x.type,
+    }));
+  }
+
+  public async getPreferencesMap(): Promise<Map<string, ReaderPreferenceType>> {
     const data = await this.db.readerPreference.findMany({
       where: { ...expand(this.instance.params), readerId: this.id },
     });

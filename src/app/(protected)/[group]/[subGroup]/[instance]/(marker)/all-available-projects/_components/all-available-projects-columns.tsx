@@ -15,6 +15,7 @@ import {
 } from "@/db/types";
 
 import { usePathInInstance } from "@/components/params-context";
+import { ReadingPreferenceButton } from "@/components/reading-preference-button";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,8 +23,6 @@ import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-col
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
-
-import { ReadingPreferenceButton } from "./reading-preference-button";
 
 export function useAllAvailableProjectsColumns({
   updatePreference,

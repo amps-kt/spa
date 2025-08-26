@@ -1,8 +1,10 @@
 import { z } from "zod";
 
-import { readerDtoSchema } from "@/dto";
+import { projectDtoSchema, readerDtoSchema, studentDtoSchema } from "@/dto";
 
 import { Reader } from "@/data-objects";
+
+import { readerPreferenceTypeSchema, Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
@@ -24,6 +26,30 @@ export const readerRouter = createTRPCRouter({
       return await reader.toDTO();
     }),
 
+  getReadingPreferences: procedure.instance.reader
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          type: readerPreferenceTypeSchema,
+        }),
+      ),
+    )
+    .query(async ({ ctx: { user } }) => await user.getPreferences()),
+
+  updateReadingPreference: procedure.instance.reader
+    .input(
+      z.object({
+        projectId: z.string(),
+        readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
+      }),
+    )
+    .output(readerPreferenceTypeSchema.or(z.undefined()))
+    .mutation(
+      async ({ ctx: { user }, input: { projectId, readingPreference } }) =>
+        await user.updateReadingPreference(projectId, readingPreference),
+    ),
+
   updateInstanceCapacities: procedure.instance.subGroupAdmin
     .input(
       z.object({ readerId: z.string(), capacities: Reader.capacitiesSchema }),
@@ -36,4 +62,17 @@ export const readerRouter = createTRPCRouter({
         return reader.setCapacityDetails(capacities);
       },
     ),
+
+  getReadingAllocations: procedure.instance
+    .withRoles([Role.ADMIN, Role.READER])
+    .input(z.object({ readerId: z.string() }))
+    .output(
+      z.array(
+        z.object({ project: projectDtoSchema, student: studentDtoSchema }),
+      ),
+    )
+    .query(async ({ ctx: { instance }, input: { readerId } }) => {
+      const reader = await instance.getReader(readerId);
+      return reader.getAllocations();
+    }),
 });

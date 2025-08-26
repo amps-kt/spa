@@ -1,6 +1,28 @@
 import { type ReactNode } from "react";
 
-import { ExtendedReaderPreferenceType } from "@/db/types";
+import { cva } from "class-variance-authority";
+
+import { ExtendedReaderPreferenceType, ReaderPreferenceType } from "@/db/types";
+
+// ? could maybe use this to toggle between states instead of the weird config object?
+// ? though I do like the config object for the labels and tip
+// ? thoughts @JakeTrevor
+export const readingPreferenceButtonVariants = cva(
+  "transition-all duration-200 border-2 font-medium flex items-center gap-2",
+  {
+    variants: {
+      variant: {
+        default:
+          "text-amber-800 bg-amber-100 border-amber-300 hover:bg-amber-200",
+        [ReaderPreferenceType.PREFERRED]:
+          "text-green-800 bg-green-100 border-green-300 hover:bg-green-200",
+        [ReaderPreferenceType.UNACCEPTABLE]:
+          "text-red-800 bg-red-100 border-red-300 hover:bg-red-200",
+      },
+    },
+    defaultVariants: { variant: "default" },
+  },
+);
 
 export const preferenceConfigs: Record<
   ExtendedReaderPreferenceType,
