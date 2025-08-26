@@ -25,7 +25,13 @@ import {
 import { AllocationInstance } from "@/data-objects";
 
 import { Transformers as T } from "@/db/transformers";
-import { AllocationMethod, PreferenceType, Role, Stage } from "@/db/types";
+import {
+  AllocationMethod,
+  PreferenceType,
+  readerPreferenceTypeSchema,
+  Role,
+  Stage,
+} from "@/db/types";
 import { stageSchema } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -978,6 +984,43 @@ export const instanceRouter = createTRPCRouter({
       audit("Deleted readers", { readerIds });
       return await instance.deleteManyReaders(readerIds);
     }),
+
+  getReaderPreferences: procedure.instance.subGroupAdmin
+    .input(z.object({ readerId: z.string() }))
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          type: readerPreferenceTypeSchema,
+        }),
+      ),
+    )
+    .mutation(async ({ ctx: { instance }, input: { readerId } }) => {
+      const reader = await instance.getReader(readerId);
+      return await reader.getPreferences();
+    }),
+
+  updateReaderPreference: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        readerId: z.string(),
+        projectId: z.string(),
+        readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
+      }),
+    )
+    .output(readerPreferenceTypeSchema.or(z.undefined()))
+    .mutation(
+      async ({
+        ctx: { instance },
+        input: { readerId, projectId, readingPreference },
+      }) => {
+        const reader = await instance.getReader(readerId);
+        return await reader.updateReadingPreference(
+          projectId,
+          readingPreference,
+        );
+      },
+    ),
 
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))

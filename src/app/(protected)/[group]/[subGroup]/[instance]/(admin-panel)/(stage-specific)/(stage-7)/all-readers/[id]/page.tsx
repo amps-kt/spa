@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import { type PageParams } from "@/lib/validations/params";
 
 import { InstanceDetailsCard } from "./_components/instance-details-card";
+import { ReaderPreferencesDataTable } from "./_components/reader-preferences-data-table";
 
 export async function generateMetadata({ params }: { params: PageParams }) {
   const exists = await api.user.reader.exists({ params, readerId: params.id });
@@ -32,6 +33,9 @@ export default async function Page({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const reader = await api.user.reader.getById({ params, readerId });
+  const readerPreferences = await api.institution.instance.getReaderPreferences(
+    { params, readerId },
+  );
 
   return (
     <PanelWrapper>
@@ -47,6 +51,7 @@ export default async function Page({ params }: { params: PageParams }) {
         <UserDetailsCard user={reader} />
         <InstanceDetailsCard reader={reader} />
       </div>
+      <ReaderPreferencesDataTable data={readerPreferences} />
     </PanelWrapper>
   );
 }
