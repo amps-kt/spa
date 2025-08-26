@@ -9,6 +9,8 @@ import {
   type MaybeReaderPreferenceType,
 } from "@/db/types";
 
+import { ReadingPreferenceButton } from "@/components/reading-preference-button";
+import { preferenceConfigs } from "@/components/reading-preference-button/config";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,9 +22,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
-
-import { preferenceConfigs } from "./config";
-import { ReadingPreferenceButton } from "./reading-preference-button";
 
 export function HelpSection() {
   return (

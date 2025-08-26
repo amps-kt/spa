@@ -178,7 +178,7 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { instance, user } }) => {
       const allProjects = await instance.getProjectDetails();
 
-      const readingPreferences = await user.getPreferences();
+      const readingPreferences = await user.getPreferencesMap();
 
       return allProjects
         .filter((x) => x.project.supervisorId !== user.id)
@@ -188,19 +188,6 @@ export const projectRouter = createTRPCRouter({
           readingPreference: readingPreferences.get(project.id),
         }));
     }),
-  // move to reader router
-  updateReaderPreference: procedure.instance.reader
-    .input(
-      z.object({
-        projectId: z.string(),
-        readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
-      }),
-    )
-    .output(readerPreferenceTypeSchema.or(z.undefined()))
-    .mutation(
-      async ({ ctx: { user }, input: { projectId, readingPreference } }) =>
-        await user.updateReadingPreference(projectId, readingPreference),
-    ),
 
   getById: procedure.project.user
     .output(projectDtoSchema)
