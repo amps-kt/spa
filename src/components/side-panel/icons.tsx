@@ -1,6 +1,7 @@
 import {
   BarChart3,
   BookOpenIcon,
+  BookTextIcon,
   BriefcaseIcon,
   FileCheck2Icon,
   FilePlus2Icon,
@@ -21,7 +22,7 @@ import {
   SettingsIcon,
   ShuffleIcon,
   SquareKanbanIcon,
-  UserCog2,
+  UserCog2Icon,
   UserPlusIcon,
   Users2Icon,
 } from "lucide-react";
@@ -33,6 +34,9 @@ export function Icon({ type }: { type: string }) {
 
     case "book-open":
       return <BookOpenIcon className="mr-2 h-4 w-4" />;
+
+    case "book-text":
+      return <BookTextIcon className="mr-2 h-4 w-4" />;
 
     case "briefcase":
       return <BriefcaseIcon className="mr-2 h-4 w-4" />;
@@ -95,7 +99,7 @@ export function Icon({ type }: { type: string }) {
       return <School2Icon />;
 
     case "user-cog":
-      return <UserCog2 className="mr-2 h-4 w-4" />;
+      return <UserCog2Icon className="mr-2 h-4 w-4" />;
 
     case "user-plus":
       return <UserPlusIcon className="mr-2 h-4 w-4" />;

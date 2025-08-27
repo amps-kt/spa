@@ -556,6 +556,16 @@ export const PAGES = {
     allowedRoles: [Role.SUPERVISOR, Role.READER],
     hasSubRoute: false,
   },
+  readingOverview: {
+    title: "Reading Overview",
+    href: "reading-overview",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/reading-overview`,
+    icon: "book-text",
+    level: 4,
+    allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
+    hasSubRoute: false,
+  },
   myMarking: {
     title: "My Marking",
     href: "my-marking",

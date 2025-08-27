@@ -467,6 +467,21 @@ export class AllocationInstance extends DataObject {
     return readers.map((x) => T.toReaderDTO(x));
   }
 
+  public async getTotalRequiredReaders(): Promise<number> {
+    return await this.db.studentProjectAllocation.count({
+      where: expand(this.params),
+    });
+  }
+
+  public async getTotalReadingUnits(): Promise<number> {
+    const { _sum } = await this.db.readerDetails.aggregate({
+      _sum: { readingWorkloadQuota: true },
+      where: expand(this.params),
+    });
+
+    return _sum.readingWorkloadQuota ?? 0;
+  }
+
   // TODO: standardise return type
   public async getStudentPreferenceDetails(): Promise<
     {
