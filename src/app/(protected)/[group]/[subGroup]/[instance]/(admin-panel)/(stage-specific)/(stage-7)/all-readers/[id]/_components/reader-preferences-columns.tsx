@@ -68,7 +68,7 @@ export function useReaderPreferenceColumns({
         // ! UI state does not update correctly, idk what to do
         <ReadingPreferenceButton
           currentPreference={currentPreference}
-          handleToggle={async (type) => await updatePreference(project, type)}
+          setPreference={async (type) => await updatePreference(project, type)}
         />
       ),
       filterFn: (row, columnId, value) => {

@@ -1,7 +1,10 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
+import { useCallback, useMemo } from "react";
+
+import { type Row, type ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { PAGES } from "@/config/pages";
@@ -11,10 +14,12 @@ import { flagDtoSchema, type ProjectDTO } from "@/dto";
 import {
   ExtendedReaderPreferenceType,
   extendedReaderPreferenceTypeSchema,
-  type MaybeReaderPreferenceType,
 } from "@/db/types";
 
-import { usePathInInstance } from "@/components/params-context";
+import {
+  useInstanceParams,
+  usePathInInstance,
+} from "@/components/params-context";
 import { ReadingPreferenceButton } from "@/components/reading-preference-button";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -22,24 +27,73 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
-export function useAllAvailableProjectsColumns({
-  updatePreference,
+// Cells are really just components
+// this one is super nasty, so I pulled it out to a separate fn.
+// You can safely inline it however
+// but because 'cell' doesn't start with an upper case 'c', eslint will cry at you.
+function ReadingPreferenceCell({
+  row: { original },
 }: {
-  updatePreference: (
-    project: ProjectDTO,
-    newType: MaybeReaderPreferenceType,
-  ) => Promise<MaybeReaderPreferenceType>;
-}): ColumnDef<{
+  row: Row<{
+    project: ProjectDTO;
+    readingPreference: ExtendedReaderPreferenceType;
+  }>;
+}) {
+  const utils = api.useUtils();
+
+  const {
+    mutateAsync: api_updatePreference,
+    variables,
+    isPending,
+  } = api.user.reader.updateReadingPreference.useMutation({
+    onSettled: async () =>
+      utils.project.getAllAvailableForReadingForUser.invalidate(),
+  });
+
+  const currentPreference = useMemo<ExtendedReaderPreferenceType>(() => {
+    return isPending ? variables.readingPreference : original.readingPreference;
+  }, [isPending, original.readingPreference, variables]);
+
+  const params = useInstanceParams();
+
+  const updatePreference = useCallback(
+    async (readingPreferenceType: ExtendedReaderPreferenceType) => {
+      toast.promise(
+        api_updatePreference({
+          params,
+          projectId: original.project.id,
+          readingPreference: readingPreferenceType,
+        }),
+        {
+          loading: "Updating project preference...",
+          error: "Something went wrong",
+          success: `Successfully updated preference over project (${original.project.title})`,
+        },
+      );
+    },
+    [api_updatePreference, params, original],
+  );
+
+  return (
+    <ReadingPreferenceButton
+      currentPreference={currentPreference}
+      setPreference={updatePreference}
+    />
+  );
+}
+
+export function useAllAvailableProjectsColumns(): ColumnDef<{
   project: ProjectDTO;
-  readingPreference: MaybeReaderPreferenceType;
+  readingPreference: ExtendedReaderPreferenceType;
 }>[] {
   const { getInstancePath } = usePathInInstance();
 
   const baseCols: ColumnDef<{
     project: ProjectDTO;
-    readingPreference: MaybeReaderPreferenceType;
+    readingPreference: ExtendedReaderPreferenceType;
   }>[] = [
     {
       id: "Title",
@@ -192,16 +246,7 @@ export function useAllAvailableProjectsColumns({
       header: ({ column }) => (
         <DataTableColumnHeader title="Reading Preference" column={column} />
       ),
-      cell: ({ row: { original } }) => {
-        return (
-          <ReadingPreferenceButton
-            currentPreference={original.readingPreference}
-            handleToggle={async (type) =>
-              await updatePreference(original.project, type)
-            }
-          />
-        );
-      },
+      cell: ReadingPreferenceCell,
       filterFn: (row, columnId, value) => {
         return z
           .array(extendedReaderPreferenceTypeSchema)

@@ -1,11 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { toast } from "sonner";
-
 import { type TagDTO, type FlagDTO, type ProjectDTO } from "@/dto";
 
-import { type ReaderPreferenceType } from "@/db/types";
+import { type ExtendedReaderPreferenceType } from "@/db/types";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
@@ -16,46 +13,21 @@ import { readingPreferenceOptions } from "@/lib/utils/reader-preference";
 import { useAllAvailableProjectsColumns } from "./all-available-projects-columns";
 
 export function AllAvailableProjectsDataTable({
-  data,
-
+  data: initialData,
   projectDescriptors,
 }: {
   data: {
     project: ProjectDTO;
-    readingPreference: ReaderPreferenceType | undefined;
+    readingPreference: ExtendedReaderPreferenceType;
   }[];
-
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
 }) {
-  const router = useRouter();
   const params = useInstanceParams();
 
-  const { mutateAsync: api_updatePreference } =
-    api.user.reader.updateReadingPreference.useMutation();
-
-  async function updatePreference(
-    project: ProjectDTO,
-    readingPreferenceType: ReaderPreferenceType | undefined,
-  ) {
-    return await toast
-      .promise(
-        api_updatePreference({
-          params,
-          projectId: project.id,
-          readingPreference: readingPreferenceType,
-        }),
-        {
-          loading: "Updating project preference...",
-          error: "Something went wrong",
-          success: `Successfully updated preference over project (${project.title})`,
-        },
-      )
-      .unwrap()
-      .then((data) => {
-        router.refresh();
-        return data;
-      });
-  }
+  const { data } = api.project.getAllAvailableForReadingForUser.useQuery(
+    { params },
+    { initialData },
+  );
 
   const filters = [
     {
@@ -81,7 +53,7 @@ export function AllAvailableProjectsDataTable({
     },
   ];
 
-  const columns = useAllAvailableProjectsColumns({ updatePreference });
+  const columns = useAllAvailableProjectsColumns();
 
   return (
     <DataTable
