@@ -8,6 +8,8 @@ import {
 
 type PageLevel = 1 | 2 | 3 | 4 | 5 | 6;
 
+type InInstance<T> = InstanceParams & T;
+
 export interface PageConfig {
   title: string;
   href: string;
@@ -125,7 +127,7 @@ export const PAGES = {
       subGroup,
       instance,
       supervisorId,
-    }: InstanceParams & { supervisorId: string }) =>
+    }: InInstance<{ supervisorId: string }>) =>
       `/${group}/${subGroup}/${instance}/all-supervisors/${supervisorId}/new-project`,
     icon: "file-plus-2",
     level: 6,
@@ -173,7 +175,7 @@ export const PAGES = {
       subGroup,
       instance,
       studentId,
-    }: InstanceParams & { studentId: string }) =>
+    }: InInstance<{ studentId: string }>) =>
       `/${group}/${subGroup}/${instance}/all-students/${studentId}/preferences`,
     icon: "folder",
     level: 5,
@@ -427,17 +429,16 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
     hasSubRoute: true,
   },
-
   projectById: {
     title: "",
     href: "",
     mkUrl: ({
-      params: { group, subGroup, instance },
+      group,
+      subGroup,
+      instance,
       projectId,
-    }: {
-      params: InstanceParams;
-      projectId: string;
-    }) => `/${group}/${subGroup}/${instance}/projects/${projectId}`,
+    }: InInstance<{ projectId: string }>) =>
+      `/${group}/${subGroup}/${instance}/projects/${projectId}`,
     icon: "file",
     level: 5,
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
@@ -496,7 +497,7 @@ export const PAGES = {
       subGroup,
       instance,
       projectId,
-    }: InstanceParams & { projectId: string }) =>
+    }: InInstance<{ projectId: string }>) =>
       `/${group}/${subGroup}/${instance}/projects/${projectId}/random-allocations`,
     icon: "pen",
     level: 5,

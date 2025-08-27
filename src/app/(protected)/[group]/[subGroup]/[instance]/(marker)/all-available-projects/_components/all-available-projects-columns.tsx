@@ -3,11 +3,8 @@
 import { useCallback, useMemo } from "react";
 
 import { type Row, type ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { toast } from "sonner";
 import { z } from "zod";
-
-import { PAGES } from "@/config/pages";
 
 import { flagDtoSchema, type ProjectDTO } from "@/dto";
 
@@ -16,10 +13,7 @@ import {
   extendedReaderPreferenceTypeSchema,
 } from "@/db/types";
 
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { ReadingPreferenceButton } from "@/components/reading-preference-button";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -27,6 +21,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
@@ -89,8 +84,6 @@ export function useAllAvailableProjectsColumns(): ColumnDef<{
   project: ProjectDTO;
   readingPreference: ExtendedReaderPreferenceType;
 }>[] {
-  const { getInstancePath } = usePathInInstance();
-
   const baseCols: ColumnDef<{
     project: ProjectDTO;
     readingPreference: ExtendedReaderPreferenceType;
@@ -106,15 +99,16 @@ export function useAllAvailableProjectsColumns(): ColumnDef<{
           original: { project },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block h-max min-w-60 px-0 text-start",
           )}
-          href={getInstancePath([PAGES.allProjects.href, project.id])}
+          page="projectById"
+          linkArgs={{ projectId: project.id }}
         >
           {project.title}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {

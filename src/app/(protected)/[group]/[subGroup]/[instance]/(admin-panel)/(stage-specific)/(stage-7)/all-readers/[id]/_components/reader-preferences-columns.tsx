@@ -14,7 +14,6 @@ import {
   extendedReaderPreferenceTypeSchema,
 } from "@/db/types";
 
-import { useInstanceParams } from "@/components/params-context";
 import { ReadingPreferenceButton } from "@/components/reading-preference-button";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -78,8 +77,6 @@ export function useReaderPreferenceColumns(): ColumnDef<{
   project: ProjectDTO;
   type: ExtendedReaderPreferenceType;
 }>[] {
-  const params = useInstanceParams();
-
   return [
     {
       id: "Project",
@@ -94,7 +91,7 @@ export function useReaderPreferenceColumns(): ColumnDef<{
       }) => (
         <AppInstanceLink
           page="projectById"
-          linkArgs={{ params, projectId: project.id }}
+          linkArgs={{ projectId: project.id }}
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block h-max min-w-60 px-0 text-start",

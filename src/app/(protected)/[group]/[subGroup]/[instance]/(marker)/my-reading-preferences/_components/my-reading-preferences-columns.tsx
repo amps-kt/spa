@@ -88,7 +88,7 @@ export function useMyReadingPreferenceColumns(): ColumnDef<{
       }) => (
         <AppInstanceLink
           page="projectById"
-          linkArgs={{ params, projectId: project.id }}
+          linkArgs={{ projectId: project.id }}
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block h-max min-w-60 px-0 text-start",
