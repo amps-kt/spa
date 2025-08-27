@@ -995,7 +995,7 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .mutation(async ({ ctx: { instance }, input: { readerId } }) => {
+    .query(async ({ ctx: { instance }, input: { readerId } }) => {
       const reader = await instance.getReader(readerId);
       return await reader.getPreferences();
     }),

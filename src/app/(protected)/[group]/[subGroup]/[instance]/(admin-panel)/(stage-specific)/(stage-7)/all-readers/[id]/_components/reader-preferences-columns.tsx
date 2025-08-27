@@ -1,6 +1,10 @@
 "use client";
 
-import { type ColumnDef } from "@tanstack/react-table";
+import { useCallback, useMemo } from "react";
+
+import { type Row, type ColumnDef } from "@tanstack/react-table";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { type ProjectDTO } from "@/dto";
@@ -16,16 +20,64 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 
 import { AppInstanceLink } from "@/lib/routing";
+import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { type PageParams } from "@/lib/validations/params";
 
-export function useReaderPreferenceColumns({
-  updatePreference,
+function ReadingPreferenceCell({
+  row: {
+    original: { project, type },
+  },
 }: {
-  updatePreference: (
-    project: ProjectDTO,
-    newType: ExtendedReaderPreferenceType,
-  ) => Promise<void>;
-}): ColumnDef<{ project: ProjectDTO; type: ExtendedReaderPreferenceType }>[] {
+  row: Row<{ project: ProjectDTO; type: ExtendedReaderPreferenceType }>;
+}) {
+  const utils = api.useUtils();
+  const {
+    mutateAsync: api_updatePreference,
+    isPending,
+    variables,
+  } = api.institution.instance.updateReaderPreference.useMutation({
+    onSettled: () =>
+      utils.institution.instance.getReaderPreferences.invalidate(),
+  });
+
+  const { id: readerId, ...params } = useParams<PageParams>();
+
+  const updatePreference = useCallback(
+    async (readingPreference: ExtendedReaderPreferenceType) => {
+      toast.promise(
+        api_updatePreference({
+          params,
+          readingPreference,
+          readerId,
+          projectId: project.id,
+        }),
+        {
+          loading: "Updating reader project preference...",
+          error: "Something went wrong",
+          success: `Successfully updated reader preference over project (${project.title})`,
+        },
+      );
+    },
+    [api_updatePreference, params, project, readerId],
+  );
+
+  const currentPreference = useMemo<ExtendedReaderPreferenceType>(() => {
+    return isPending ? variables.readingPreference : type;
+  }, [isPending, variables, type]);
+
+  return (
+    <ReadingPreferenceButton
+      currentPreference={currentPreference}
+      setPreference={updatePreference}
+    />
+  );
+}
+
+export function useReaderPreferenceColumns(): ColumnDef<{
+  project: ProjectDTO;
+  type: ExtendedReaderPreferenceType;
+}>[] {
   const params = useInstanceParams();
 
   return [
@@ -58,17 +110,7 @@ export function useReaderPreferenceColumns({
       header: ({ column }) => (
         <DataTableColumnHeader title="Reading Preference" column={column} />
       ),
-      cell: ({
-        row: {
-          original: { project, type: currentPreference },
-        },
-      }) => (
-        // ! UI state does not update correctly, idk what to do
-        <ReadingPreferenceButton
-          currentPreference={currentPreference}
-          setPreference={async (type) => await updatePreference(project, type)}
-        />
-      ),
+      cell: ReadingPreferenceCell,
       filterFn: (row, columnId, value) => {
         return z
           .array(extendedReaderPreferenceTypeSchema)

@@ -56,8 +56,6 @@ function ReadingPreferenceCell({
     [api_updatePreference, params, original],
   );
 
-  // ! UI state does not update correctly, idk what to do
-
   const currentPreference = useMemo<ExtendedReaderPreferenceType>(() => {
     return isPending ? variables.readingPreference : original.type;
   }, [isPending, original, variables]);
