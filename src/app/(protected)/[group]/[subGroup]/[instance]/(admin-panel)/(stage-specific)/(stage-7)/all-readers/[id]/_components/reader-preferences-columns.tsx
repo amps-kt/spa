@@ -8,8 +8,6 @@ import { type ProjectDTO } from "@/dto";
 import {
   ExtendedReaderPreferenceType,
   extendedReaderPreferenceTypeSchema,
-  type MaybeReaderPreferenceType,
-  type ReaderPreferenceType,
 } from "@/db/types";
 
 import { useInstanceParams } from "@/components/params-context";
@@ -25,9 +23,9 @@ export function useReaderPreferenceColumns({
 }: {
   updatePreference: (
     project: ProjectDTO,
-    newType: MaybeReaderPreferenceType,
-  ) => Promise<MaybeReaderPreferenceType>;
-}): ColumnDef<{ project: ProjectDTO; type: ReaderPreferenceType }>[] {
+    newType: ExtendedReaderPreferenceType,
+  ) => Promise<void>;
+}): ColumnDef<{ project: ProjectDTO; type: ExtendedReaderPreferenceType }>[] {
   const params = useInstanceParams();
 
   return [

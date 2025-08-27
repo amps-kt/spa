@@ -4,16 +4,10 @@ import { projectDtoSchema, readerDtoSchema, studentDtoSchema } from "@/dto";
 
 import { Reader } from "@/data-objects";
 
-import {
-  extendedReaderPreferenceTypeSchema,
-  readerPreferenceTypeSchema,
-  Role,
-} from "@/db/types";
+import { extendedReaderPreferenceTypeSchema, Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
-
-import { fromExtended, toExtended } from "@/lib/utils/reader-preference";
 
 export const readerRouter = createTRPCRouter({
   exists: procedure.instance.user
@@ -37,7 +31,7 @@ export const readerRouter = createTRPCRouter({
       z.array(
         z.object({
           project: projectDtoSchema,
-          type: readerPreferenceTypeSchema,
+          type: extendedReaderPreferenceTypeSchema,
         }),
       ),
     )
@@ -53,12 +47,7 @@ export const readerRouter = createTRPCRouter({
     .output(extendedReaderPreferenceTypeSchema)
     .mutation(
       async ({ ctx: { user }, input: { projectId, readingPreference } }) =>
-        toExtended(
-          await user.updateReadingPreference(
-            projectId,
-            fromExtended(readingPreference),
-          ),
-        ),
+        await user.updateReadingPreference(projectId, readingPreference),
     ),
 
   updateInstanceCapacities: procedure.instance.subGroupAdmin

@@ -4,10 +4,7 @@ import { useMemo } from "react";
 
 import { type ProjectDTO } from "@/dto";
 
-import {
-  ExtendedReaderPreferenceType,
-  type ReaderPreferenceType,
-} from "@/db/types";
+import { ExtendedReaderPreferenceType } from "@/db/types";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
@@ -19,7 +16,7 @@ import { useMyReadingPreferenceColumns } from "./my-reading-preferences-columns"
 export function MyReadingPreferencesDataTable({
   initialData,
 }: {
-  initialData: { project: ProjectDTO; type: ReaderPreferenceType }[];
+  initialData: { project: ProjectDTO; type: ExtendedReaderPreferenceType }[];
 }) {
   const params = useInstanceParams();
 

@@ -15,7 +15,10 @@ import {
   linkProjectFlagIds,
   linkProjectTagIds,
 } from "@/db/transactions/project-flags";
-import { Transformers as T } from "@/db/transformers";
+import {
+  Transformers as T,
+  ReadingPreferenceTransformers as RPT,
+} from "@/db/transformers";
 import {
   extendedReaderPreferenceTypeSchema,
   PreferenceType,
@@ -31,7 +34,6 @@ import {
   previousStages,
   subsequentStages,
 } from "@/lib/utils/permissions/stage-check";
-import { toExtended } from "@/lib/utils/reader-preference";
 
 export const projectRouter = createTRPCRouter({
   exists: procedure.project.user
@@ -190,7 +192,7 @@ export const projectRouter = createTRPCRouter({
         .sort((a, b) => a.project.title.localeCompare(b.project.title))
         .map(({ project }) => ({
           project,
-          readingPreference: toExtended(readingPreferences.get(project.id)),
+          readingPreference: RPT.toExtended(readingPreferences.get(project.id)),
         }));
     }),
 

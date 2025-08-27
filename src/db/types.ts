@@ -138,13 +138,6 @@ export type ExtendedPreferenceType = z.infer<
   typeof extendedPreferenceTypeSchema
 >;
 
-export const readerPreferenceTypeSchema = z.enum([
-  ReaderPreferenceType.PREFERRED,
-  ReaderPreferenceType.UNACCEPTABLE,
-]);
-
-export type MaybeReaderPreferenceType = ReaderPreferenceType | undefined;
-
 // I hate this name
 export const ExtendedReaderPreferenceType = {
   ACCEPTABLE: "ACCEPTABLE",
@@ -165,7 +158,7 @@ export type ExtendedReaderPreferenceType = z.infer<
 export {
   AlgorithmFlag,
   StudentPreferenceType as PreferenceType,
-  ReaderPreferenceType,
+  ReaderPreferenceType as DB_ReaderPreferenceType,
   Stage,
   MarkerType,
   AllocationMethod,

@@ -1,5 +1,7 @@
 "use client";
 
+import { readingPreferenceOptions } from "@/config/reading-preference";
+
 import { type TagDTO, type FlagDTO, type ProjectDTO } from "@/dto";
 
 import { type ExtendedReaderPreferenceType } from "@/db/types";
@@ -8,7 +10,6 @@ import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
-import { readingPreferenceOptions } from "@/lib/utils/reader-preference";
 
 import { useAllAvailableProjectsColumns } from "./all-available-projects-columns";
 

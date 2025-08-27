@@ -3,7 +3,7 @@ import { z } from "zod";
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type ReaderPreferenceType, type DB } from "@/db/types";
+import { type DB, ExtendedReaderPreferenceType } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { institutionIdSchema } from "@/lib/validations/institution-id";
@@ -102,7 +102,7 @@ export class Reader extends Marker {
   }
 
   public async getPreferences(): Promise<
-    { project: ProjectDTO; type: ReaderPreferenceType }[]
+    { project: ProjectDTO; type: ExtendedReaderPreferenceType }[]
   > {
     const data = await this.db.readerPreference.findMany({
       where: { ...expand(this.instance.params), readerId: this.id },
@@ -122,26 +122,28 @@ export class Reader extends Marker {
     }));
   }
 
-  public async getPreferencesMap(): Promise<Map<string, ReaderPreferenceType>> {
+  public async getPreferencesMap(): Promise<
+    Map<string, ExtendedReaderPreferenceType>
+  > {
     const data = await this.db.readerPreference.findMany({
       where: { ...expand(this.instance.params), readerId: this.id },
     });
 
     return data.reduce(
       (acc, val) => acc.set(val.projectId, val.type),
-      new Map<string, ReaderPreferenceType>(),
+      new Map<string, ExtendedReaderPreferenceType>(),
     );
   }
 
   public async updateReadingPreference(
     projectId: string,
-    readingPreference: ReaderPreferenceType | undefined,
-  ): Promise<ReaderPreferenceType | undefined> {
-    if (!readingPreference) {
+    readingPreference: ExtendedReaderPreferenceType,
+  ): Promise<ExtendedReaderPreferenceType> {
+    if (readingPreference === ExtendedReaderPreferenceType.ACCEPTABLE) {
       await this.db.readerPreference.delete({
         where: { readerId_projectId: { readerId: this.id, projectId } },
       });
-      return;
+      return ExtendedReaderPreferenceType.ACCEPTABLE;
     }
 
     const { type } = await this.db.readerPreference.upsert({

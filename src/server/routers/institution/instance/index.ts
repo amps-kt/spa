@@ -27,8 +27,8 @@ import { AllocationInstance } from "@/data-objects";
 import { Transformers as T } from "@/db/transformers";
 import {
   AllocationMethod,
+  extendedReaderPreferenceTypeSchema,
   PreferenceType,
-  readerPreferenceTypeSchema,
   Role,
   Stage,
 } from "@/db/types";
@@ -991,7 +991,7 @@ export const instanceRouter = createTRPCRouter({
       z.array(
         z.object({
           project: projectDtoSchema,
-          type: readerPreferenceTypeSchema,
+          type: extendedReaderPreferenceTypeSchema,
         }),
       ),
     )
@@ -1005,10 +1005,10 @@ export const instanceRouter = createTRPCRouter({
       z.object({
         readerId: z.string(),
         projectId: z.string(),
-        readingPreference: readerPreferenceTypeSchema.or(z.undefined()),
+        readingPreference: extendedReaderPreferenceTypeSchema,
       }),
     )
-    .output(readerPreferenceTypeSchema.or(z.undefined()))
+    .output(extendedReaderPreferenceTypeSchema)
     .mutation(
       async ({
         ctx: { instance },
