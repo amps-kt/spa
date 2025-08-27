@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { type ProjectDTO } from "@/dto";
 
-import { type ReaderPreferenceType } from "@/db/types";
+import { type ExtendedReaderPreferenceType } from "@/db/types";
 
 import DataTable from "@/components/ui/data-table/data-table";
 
@@ -17,7 +17,7 @@ import { useReaderPreferenceColumns } from "./reader-preferences-columns";
 export function ReaderPreferencesDataTable({
   data,
 }: {
-  data: { project: ProjectDTO; type: ReaderPreferenceType }[];
+  data: { project: ProjectDTO; type: ExtendedReaderPreferenceType }[];
 }) {
   const { id: readerId, ...params } = useParams<PageParams>();
 
@@ -26,23 +26,21 @@ export function ReaderPreferencesDataTable({
 
   async function updatePreference(
     project: ProjectDTO,
-    readingPreferenceType: ReaderPreferenceType | undefined,
+    readingPreferenceType: ExtendedReaderPreferenceType,
   ) {
-    return await toast
-      .promise(
-        api_updateReaderPreference({
-          params,
-          readerId,
-          projectId: project.id,
-          readingPreference: readingPreferenceType,
-        }),
-        {
-          loading: "Updating reader project preference...",
-          error: "Something went wrong",
-          success: `Successfully updated reader preference over project (${project.title})`,
-        },
-      )
-      .unwrap();
+    toast.promise(
+      api_updateReaderPreference({
+        params,
+        readerId,
+        projectId: project.id,
+        readingPreference: readingPreferenceType,
+      }),
+      {
+        loading: "Updating reader project preference...",
+        error: "Something went wrong",
+        success: `Successfully updated reader preference over project (${project.title})`,
+      },
+    );
   }
 
   const columns = useReaderPreferenceColumns({ updatePreference });
