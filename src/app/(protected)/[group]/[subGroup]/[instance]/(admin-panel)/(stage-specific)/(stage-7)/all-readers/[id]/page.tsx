@@ -51,7 +51,7 @@ export default async function Page({ params }: { params: PageParams }) {
         <UserDetailsCard user={reader} />
         <InstanceDetailsCard reader={reader} />
       </div>
-      <ReaderPreferencesDataTable data={readerPreferences} />
+      <ReaderPreferencesDataTable initialData={readerPreferences} />
     </PanelWrapper>
   );
 }
