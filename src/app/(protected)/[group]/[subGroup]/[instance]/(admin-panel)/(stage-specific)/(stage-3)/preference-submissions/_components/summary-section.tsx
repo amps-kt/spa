@@ -2,14 +2,16 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
-type TempData = {
-  all: number;
-  submitted: number;
-  incomplete: number;
-  preAllocated: number;
-};
+interface SummarySectionProps {
+  data: {
+    all: number;
+    submitted: number;
+    incomplete: number;
+    preAllocated: number;
+  };
+}
 
-export function SummarySection({ data }: { data: TempData }) {
+export function SummarySection({ data }: SummarySectionProps) {
   return (
     <Card className="w-full max-w-96">
       <CardContent className="pt-6">
