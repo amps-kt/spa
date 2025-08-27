@@ -4,10 +4,7 @@ import { useState } from "react";
 
 import { InfoIcon } from "lucide-react";
 
-import {
-  ReaderPreferenceType,
-  type MaybeReaderPreferenceType,
-} from "@/db/types";
+import { ExtendedReaderPreferenceType } from "@/db/types";
 
 import { ReadingPreferenceButton } from "@/components/reading-preference-button";
 import { preferenceConfigs } from "@/components/reading-preference-button/config";
@@ -90,7 +87,9 @@ export function HelpSection() {
 }
 
 function Demo() {
-  const [pref, setPref] = useState<MaybeReaderPreferenceType>(undefined);
+  const [pref, setPref] = useState<ExtendedReaderPreferenceType>(
+    ExtendedReaderPreferenceType.ACCEPTABLE,
+  );
 
   const [stupid, setStupid] = useState(false);
 
@@ -98,23 +97,24 @@ function Demo() {
     <div className="mx-auto p-5 bg-accent rounded-md drop-shadow-lg flex flex-col gap-2 items-center">
       <ReadingPreferenceButton
         currentPreference={pref}
-        handleToggle={async (a) => {
+        setPreference={async (a) => {
           setPref(a);
-          if (a === undefined) {
+          if (a === ExtendedReaderPreferenceType.ACCEPTABLE) {
             setStupid(true);
             setTimeout(() => setStupid(false), 100);
           }
-          return a;
         }}
       />
       <Diagram
         className={cn(
           "size-45 ease-in-out transition-duration-500",
-          pref === ReaderPreferenceType.PREFERRED &&
+          pref === ExtendedReaderPreferenceType.PREFERRED &&
             "-rotate-120 transition-transform",
-          pref === ReaderPreferenceType.UNACCEPTABLE &&
+          pref === ExtendedReaderPreferenceType.UNACCEPTABLE &&
             "-rotate-240 transition-transform",
-          pref === undefined && stupid && "-rotate-360 transition-transform",
+          pref === ExtendedReaderPreferenceType.ACCEPTABLE &&
+            stupid &&
+            "-rotate-360 transition-transform",
         )}
       />
     </div>

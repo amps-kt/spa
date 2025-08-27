@@ -80,3 +80,9 @@ export const preferenceOrder = [
   ExtendedReaderPreferenceType.PREFERRED,
   ExtendedReaderPreferenceType.UNACCEPTABLE,
 ];
+
+export function nextPrefType(current: ExtendedReaderPreferenceType) {
+  const currentIndex = preferenceOrder.indexOf(current);
+  const nextIndex = (currentIndex + 1) % preferenceOrder.length;
+  return preferenceOrder[nextIndex];
+}

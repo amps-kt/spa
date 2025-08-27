@@ -29,7 +29,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
   return (
     <PanelWrapper className="gap-10">
       <Heading>{PAGES.myReadingPreferences.title}</Heading>
-      <MyReadingPreferencesDataTable data={readingPreferences} />
+      <MyReadingPreferencesDataTable initialData={readingPreferences} />
     </PanelWrapper>
   );
 }

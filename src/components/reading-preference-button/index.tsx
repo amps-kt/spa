@@ -1,44 +1,33 @@
-import { useState } from "react";
+"use client";
 
-import {
-  ExtendedReaderPreferenceType,
-  type MaybeReaderPreferenceType,
-} from "@/db/types";
+import { useMemo } from "react";
+
+import { ExtendedReaderPreferenceType } from "@/db/types";
 
 import { Button } from "@/components/ui/button";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
-import { fromExtended, toExtended } from "@/lib/utils/reader-preference";
 
-import { preferenceOrder, preferenceConfigs } from "./config";
+import { preferenceConfigs, nextPrefType } from "./config";
 
 export function ReadingPreferenceButton({
   currentPreference,
-  handleToggle,
+  setPreference,
   className,
 }: {
-  currentPreference: MaybeReaderPreferenceType;
-  handleToggle: (
-    type: MaybeReaderPreferenceType,
-  ) => Promise<MaybeReaderPreferenceType>;
+  currentPreference: ExtendedReaderPreferenceType;
+  setPreference: (type: ExtendedReaderPreferenceType) => Promise<void>;
   className?: string;
 }) {
-  const [current, setCurrent] = useState<ExtendedReaderPreferenceType>(
-    toExtended(currentPreference),
-  );
-
   async function onPreferenceChange() {
-    const currentIndex = preferenceOrder.indexOf(current);
-    const nextIndex = (currentIndex + 1) % preferenceOrder.length;
-    const nextPreference = preferenceOrder[nextIndex];
-
-    const changedTo = await handleToggle(fromExtended(nextPreference));
-    setCurrent(toExtended(changedTo));
+    await setPreference(nextPrefType(currentPreference));
   }
 
-  const config =
-    preferenceConfigs[current ?? ExtendedReaderPreferenceType.ACCEPTABLE];
+  const config = useMemo(
+    () => preferenceConfigs[currentPreference],
+    [currentPreference],
+  );
 
   return (
     <WithTooltip tip={config.tip}>
@@ -57,11 +46,11 @@ export function ReadingPreferenceButton({
         <div
           className={cn(
             "w-3 h-3 rounded-full",
-            current === ExtendedReaderPreferenceType.ACCEPTABLE &&
+            currentPreference === ExtendedReaderPreferenceType.ACCEPTABLE &&
               "bg-amber-500",
-            current === ExtendedReaderPreferenceType.PREFERRED &&
+            currentPreference === ExtendedReaderPreferenceType.PREFERRED &&
               "bg-green-500",
-            current === ExtendedReaderPreferenceType.UNACCEPTABLE &&
+            currentPreference === ExtendedReaderPreferenceType.UNACCEPTABLE &&
               "bg-red-500",
           )}
         />

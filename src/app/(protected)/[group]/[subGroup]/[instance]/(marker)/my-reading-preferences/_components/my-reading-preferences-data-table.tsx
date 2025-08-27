@@ -1,10 +1,13 @@
 "use client";
 
-import { toast } from "sonner";
+import { useMemo } from "react";
 
 import { type ProjectDTO } from "@/dto";
 
-import { type ReaderPreferenceType } from "@/db/types";
+import {
+  ExtendedReaderPreferenceType,
+  type ReaderPreferenceType,
+} from "@/db/types";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
@@ -14,35 +17,28 @@ import { api } from "@/lib/trpc/client";
 import { useMyReadingPreferenceColumns } from "./my-reading-preferences-columns";
 
 export function MyReadingPreferencesDataTable({
-  data,
+  initialData,
 }: {
-  data: { project: ProjectDTO; type: ReaderPreferenceType }[];
+  initialData: { project: ProjectDTO; type: ReaderPreferenceType }[];
 }) {
   const params = useInstanceParams();
 
-  const { mutateAsync: api_updatePreference } =
-    api.user.reader.updateReadingPreference.useMutation();
+  const { data: currentData } = api.user.reader.getReadingPreferences.useQuery(
+    { params },
+    { initialData },
+  );
 
-  async function updatePreference(
-    project: ProjectDTO,
-    readingPreferenceType: ReaderPreferenceType | undefined,
-  ) {
-    return await toast
-      .promise(
-        api_updatePreference({
-          params,
-          projectId: project.id,
-          readingPreference: readingPreferenceType,
-        }),
-        {
-          loading: "Updating project preference...",
-          error: "Something went wrong",
-          success: `Successfully updated preference over project (${project.title})`,
-        },
-      )
-      .unwrap();
-  }
+  const displayData = useMemo(
+    () =>
+      initialData.map(({ project }) => ({
+        project,
+        type:
+          currentData.find((p) => p.project.id === project.id)?.type ??
+          ExtendedReaderPreferenceType.ACCEPTABLE,
+      })),
+    [currentData, initialData],
+  );
 
-  const columns = useMyReadingPreferenceColumns({ updatePreference });
-  return <DataTable columns={columns} data={data} />;
+  const columns = useMyReadingPreferenceColumns();
+  return <DataTable columns={columns} data={displayData} />;
 }
