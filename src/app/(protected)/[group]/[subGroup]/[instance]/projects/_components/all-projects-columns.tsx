@@ -318,52 +318,55 @@ export function useAllProjectsColumns({
                         />
                       }
                     />
-
                     <ConditionalRender
                       allowedRoles={[Role.ADMIN]}
-                      allowedStages={[
-                        Stage.PROJECT_SUBMISSION,
-                        Stage.STUDENT_BIDDING,
-                      ]}
                       allowed={
-                        <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
-                          <YesNoActionTrigger
-                            trigger={
-                              <button className="flex items-center gap-2">
-                                <Trash2Icon className="h-4 w-4" />
-                                <span>
-                                  Delete {selectedProjectIds.length} Selected
-                                  Projects
-                                </span>
-                              </button>
-                            }
-                          />
-                        </DropdownMenuItem>
-                      }
-                      denied={(denialData) => (
-                        <WithTooltip
-                          tip={
-                            <FormatDenials
-                              {...denialData}
-                              action="Deleting projects"
-                            />
+                        <ConditionalRender
+                          allowedStages={[
+                            Stage.PROJECT_SUBMISSION,
+                            Stage.STUDENT_BIDDING,
+                          ]}
+                          allowed={
+                            <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
+                              <YesNoActionTrigger
+                                trigger={
+                                  <button className="flex items-center gap-2">
+                                    <Trash2Icon className="h-4 w-4" />
+                                    <span>
+                                      Delete {selectedProjectIds.length}{" "}
+                                      Selected Projects
+                                    </span>
+                                  </button>
+                                }
+                              />
+                            </DropdownMenuItem>
                           }
-                          forDisabled
-                        >
-                          <DropdownMenuItem
-                            className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
-                            disabled
-                          >
-                            <button className="flex items-center gap-2">
-                              <Trash2Icon className="h-4 w-4" />
-                              <span>
-                                Delete {selectedProjectIds.length} Selected
-                                Projects
-                              </span>
-                            </button>
-                          </DropdownMenuItem>
-                        </WithTooltip>
-                      )}
+                          denied={(denialData) => (
+                            <WithTooltip
+                              tip={
+                                <FormatDenials
+                                  {...denialData}
+                                  action="Deleting projects"
+                                />
+                              }
+                              forDisabled
+                            >
+                              <DropdownMenuItem
+                                className="group/item2 text-destructive focus:bg-red-100/40 focus:text-destructive"
+                                disabled
+                              >
+                                <button className="flex items-center gap-2">
+                                  <Trash2Icon className="h-4 w-4" />
+                                  <span>
+                                    Delete {selectedProjectIds.length} Selected
+                                    Projects
+                                  </span>
+                                </button>
+                              </DropdownMenuItem>
+                            </WithTooltip>
+                          )}
+                        />
+                      }
                     />
                   </DropdownMenuContent>
                 </YesNoActionContainer>
