@@ -16,6 +16,7 @@ import {
   type AccessControlState,
   AccessControlResult,
   type ACOverrides,
+  type AccessControlContext,
 } from "./types";
 
 function checkRoles(
@@ -45,6 +46,50 @@ function checkCondition(
   else return customCondition({ userRoles, currentStage });
 }
 
+export function checkAC(
+  { userRoles, currentStage }: AccessControlContext,
+  condition: AccessCondition,
+) {
+  const { allowedRoles, allowedStages, customCondition, overrides } = condition;
+
+  const hasRequiredRole = checkRoles(userRoles, allowedRoles, overrides?.roles);
+  const hasRequiredStage = checkStage(
+    currentStage,
+    allowedStages,
+    overrides?.stage,
+  );
+  const passesCustomCondition = checkCondition(
+    userRoles,
+    currentStage,
+    customCondition,
+  );
+
+  if (hasRequiredRole && hasRequiredStage && passesCustomCondition) {
+    return {
+      status: AccessControlResult.ALLOWED,
+      ctx: { userRoles, currentStage },
+    };
+  } else {
+    const reasons: DenialReason[] = [];
+
+    if (!hasRequiredRole && allowedRoles) {
+      reasons.push({ code: DenialReason.BAD_ROLE, allowedRoles });
+    }
+    if (!hasRequiredStage && allowedStages) {
+      reasons.push({ code: DenialReason.BAD_STAGE, allowedStages });
+    }
+    if (!passesCustomCondition) {
+      reasons.push({ code: DenialReason.BAD_CUSTOM });
+    }
+
+    return {
+      status: AccessControlResult.DENIED,
+      ctx: { userRoles, currentStage },
+      reasons,
+    } satisfies AccessControlState;
+  }
+}
+
 export function useAccessControl(
   conditions: AccessCondition = {},
 ): AccessControlState {
@@ -64,50 +109,9 @@ export function useAccessControl(
       return { status: AccessControlResult.ERROR };
     }
 
-    const { allowedRoles, allowedStages, customCondition, overrides } =
-      conditions;
-
-    const userRoles = Array.from(userRolesSet);
-
-    const hasRequiredRole = checkRoles(
-      userRoles,
-      allowedRoles,
-      overrides?.roles,
+    return checkAC(
+      { userRoles: Array.from(userRolesSet), currentStage },
+      conditions,
     );
-    const hasRequiredStage = checkStage(
-      currentStage,
-      allowedStages,
-      overrides?.stage,
-    );
-    const passesCustomCondition = checkCondition(
-      userRoles,
-      currentStage,
-      customCondition,
-    );
-
-    if (hasRequiredRole && hasRequiredStage && passesCustomCondition) {
-      return {
-        status: AccessControlResult.ALLOWED,
-        ctx: { userRoles, currentStage },
-      };
-    } else {
-      const reasons: DenialReason[] = [];
-
-      if (!hasRequiredRole && allowedRoles) {
-        reasons.push({ code: DenialReason.BAD_ROLE, allowedRoles });
-      }
-      if (!hasRequiredStage && allowedStages) {
-        reasons.push({ code: DenialReason.BAD_STAGE, allowedStages });
-      }
-      if (!passesCustomCondition) {
-        reasons.push({ code: DenialReason.BAD_CUSTOM });
-      }
-
-      return {
-        status: AccessControlResult.DENIED,
-        ctx: { userRoles, currentStage },
-        reasons,
-      } satisfies AccessControlState;
-    }
   }, [isLoading, userRolesSet, currentStage, conditions]);
 }
