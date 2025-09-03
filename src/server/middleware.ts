@@ -13,6 +13,9 @@ import {
 
 import { Role, type Stage } from "@/db/types";
 
+import { type AccessCondition } from "@/components/access-control";
+import { checkAC } from "@/components/access-control/use-access-control";
+
 import { type AuditFn } from "@/lib/logging/logger";
 import { HttpMatchingService } from "@/lib/services/matching";
 import {
@@ -246,6 +249,33 @@ const markerMiddleware = authedMiddleware.unstable_pipe(
   },
 );
 
+// * New!
+/**
+ * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
+ */
+const accessControlMiddleware = (condition: AccessCondition) =>
+  authedMiddleware.unstable_pipe(async ({ ctx: { user, db }, next, input }) => {
+    const { params } = z.object({ params: instanceParamsSchema }).parse(input);
+    const instance = new AllocationInstance(db, params);
+    const { stage } = await instance.get();
+
+    const roles = await user.getRolesInInstance(params);
+
+    const res = checkAC(
+      { userRoles: Array.from(roles), currentStage: stage },
+      condition,
+    );
+
+    if (res.status === "DENIED") {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "AC check failed", // Fill in with stuff if you like
+      });
+    }
+
+    return next();
+  });
+
 /**
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
  */
@@ -347,6 +377,10 @@ export const procedure = {
     student: instanceProcedure.use(studentMiddleware),
     supervisor: instanceProcedure.use(supervisorMiddleware),
     marker: instanceProcedure.use(markerMiddleware),
+    withAC: (condition: AccessCondition) =>
+      instanceProcedure.use(accessControlMiddleware(condition)),
+    // sort of makes these two irrelevant now,
+    // Maybe we should deprecate?
     withRoles: (allowedRoles: Role[]) =>
       instanceProcedure.use(mkRoleMiddleware(allowedRoles)),
 
