@@ -381,9 +381,15 @@ export const procedure = {
       instanceProcedure.use(accessControlMiddleware(condition)),
     // sort of makes these two irrelevant now,
     // Maybe we should deprecate?
+
+    /**
+     * @deprecated
+     */
     withRoles: (allowedRoles: Role[]) =>
       instanceProcedure.use(mkRoleMiddleware(allowedRoles)),
-
+    /**
+     * @deprecated
+     */
     inStage: (allowedStages: Stage[]) => {
       const proc = institutionProcedure
         .input(z.object({ params: instanceParamsSchema }))
