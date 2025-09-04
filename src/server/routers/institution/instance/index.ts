@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { Grade } from "@/config/grades";
 import { PAGES } from "@/config/pages";
 
 import {
@@ -9,10 +8,8 @@ import {
   ProjectAllocationStatus,
   projectDtoSchema,
   projectStatusRank as statusRank,
-  type ReaderDTO,
   readerDtoSchema,
   studentDtoSchema,
-  type SupervisorDTO,
   supervisorDtoSchema,
   tagDtoSchema,
   unitOfAssessmentDtoSchema,
@@ -495,7 +492,6 @@ export const instanceRouter = createTRPCRouter({
       await instance.deleteManyStudents(studentIds);
     }),
 
-  // TODO fix this it sucks
   getStudentsWithPreAllocationStatus: procedure.instance.subGroupAdmin
     .output(
       z.array(
@@ -532,8 +528,11 @@ export const instanceRouter = createTRPCRouter({
    * Sub-group admin updating a student's preference over a particular project
    */
   updateStudentPreference: procedure.instance
-    .inStage([Stage.STUDENT_BIDDING])
-    .subGroupAdmin.input(
+    .withAC({
+      allowedStages: [Stage.STUDENT_BIDDING],
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(
       z.object({
         studentId: z.string(),
         projectId: z.string(),
@@ -658,8 +657,11 @@ export const instanceRouter = createTRPCRouter({
    * Sub-group admin reordering a student's preferences
    */
   reorderStudentPreference: procedure.instance
-    .inStage([Stage.STUDENT_BIDDING])
-    .subGroupAdmin.input(
+    .withAC({
+      allowedStages: [Stage.STUDENT_BIDDING],
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(
       z.object({
         studentId: z.string(),
         projectId: z.string(),
@@ -1004,6 +1006,7 @@ export const instanceRouter = createTRPCRouter({
       return tabGroups;
     }),
 
+  // pin -
   getMarkerSubmissions: procedure.instance.subGroupAdmin
     .input(z.object({ unitOfAssessmentId: z.string() }))
     .output(
@@ -1018,120 +1021,121 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .query(async ({ ctx: { instance, db }, input: { unitOfAssessmentId } }) => {
-      const supervisors = await instance.getSupervisors();
+    .query(async () => {
+      return [];
+      // const supervisors = await instance.getSupervisors();
 
-      const supervisorMap = supervisors.reduce(
-        (acc, supervisor) => ({ ...acc, [supervisor.id]: supervisor }),
-        {} as Record<string, SupervisorDTO>,
-      );
+      // const supervisorMap = supervisors.reduce(
+      //   (acc, supervisor) => ({ ...acc, [supervisor.id]: supervisor }),
+      //   {} as Record<string, SupervisorDTO>,
+      // );
 
-      const readers = await instance.getReaders();
+      // const readers = await instance.getReaders();
 
-      const readerMap = readers.reduce(
-        (acc, reader) => ({ ...acc, [reader.id]: reader }),
-        {} as Record<string, ReaderDTO>,
-      );
+      // const readerMap = readers.reduce(
+      //   (acc, reader) => ({ ...acc, [reader.id]: reader }),
+      //   {} as Record<string, ReaderDTO>,
+      // );
 
-      const submission = await db.unitOfAssessment.findFirstOrThrow({
-        where: { id: unitOfAssessmentId },
-        include: { assessmentCriteria: { include: { scores: true } } },
-      });
+      // const submission = await db.unitOfAssessment.findFirstOrThrow({
+      //   where: { id: unitOfAssessmentId },
+      //   include: { assessmentCriteria: { include: { scores: true } } },
+      // });
 
-      const studentAllocations = await db.studentProjectAllocation.findMany({
-        where: expand(instance.params),
-        include: {
-          student: {
-            include: {
-              studentFlag: true,
-              userInInstance: { include: { user: true } },
-            },
-          },
-          project: {
-            include: {
-              readerAllocations: { include: { reader: true } },
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-            },
-          },
-        },
-      });
+      // const studentAllocations = await db.studentProjectAllocation.findMany({
+      //   where: expand(instance.params),
+      //   include: {
+      //     student: {
+      //       include: {
+      //         studentFlag: true,
+      //         userInInstance: { include: { user: true } },
+      //       },
+      //     },
+      //     project: {
+      //       include: {
+      //         readerAllocations: { include: { reader: true } },
+      //         flagsOnProject: { include: { flag: true } },
+      //         tagsOnProject: { include: { tag: true } },
+      //       },
+      //     },
+      //   },
+      // });
 
-      return (
-        studentAllocations
-          // WARNING: remove filter before deploying to prod
-          .filter((a) => {
-            const has_reader = a.project.readerAllocations.length > 0;
-            if (!has_reader) {
-              console.log("no reader: ", a.project.title);
-            }
-            return has_reader;
-          })
+      // return (
+      //   studentAllocations
+      //     // WARNING: remove filter before deploying to prod
+      //     .filter((a) => {
+      //       const has_reader = a.project.readerAllocations.length > 0;
+      //       if (!has_reader) {
+      //         console.log("no reader: ", a.project.title);
+      //       }
+      //       return has_reader;
+      //     })
 
-          .map((a) => {
-            const ra = a.project.readerAllocations.find((r) => !r.thirdMarker);
-            if (!ra) {
-              throw new Error(
-                "instance.getMarkerSubmissions: Reader allocation not found",
-              );
-            }
+      //     .map((a) => {
+      //       const ra = a.project.readerAllocations.find((r) => !r.thirdMarker);
+      //       if (!ra) {
+      //         throw new Error(
+      //           "instance.getMarkerSubmissions: Reader allocation not found",
+      //         );
+      //       }
 
-            const reader = readerMap[ra.readerId];
+      //       const reader = readerMap[ra.readerId];
 
-            if (!reader) {
-              throw new Error(
-                "instance.getMarkerSubmissions: Reader not found",
-              );
-            }
+      //       if (!reader) {
+      //         throw new Error(
+      //           "instance.getMarkerSubmissions: Reader not found",
+      //         );
+      //       }
 
-            const supervisor = supervisorMap[a.project.supervisorId];
+      //       const supervisor = supervisorMap[a.project.supervisorId];
 
-            if (!supervisor) {
-              throw new Error(
-                "instance.getMarkerSubmissions: Supervisor not found",
-              );
-            }
+      //       if (!supervisor) {
+      //         throw new Error(
+      //           "instance.getMarkerSubmissions: Supervisor not found",
+      //         );
+      //       }
 
-            const supervisorScores = submission.assessmentCriteria.map((c) => {
-              const supervisorScore = c.scores.find(
-                (s) => s.markerId === supervisor.id,
-              );
-              if (!supervisorScore) return undefined;
-              return { weight: c.weight, score: supervisorScore.grade };
-            });
+      //       const supervisorScores = submission.assessmentCriteria.map((c) => {
+      //         const supervisorScore = c.scores.find(
+      //           (s) => s.markerId === supervisor.id,
+      //         );
+      //         if (!supervisorScore) return undefined;
+      //         return { weight: c.weight, score: supervisorScore.grade };
+      //       });
 
-            let supervisorGrade: string | undefined;
-            if (supervisorScores.every((s) => s !== undefined)) {
-              supervisorGrade = Grade.toLetter(
-                Grade.computeFromScores(supervisorScores),
-              );
-            }
+      //       let supervisorGrade: string | undefined;
+      //       if (supervisorScores.every((s) => s !== undefined)) {
+      //         supervisorGrade = Grade.toLetter(
+      //           Grade.computeFromScores(supervisorScores),
+      //         );
+      //       }
 
-            const readerScores = submission.assessmentCriteria.map((c) => {
-              const readerScore = c.scores.find(
-                (s) => s.markerId === reader.id,
-              );
-              if (!readerScore) return undefined;
-              return { weight: c.weight, score: readerScore.grade };
-            });
+      //       const readerScores = submission.assessmentCriteria.map((c) => {
+      //         const readerScore = c.scores.find(
+      //           (s) => s.markerId === reader.id,
+      //         );
+      //         if (!readerScore) return undefined;
+      //         return { weight: c.weight, score: readerScore.grade };
+      //       });
 
-            let readerGrade: string | undefined;
-            if (readerScores.every((s) => s !== undefined)) {
-              readerGrade = Grade.toLetter(
-                Grade.computeFromScores(readerScores),
-              );
-            }
+      //       let readerGrade: string | undefined;
+      //       if (readerScores.every((s) => s !== undefined)) {
+      //         readerGrade = Grade.toLetter(
+      //           Grade.computeFromScores(readerScores),
+      //         );
+      //       }
 
-            return {
-              project: T.toProjectDTO(a.project),
-              student: T.toStudentDTO(a.student),
-              supervisor,
-              supervisorGrade,
-              reader,
-              readerGrade,
-            };
-          })
-      );
+      //       return {
+      //         project: T.toProjectDTO(a.project),
+      //         student: T.toStudentDTO(a.student),
+      //         supervisor,
+      //         supervisorGrade,
+      //         reader,
+      //         readerGrade,
+      //       };
+      //     })
+      // );
     }),
 
   assignReaders: procedure.instance

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -24,27 +24,27 @@ export function StageControl({ stage }: { stage: Stage }) {
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const [confirmedIdx, setConfirmedIdx] = useState(stages.indexOf(stage) + 1);
 
-  const utils = api.useUtils();
-  const refetchTabs = async () =>
-    await utils.institution.instance.getHeaderTabs.refetch();
+  const { mutateAsync: api_setStage } =
+    api.institution.instance.setStage.useMutation();
 
-  const { mutateAsync } = api.institution.instance.setStage.useMutation();
+  const handleConfirmation = useCallback(
+    async (idx: number) => {
+      await toast
+        .promise(api_setStage({ params, stage: stages[idx - 1] }), {
+          loading: "Updating Stage...",
+          error: "Something went wrong",
+          success: "Success",
+        })
+        .unwrap()
+        .then(() => {
+          setSelectedIdx(-1);
+          setConfirmedIdx(idx);
+          router.refresh();
+        });
+    },
+    [api_setStage, params, router, stages],
+  );
 
-  const handleConfirmation = (idx: number) => {
-    toast.promise(
-      mutateAsync({ params, stage: stages[idx - 1] }).then(async () => {
-        setSelectedIdx(-1);
-        setConfirmedIdx(idx);
-        router.refresh();
-        await refetchTabs();
-      }),
-      {
-        loading: "Updating Stage...",
-        error: "Something went wrong",
-        success: "Success",
-      },
-    );
-  };
   return (
     <div className="mx-16 mt-12 flex justify-between px-6">
       <ol className="grid w-full grid-cols-2">
