@@ -279,6 +279,26 @@ const accessControlMiddleware = (condition: AccessCondition) =>
 /**
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
  */
+const instanceMemberMiddleware = authedMiddleware.unstable_pipe(
+  async ({ ctx: { user }, next, input }) => {
+    const { params } = z.object({ params: instanceParamsSchema }).parse(input);
+
+    const isMember = await user.isMember(params);
+
+    if (!isMember) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not member of instance",
+      });
+    }
+
+    return next();
+  },
+);
+
+/**
+ * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
+ */
 function mkRoleMiddleware(allowedRoles: Role[]) {
   return authedMiddleware.unstable_pipe(
     async ({ ctx: { user }, next, input }) => {
@@ -377,6 +397,7 @@ export const procedure = {
     student: instanceProcedure.use(studentMiddleware),
     supervisor: instanceProcedure.use(supervisorMiddleware),
     marker: instanceProcedure.use(markerMiddleware),
+    member: instanceProcedure.use(instanceMemberMiddleware),
     withAC: (condition: AccessCondition) =>
       instanceProcedure.use(accessControlMiddleware(condition)),
     // sort of makes these two irrelevant now,
@@ -405,6 +426,8 @@ export const procedure = {
         student: proc.use(studentMiddleware),
         supervisor: proc.use(supervisorMiddleware),
         marker: proc.use(markerMiddleware),
+        member: proc.use(instanceMemberMiddleware),
+
         withRoles: (allowedRoles: Role[]) =>
           proc.use(mkRoleMiddleware(allowedRoles)),
       };
@@ -418,6 +441,8 @@ export const procedure = {
     subGroupAdmin: projectProcedure.use(SubGroupAdminMiddleware),
     supervisor: projectProcedure.use(supervisorMiddleware),
     marker: projectProcedure.use(markerMiddleware),
+    member: projectProcedure.use(instanceMemberMiddleware),
+
     withRoles: (allowedRoles: Role[]) =>
       projectProcedure.use(mkRoleMiddleware(allowedRoles)),
 
@@ -436,6 +461,8 @@ export const procedure = {
         subGroupAdmin: proc.use(SubGroupAdminMiddleware),
         supervisor: proc.use(supervisorMiddleware),
         marker: proc.use(markerMiddleware),
+        member: proc.use(instanceMemberMiddleware),
+
         withRoles: (allowedRoles: Role[]) =>
           proc.use(mkRoleMiddleware(allowedRoles)),
       };

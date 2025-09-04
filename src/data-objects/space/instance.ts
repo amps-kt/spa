@@ -30,7 +30,6 @@ import {
 import { HttpMatchingService } from "@/lib/services/matching";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
-import { nubsById } from "@/lib/utils/list-unique";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
@@ -918,24 +917,24 @@ export class AllocationInstance extends DataObject {
   public async getFlagsOnProjects(): Promise<FlagDTO[]> {
     const flagData = await this.db.flagOnProject.findMany({
       where: { project: expand(this.params) },
-      include: { flag: true },
+      select: { flag: true },
+      distinct: ["flagId"],
     });
 
     return flagData
       .map((f) => T.toFlagDTO(f.flag))
-      .filter(nubsById)
       .sort((a, b) => a.displayName.localeCompare(b.displayName));
   }
 
   public async getTagsOnProjects(): Promise<TagDTO[]> {
     const tagData = await this.db.tagOnProject.findMany({
       where: { project: expand(this.params) },
-      include: { tag: true },
+      select: { tag: true },
+      distinct: ["tagId"],
     });
 
     return tagData
       .map(({ tag }) => T.toTagDTO(tag))
-      .filter(nubsById)
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 

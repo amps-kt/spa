@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 import { spacesLabels } from "@/config/spaces";
@@ -12,6 +14,9 @@ import { type SubGroupParams } from "@/lib/validations/params";
 import { WizardSection } from "./_components/wizard-section";
 
 export async function generateMetadata({ params }: { params: SubGroupParams }) {
+  const allocationSubGroup = await api.institution.subGroup.exists({ params });
+  if (!allocationSubGroup) notFound();
+
   const { displayName } = await api.institution.subGroup.get({ params });
 
   return {
@@ -28,7 +33,7 @@ export default async function Page({ params }: { params: SubGroupParams }) {
     );
   }
 
-  const takenNames = await api.institution.subGroup.takenInstanceNames({
+  const takenNames = await api.institution.subGroup.getAllTakenInstanceNames({
     params,
   });
 

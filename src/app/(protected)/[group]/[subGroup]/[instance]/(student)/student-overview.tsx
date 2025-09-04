@@ -24,7 +24,7 @@ import { type InstanceParams } from "@/lib/validations/params";
 import Layout from "./layout";
 
 export async function StudentOverview({ params }: { params: InstanceParams }) {
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
 
   const { displayName, preferenceSubmissionDeadline: deadline } =
     await api.user.student.overviewData({ params });

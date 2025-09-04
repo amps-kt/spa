@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: PageParams }) {
   const exists = await api.user.student.exists({ params, studentId });
   if (!exists) notFound();
 
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
   if (stage !== Stage.STUDENT_BIDDING) {
     return (
       <Unauthorised message="You are not allowed to access this resource at this time" />

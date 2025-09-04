@@ -22,7 +22,7 @@ export const subGroupRouter = createTRPCRouter({
     .output(z.boolean())
     .query(async ({ ctx: { subGroup } }) => await subGroup.exists()),
 
-  get: procedure.subgroup.user
+  get: procedure.subgroup.subgroupAdmin
     .output(subGroupDtoSchema)
     .query(async ({ ctx: { subGroup } }) => await subGroup.get()),
 
@@ -33,21 +33,16 @@ export const subGroupRouter = createTRPCRouter({
         await user.isSubGroupAdminOrBetter(subGroup.params),
     ),
 
-  // TODO split
-  // TODO rename
-  instanceManagement: procedure.subgroup.subgroupAdmin.query(
-    async ({ ctx: { subGroup } }) => {
-      const { displayName } = await subGroup.get();
-      const allocationInstances = await subGroup.getInstances();
+  getAllSubGroupAdmins: procedure.subgroup.subgroupAdmin
+    .output(z.array(userDtoSchema))
+    .query(async ({ ctx: { subGroup } }) => await subGroup.getAdmins()),
 
-      const subGroupAdmins = await subGroup.getAdmins();
+  getAllInstances: procedure.subgroup.subgroupAdmin
+    .output(z.array(instanceDtoSchema))
+    .query(async ({ ctx: { subGroup } }) => await subGroup.getInstances()),
 
-      return { displayName, allocationInstances, subGroupAdmins };
-    },
-  ),
-
-  // BREAKING return type change
-  takenInstanceNames: procedure.subgroup.subgroupAdmin
+  // Move to instance maybe :point_right: :point_left:
+  getAllTakenInstanceNames: procedure.subgroup.subgroupAdmin
     .output(z.set(z.string()))
     .query(
       async ({ ctx: { subGroup } }) =>
@@ -84,8 +79,9 @@ export const subGroupRouter = createTRPCRouter({
       audit("Deleted instance");
     }),
 
-  // BREAKING input and output types changed
-  addAdmin: procedure.subgroup.groupAdmin
+  // move ends here
+
+  addSubGroupAdmin: procedure.subgroup.groupAdmin
     .input(z.object({ newAdmin: userDtoSchema }))
     .output(LinkUserResultSchema)
     .mutation(
@@ -125,7 +121,7 @@ export const subGroupRouter = createTRPCRouter({
       },
     ),
 
-  removeAdmin: procedure.subgroup.groupAdmin
+  removeSubGroupAdmin: procedure.subgroup.groupAdmin
     .input(z.object({ userId: z.string() }))
     .output(z.void())
     .mutation(async ({ ctx: { subGroup, audit }, input: { userId } }) => {

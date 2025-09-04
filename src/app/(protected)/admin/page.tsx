@@ -22,8 +22,8 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const superAdmins = await api.institution.superAdmins();
-  const groups = await api.institution.groups();
+  const superAdmins = await api.institution.getAllSuperAdmins();
+  const groups = await api.institution.getAllGroups();
 
   return (
     <PanelWrapper className="mt-5 gap-10">

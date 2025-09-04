@@ -742,7 +742,13 @@ function ToggleSidebarButton() {
 
   const path = usePathname();
 
-  const { data } = api.institution.inInstance_safe.useQuery({ path });
+  const [group = "", subGroup = "", instance = ""] = path
+    .split("/")
+    .toSpliced(0, 1);
+
+  const { data } = api.institution.instance.exists.useQuery({
+    params: { group, subGroup, instance },
+  });
 
   return (
     <Button

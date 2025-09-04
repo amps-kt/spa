@@ -16,7 +16,7 @@ export default async function Layout({
   children: ReactNode;
 }) {
   const roles = await api.user.roles({ params });
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
 
   if (!roles.has(Role.STUDENT)) {
     return (
