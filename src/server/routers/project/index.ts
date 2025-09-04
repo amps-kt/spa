@@ -127,13 +127,16 @@ export const projectRouter = createTRPCRouter({
         const student = await user.toStudent(instance.params);
         const { flag: studentFlag } = await student.get();
 
+        console.log(studentFlag);
+
         // TODO: add pre-allocated project to top of list if such a project exists
         // otherwise, sort in alphabetical order
         return projectData
           .filter(
             (p) =>
-              p.project.flags.map((f) => f.id).includes(studentFlag.id) &&
-              (!p.allocatedStudent || p.allocatedStudent?.id === student.id),
+              (p.project.flags.map((f) => f.id).includes(studentFlag.id) &&
+                !p.allocatedStudent) ||
+              p.allocatedStudent?.id === student.id,
           )
           .map((p) => ({
             project: p.project,
