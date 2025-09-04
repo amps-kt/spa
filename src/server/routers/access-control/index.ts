@@ -93,6 +93,17 @@ export const accessControlRouter = createTRPCRouter({
       }
 
       if (await user.isStudent(instance.params)) {
+        if (await project.hasPreAllocatedStudent()) {
+          const allocatedStudent = await project.getPreAllocatedStudent();
+
+          if (allocatedStudent.id === user.id) return { access: true };
+
+          return {
+            access: false,
+            error: "Student not eligible for this project",
+          };
+        }
+
         const student = await user.toStudent(instance.params);
 
         const { flag: studentFlag } = await student.get();

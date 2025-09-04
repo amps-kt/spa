@@ -1102,6 +1102,8 @@ export class AllocationInstance extends DataObject {
       this.db.studentProjectAllocation.deleteMany({
         where: {
           ...expand(this.params),
+          // TODO: do it this way instead:
+          // NOT: {allocationMethod: "PRE_ALLOCATED"} <--
           userId: { notIn: preAllocatedStudentIds },
         },
       }),
@@ -1222,8 +1224,8 @@ export class AllocationInstance extends DataObject {
   }
 
   public async deleteStudentAllocation(userId: string): Promise<void> {
-    await this.db.studentProjectAllocation.deleteMany({
-      where: { ...expand(this.params), userId },
+    await this.db.studentProjectAllocation.delete({
+      where: { studentProjectAllocationId: { ...expand(this.params), userId } },
     });
   }
 

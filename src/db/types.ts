@@ -1,4 +1,9 @@
-import { PreferenceType, type PrismaClient, Stage } from "@prisma/client";
+import {
+  PreferenceType,
+  type PrismaClient,
+  Stage,
+  AllocationMethod as DB_AllocationMethod,
+} from "@prisma/client";
 import { z } from "zod";
 
 type PrismaTransactionClient = Omit<
@@ -132,6 +137,13 @@ export const extendedPreferenceTypeSchema = z.enum([
 export type ExtendedPreferenceType = z.infer<
   typeof extendedPreferenceTypeSchema
 >;
+
+export const allocationMethodSchema = z.enum([
+  DB_AllocationMethod.PRE_ALLOCATED,
+  DB_AllocationMethod.ALGORITHMIC,
+  DB_AllocationMethod.MANUAL,
+  DB_AllocationMethod.RANDOM,
+]);
 
 export {
   AlgorithmFlag,
