@@ -21,7 +21,7 @@ export function AdminRemovalButton({
 }) {
   const router = useRouter();
 
-  const { mutateAsync } = api.institution.group.removeAdmin.useMutation();
+  const { mutateAsync } = api.institution.group.removeGroupAdmin.useMutation();
 
   function handleRemoval() {
     void toast.promise(

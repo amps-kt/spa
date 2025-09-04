@@ -43,8 +43,15 @@ export default async function Page({ params }: { params: SubGroupParams }) {
     );
   }
 
-  const { subGroupAdmins, allocationInstances, displayName } =
-    await api.institution.subGroup.instanceManagement({ params });
+  const subGroupAdmins = await api.institution.subGroup.getAllSubGroupAdmins({
+    params,
+  });
+
+  const allocationInstances = await api.institution.subGroup.getAllInstances({
+    params,
+  });
+
+  const { displayName } = await api.institution.subGroup.get({ params });
 
   const { group, subGroup } = params;
 

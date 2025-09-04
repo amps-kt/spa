@@ -98,7 +98,7 @@ export function useAccessControl(
   const { data: userRolesSet, isSuccess: rolesLoaded } =
     api.user.roles.useQuery({ params });
   const { data: currentStage, isSuccess: stageLoaded } =
-    api.institution.instance.currentStage.useQuery({ params });
+    api.institution.instance.getCurrentStage.useQuery({ params });
 
   const isLoading = !rolesLoaded || !stageLoaded;
 

@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
 
   if (stageGt(stage, Stage.STUDENT_BIDDING)) {
     return (

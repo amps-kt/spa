@@ -35,14 +35,16 @@ export function AllProjectsDataTable({
   roles,
   projectPreferences,
   hasSelfDefinedProject,
-  projectDescriptors,
+  usedFlags,
+  usedTags,
 }: {
   data: { project: ProjectDTO; supervisor: SupervisorDTO }[];
   user: User;
   roles: Set<Role>;
   projectPreferences: Record<string, PreferenceType>;
   hasSelfDefinedProject: boolean;
-  projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
+  usedFlags: FlagDTO[];
+  usedTags: TagDTO[];
 }) {
   const router = useRouter();
   const params = useInstanceParams();
@@ -131,7 +133,7 @@ export function AllProjectsDataTable({
     {
       title: "Flags",
       columnId: "Flags",
-      options: projectDescriptors.flags.map((flag) => ({
+      options: usedFlags.map((flag) => ({
         id: flag.id,
         displayName: flag.displayName,
       })),
@@ -139,10 +141,7 @@ export function AllProjectsDataTable({
     {
       title: "Keywords",
       columnId: "Keywords",
-      options: projectDescriptors.tags.map((tag) => ({
-        id: tag.id,
-        displayName: tag.title,
-      })),
+      options: usedTags.map((tag) => ({ id: tag.id, displayName: tag.title })),
     },
   ];
 

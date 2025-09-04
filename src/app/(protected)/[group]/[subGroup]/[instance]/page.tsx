@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 
 // TODO: this whole thing needs some tlc tbh
 export default async function Page({ params }: { params: InstanceParams }) {
-  const isAdmin = await api.ac.adminInInstance({ params: params });
+  const isAdmin = await api.ac.isAdminInInstance({ params: params });
   if (isAdmin) return <AdminPanel params={params} />;
 
   const roles = await api.user.roles({ params });

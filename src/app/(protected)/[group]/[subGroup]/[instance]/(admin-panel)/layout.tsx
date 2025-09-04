@@ -12,7 +12,7 @@ export default async function Layout({
   params: InstanceParams;
   children: ReactNode;
 }) {
-  const access = await api.ac.adminInInstance({ params });
+  const access = await api.ac.isAdminInInstance({ params });
   if (!access) {
     // could potentially throw error as this should be caught by the layout one level up
     return (
