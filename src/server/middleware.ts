@@ -442,6 +442,8 @@ export const procedure = {
     supervisor: projectProcedure.use(supervisorMiddleware),
     marker: projectProcedure.use(markerMiddleware),
     member: projectProcedure.use(instanceMemberMiddleware),
+    withAC: (condition: AccessCondition) =>
+      projectProcedure.use(accessControlMiddleware(condition)),
 
     withRoles: (allowedRoles: Role[]) =>
       projectProcedure.use(mkRoleMiddleware(allowedRoles)),

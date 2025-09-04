@@ -18,13 +18,7 @@ import {
 
 export const preferenceRouter = createTRPCRouter({
   studentSubmissions: procedure.instance.subGroupAdmin
-    .output(
-      z.object({
-        all: z.array(studentPreferenceSubmissionDto),
-        incomplete: z.array(studentPreferenceSubmissionDto),
-        preAllocated: z.array(studentPreferenceSubmissionDto),
-      }),
-    )
+    .output(z.array(studentPreferenceSubmissionDto))
     .query(async ({ ctx: { instance } }) => {
       const preAllocationData = await instance.getPreAllocations();
 
@@ -32,7 +26,7 @@ export const preferenceRouter = createTRPCRouter({
         preAllocationData.map((p) => p.student.id),
       );
 
-      const students = await instance
+      return await instance
         .getStudentPreferenceDetails()
         .then((students) =>
           students.map((s) => ({
@@ -42,12 +36,6 @@ export const preferenceRouter = createTRPCRouter({
             preAllocated: preAllocatedStudentIds.has(s.student.id),
           })),
         );
-
-      return {
-        all: students,
-        incomplete: students.filter((s) => !s.submitted && !s.preAllocated),
-        preAllocated: students.filter((s) => s.preAllocated),
-      };
     }),
 
   statsByProject: procedure.instance.subGroupAdmin

@@ -1,4 +1,9 @@
-import { type ProjectDTO, type FlagDTO, type StudentDTO } from "@/dto";
+import {
+  type ProjectDTO,
+  type FlagDTO,
+  type StudentDTO,
+  type SupervisorDTO,
+} from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
 import { type DB } from "@/db/types";
@@ -37,6 +42,19 @@ export class Project extends DataObject {
         },
       })
       .then((x) => T.toProjectDTO(x));
+  }
+
+  public async getSupervisor(): Promise<SupervisorDTO> {
+    const { supervisorId } = await this.get();
+
+    const data = await this.db.supervisorDetails.findUniqueOrThrow({
+      where: {
+        supervisorDetailsId: { ...expand(this.params), userId: supervisorId },
+      },
+      include: { userInInstance: { include: { user: true } } },
+    });
+
+    return T.toSupervisorDTO(data);
   }
 
   get group() {

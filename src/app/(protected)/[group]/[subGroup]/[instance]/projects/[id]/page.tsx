@@ -9,7 +9,7 @@ import {
   UserIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -26,7 +26,6 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
@@ -64,18 +63,12 @@ export async function generateMetadata({ params }: { params: PageParams }) {
 
 export default async function Project({ params }: { params: PageParams }) {
   const projectId = params.id;
+
   const exists = await api.project.exists({ params: toPP1(params) });
   if (!exists) notFound();
 
   const userAccess = await api.ac.hasProjectAccess({ params: toPP1(params) });
-
-  if (!userAccess.access) {
-    return (
-      <Unauthorised
-        message={`This project is not suitable for ${userAccess.error} students`}
-      />
-    );
-  }
+  if (!userAccess.access) redirect("/forbidden");
 
   const { project, supervisor } = await api.project.getByIdWithSupervisor({
     params: toPP1(params),
@@ -94,16 +87,9 @@ export default async function Project({ params }: { params: PageParams }) {
     });
   }
 
-  const studentPreferences = await api.project.getAllStudentPreferences({
-    params: toPP1(params),
-  });
-
   const allocatedStudent = await api.project.getAllocation({
     params: toPP1(params),
   });
-
-  const projectDescriptors =
-    await api.institution.instance.getAllProjectDescriptors({ params });
 
   return (
     <PanelWrapper>
@@ -174,19 +160,28 @@ export default async function Project({ params }: { params: PageParams }) {
       <ConditionalRender
         allowedRoles={[Role.ADMIN]}
         overrides={{ roles: { AND: !project.preAllocatedStudentId } }}
-        allowed={
-          <section className="mt-16 flex flex-col gap-8">
-            <SectionHeading icon={BookmarkIcon}>
-              Student Preferences
-            </SectionHeading>
-            <StudentPreferenceDataTable
-              data={studentPreferences}
-              projectDescriptors={projectDescriptors}
-            />
-          </section>
-        }
+        allowed={<StudentPreferenceSection params={params} />}
       />
     </PanelWrapper>
+  );
+}
+
+async function StudentPreferenceSection({ params }: { params: PageParams }) {
+  const studentPreferences = await api.project.getAllStudentPreferences({
+    params: toPP1(params),
+  });
+
+  const projectDescriptors =
+    await api.institution.instance.getAllProjectDescriptors({ params });
+
+  return (
+    <section className="mt-16 flex flex-col gap-8">
+      <SectionHeading icon={BookmarkIcon}>Student Preferences</SectionHeading>
+      <StudentPreferenceDataTable
+        data={studentPreferences}
+        projectDescriptors={projectDescriptors}
+      />
+    </section>
   );
 }
 
