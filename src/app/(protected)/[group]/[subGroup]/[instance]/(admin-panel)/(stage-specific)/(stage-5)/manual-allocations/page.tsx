@@ -1,6 +1,8 @@
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
+import { ProjectAllocationStatus } from "@/dto";
+
 import { Heading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
@@ -34,14 +36,13 @@ export default async function Page({ params }: { params: InstanceParams }) {
     project: undefined,
   }));
 
-  const allStudents = [...unallocatedStudentData, ...allocatedStudents];
-
   const projectData =
     await api.institution.instance.getProjectsWithAllocationStatus({ params });
 
   const supervisorData =
     await api.institution.instance.getSupervisorsWithAllocations({ params });
 
+  const allStudents = [...unallocatedStudentData, ...allocatedStudents];
   const students = allStudents.map(({ student, project }) => ({
     ...student,
     originalProjectId: project?.id,
@@ -52,10 +53,13 @@ export default async function Page({ params }: { params: InstanceParams }) {
     warnings: [],
   }));
 
-  const projects = projectData.map(({ project, studentId, status }) => ({
-    ...project,
-    status,
-    currentStudentAllocationId: studentId,
+  const projects = projectData.map((data) => ({
+    ...data.project,
+    status: data.status,
+    currentStudentAllocationId:
+      data.status === ProjectAllocationStatus.UNALLOCATED
+        ? undefined
+        : data.studentId,
   }));
 
   const supervisors = supervisorData.map(({ supervisor, allocations }) => ({

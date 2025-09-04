@@ -27,7 +27,6 @@ import {
 import { instanceParamsSchema } from "@/lib/validations/params";
 
 export const algorithmRouter = createTRPCRouter({
-  // BREAKING input/output type changed
   // pin
   run: procedure.algorithm.subGroupAdmin
     .output(z.object({ total: z.number(), matched: z.number() }))
@@ -58,7 +57,6 @@ export const algorithmRouter = createTRPCRouter({
       }
     }),
 
-  // BREAKING return type is now set
   // ! same problem as with renaming allocation instances
   takenNames: procedure.instance.subGroupAdmin
     .output(z.set(z.string()))
@@ -83,19 +81,16 @@ export const algorithmRouter = createTRPCRouter({
       return await alg.delete();
     }),
 
-  // BREAKING output type changed
   getAll: procedure.instance.subGroupAdmin
     .input(z.object({ params: instanceParamsSchema }))
     .output(z.array(algorithmDtoSchema))
     .query(async ({ ctx: { instance } }) => await instance.getAllAlgorithms()),
 
-  // BREAKING output type changed
   // TODO: review how this is used on the client
   getAllSummaryResults: procedure.instance.subGroupAdmin
     .output(z.array(algorithmResultDtoSchema))
     .query(async ({ ctx: { instance } }) => await instance.getSummaryResults()),
 
-  // BREAKING input/output type changed
   singleResult: procedure.algorithm.subGroupAdmin
     .output(matchingResultDtoSchema)
     .query(async ({ ctx: { alg } }) => await alg.getMatching()),

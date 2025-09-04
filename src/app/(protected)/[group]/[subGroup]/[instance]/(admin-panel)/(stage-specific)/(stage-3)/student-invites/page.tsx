@@ -39,7 +39,6 @@ export default async function Page({ params }: { params: InstanceParams }) {
   const notJoined = allStudents.filter(
     (s) => !s.student.joined && !s.preAllocated,
   );
-  const preAllocated = allStudents.filter((s) => s.preAllocated);
 
   const projectDescriptors =
     await api.institution.instance.getAllProjectDescriptors({ params });
@@ -84,7 +83,9 @@ export default async function Page({ params }: { params: InstanceParams }) {
                         <CopyEmailsButton
                           className="flex w-full items-center gap-2 text-left"
                           label="Include Pre-allocated Students"
-                          data={allStudents.map((s) => s.student)}
+                          data={allStudents
+                            .filter((s) => !s.student.joined)
+                            .map((s) => s.student)}
                           unstyled
                         />
                       </DropdownMenuItem>

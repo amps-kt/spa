@@ -29,13 +29,15 @@ import {
 } from "@/lib/utils/permissions/stage-check";
 
 export const projectRouter = createTRPCRouter({
-  exists: procedure.project.user
+  exists: procedure.project.member
     .output(z.boolean())
     .query(async ({ ctx: { project } }) => await project.exists()),
 
   edit: procedure.project
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+    })
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
@@ -108,7 +110,7 @@ export const projectRouter = createTRPCRouter({
       },
     ),
 
-  getAllForUser: procedure.instance.user
+  getAllForUser: procedure.instance.member
     .output(
       z.array(
         z.object({
@@ -156,8 +158,11 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { instance } }) => await instance.getLateProjects()),
 
   getAllPreAllocated: procedure.instance
-    .inStage(subsequentStages(Stage.PROJECT_SUBMISSION))
-    .subGroupAdmin.output(
+    .withAC({
+      allowedStages: subsequentStages(Stage.PROJECT_SUBMISSION),
+      allowedRoles: [Role.ADMIN],
+    })
+    .output(
       z.array(
         z.object({
           project: projectDtoSchema,
@@ -168,49 +173,24 @@ export const projectRouter = createTRPCRouter({
     )
     .query(async ({ ctx: { instance } }) => await instance.getPreAllocations()),
 
-  getById: procedure.project.user
+  // Pin -> this should be stricter than member, but we need a better withAC impl
+  getById: procedure.project.member
     .output(projectDtoSchema)
-    .query(async ({ ctx: { db, project } }) => {
-      // project.get
-      const data = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          supervisor: {
-            include: { userInInstance: { include: { user: true } } },
-          },
-          flagsOnProject: { include: { flag: true } },
-          tagsOnProject: { include: { tag: true } },
-        },
-      });
+    .query(async ({ ctx: { project } }) => await project.get()),
 
-      return T.toProjectDTO(data);
-    }),
-
-  getByIdWithSupervisor: procedure.project.user
+  getByIdWithSupervisor: procedure.project.member
     .output(
       z.object({ project: projectDtoSchema, supervisor: supervisorDtoSchema }),
     )
-    .query(async ({ ctx: { db, project } }) => {
-      // project.get
-      const data = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          supervisor: {
-            include: { userInInstance: { include: { user: true } } },
-          },
-          flagsOnProject: { include: { flag: true } },
-          tagsOnProject: { include: { tag: true } },
-        },
-      });
-
+    .query(async ({ ctx: { project } }) => {
       return {
-        project: T.toProjectDTO(data),
-        supervisor: T.toSupervisorDTO(data.supervisor),
+        project: await project.get(),
+        supervisor: await project.getSupervisor(),
       };
     }),
 
   // TODO: rename maybe? getStudentPreferencesForId
-  getAllStudentPreferences: procedure.project.user
+  getAllStudentPreferences: procedure.project.subGroupAdmin
     .output(
       z.array(
         z.object({
@@ -288,8 +268,10 @@ export const projectRouter = createTRPCRouter({
     }),
 
   delete: procedure.project
-    .inStage(previousStages(Stage.PROJECT_ALLOCATION))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .output(permissionResultSchema)
     .mutation(async ({ ctx: { project, user, audit } }) => {
       audit("Delete project");
@@ -298,7 +280,7 @@ export const projectRouter = createTRPCRouter({
         return PermissionResult.OK;
       }
 
-      if ((await project.get()).supervisorId === user.id) {
+      if (await user.isProjectSupervisor(project.params.projectId)) {
         await project.delete();
         return PermissionResult.OK;
       }
@@ -307,8 +289,10 @@ export const projectRouter = createTRPCRouter({
     }),
 
   deleteMany: procedure.instance
-    .inStage(previousStages(Stage.PROJECT_ALLOCATION))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .input(z.object({ projectIds: z.array(z.string()) }))
     .output(z.array(permissionResultSchema))
     .mutation(
@@ -336,8 +320,10 @@ export const projectRouter = createTRPCRouter({
     ),
 
   create: procedure.instance
-    .inStage([Stage.PROJECT_SUBMISSION, Stage.STUDENT_BIDDING])
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedStages: [Stage.PROJECT_SUBMISSION, Stage.STUDENT_BIDDING],
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
     .mutation(
@@ -387,7 +373,8 @@ export const projectRouter = createTRPCRouter({
       },
     ),
 
-  getFormInitialisationData: procedure.instance.user
+  getFormInitialisationData: procedure.instance
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
     .input(z.object({ projectId: z.string().optional() }))
     .output(
       z.object({
