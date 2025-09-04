@@ -68,7 +68,7 @@ export const instanceRouter = createTRPCRouter({
    * Get instance data by ID
    * @throws if the instance doesn't exist
    */
-  get: procedure.instance.user
+  get: procedure.instance.member
     .output(instanceDtoSchema)
     .query(async ({ ctx: { instance } }) => await instance.get()),
 
@@ -99,7 +99,7 @@ export const instanceRouter = createTRPCRouter({
    * Returns the current stage of an instance with the ID provided
    * @throws if the instance doesn't exist
    */
-  currentStage: procedure.instance.user
+  getCurrentStage: procedure.instance.user
     .output(stageSchema)
     .query(async ({ ctx: { instance } }) => {
       const { stage } = await instance.get();
@@ -121,7 +121,7 @@ export const instanceRouter = createTRPCRouter({
    * Returns the ID and display name of the currently selected algorithm
    * return empty strings if none is selected
    */
-  selectedAlgorithm: procedure.instance.subGroupAdmin
+  getSelectedAlgorithm: procedure.instance.subGroupAdmin
     .output(z.object({ id: z.string(), displayName: z.string() }).optional())
     .query(async ({ ctx: { instance } }) => {
       const alg = await instance.getSelectedAlg();
@@ -193,16 +193,18 @@ export const instanceRouter = createTRPCRouter({
       return allocationData.getViews();
     }),
 
-  getUsedProjectDescriptors: procedure.instance.user
-    .output(
-      z.object({ flags: z.array(flagDtoSchema), tags: z.array(tagDtoSchema) }),
-    )
-    .query(async ({ ctx: { instance } }) => ({
-      flags: await instance.getFlagsOnProjects(),
-      tags: await instance.getTagsOnProjects(),
-    })),
+  getUsedFlags: procedure.instance.member
+    .output(z.array(flagDtoSchema))
+    .query(
+      async ({ ctx: { instance } }) => await instance.getFlagsOnProjects(),
+    ),
 
-  getAllProjectDescriptors: procedure.instance.user
+  getUsedTags: procedure.instance.member
+    .output(z.array(tagDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getTagsOnProjects()),
+
+  // TODO split
+  getAllProjectDescriptors: procedure.instance.member
     .output(
       z.object({ flags: z.array(flagDtoSchema), tags: z.array(tagDtoSchema) }),
     )
@@ -211,9 +213,13 @@ export const instanceRouter = createTRPCRouter({
       flags: await instance.getFlags(),
     })),
 
-  getFlags: procedure.instance.user
+  getFlags: procedure.instance.member
     .output(z.array(flagDtoSchema))
     .query(async ({ ctx: { instance } }) => await instance.getFlags()),
+
+  getTags: procedure.instance.member
+    .output(z.array(tagDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getTags()),
 
   getAllPreviousProjects: procedure.instance.subGroupAdmin
     .output(
@@ -315,8 +321,11 @@ export const instanceRouter = createTRPCRouter({
     ),
 
   deleteSupervisor: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ supervisorId: z.string() }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ supervisorId: z.string() }))
     .output(z.void())
     .mutation(async ({ ctx: { instance, audit }, input: { supervisorId } }) => {
       audit("Deleted supervisor", { supervisorId });
@@ -324,8 +333,11 @@ export const instanceRouter = createTRPCRouter({
     }),
 
   deleteManySupervisors: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ supervisorIds: z.array(z.string()) }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ supervisorIds: z.array(z.string()) }))
     .output(z.void())
     .mutation(
       async ({ ctx: { instance, audit }, input: { supervisorIds } }) => {
@@ -335,8 +347,11 @@ export const instanceRouter = createTRPCRouter({
     ),
 
   deleteUserInInstance: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ supervisorId: z.string() }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ supervisorId: z.string() }))
     .output(z.void())
     .mutation(async ({ ctx: { instance, audit }, input: { supervisorId } }) => {
       audit("Deleted UserInInstance", { supervisorId });
@@ -344,8 +359,11 @@ export const instanceRouter = createTRPCRouter({
     }),
 
   deleteManyUsersInInstance: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ supervisorIds: z.array(z.string()) }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ supervisorIds: z.array(z.string()) }))
     .output(z.void())
     .mutation(
       async ({ ctx: { instance, audit }, input: { supervisorIds } }) => {
@@ -358,7 +376,7 @@ export const instanceRouter = createTRPCRouter({
     .output(z.array(studentDtoSchema))
     .query(async ({ ctx: { instance } }) => await instance.getStudents()),
 
-  getStudentsWithAllocation: procedure.instance.user
+  getStudentsWithAllocation: procedure.instance.subGroupAdmin
     .output(
       z.array(
         z.object({
@@ -452,8 +470,11 @@ export const instanceRouter = createTRPCRouter({
     ),
 
   deleteStudent: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ studentId: z.string() }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ studentId: z.string() }))
     .output(z.void())
     .mutation(async ({ ctx: { instance, audit }, input: { studentId } }) => {
       {
@@ -463,27 +484,23 @@ export const instanceRouter = createTRPCRouter({
     }),
 
   deleteManyStudents: procedure.instance
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .subGroupAdmin.input(z.object({ studentIds: z.array(z.string()) }))
+    .withAC({
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+      allowedRoles: [Role.ADMIN],
+    })
+    .input(z.object({ studentIds: z.array(z.string()) }))
     .output(z.void())
     .mutation(async ({ ctx: { instance, audit }, input: { studentIds } }) => {
       audit("Deleting students", { data: studentIds });
       await instance.deleteManyStudents(studentIds);
     }),
 
-  getStudentsByJoinedStatus: procedure.instance.subGroupAdmin
+  // TODO fix this it sucks
+  getStudentsWithPreAllocationStatus: procedure.instance.subGroupAdmin
     .output(
-      z.object({
-        all: z.array(
-          z.object({ student: studentDtoSchema, preAllocated: z.boolean() }),
-        ),
-        incomplete: z.array(
-          z.object({ student: studentDtoSchema, preAllocated: z.boolean() }),
-        ),
-        preAllocated: z.array(
-          z.object({ student: studentDtoSchema, preAllocated: z.boolean() }),
-        ),
-      }),
+      z.array(
+        z.object({ student: studentDtoSchema, preAllocated: z.boolean() }),
+      ),
     )
     .query(async ({ ctx: { instance } }) => {
       const invitedStudents = await instance.getStudents();
@@ -493,16 +510,10 @@ export const instanceRouter = createTRPCRouter({
         preAllocations.map((p) => p.project.id),
       );
 
-      const all = invitedStudents.map((u) => ({
+      return invitedStudents.map((u) => ({
         student: u,
         preAllocated: preAllocatedStudents.has(u.id),
       }));
-
-      return {
-        all,
-        incomplete: all.filter((s) => !s.student.joined && !s.preAllocated),
-        preAllocated: all.filter((s) => s.preAllocated),
-      };
     }),
 
   updateStudentFlag: procedure.instance.subGroupAdmin

@@ -1,10 +1,9 @@
 import { type ReactNode } from "react";
 
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { InstanceParamsProvider } from "@/components/params-context";
 import { SidebarInset } from "@/components/ui/sidebar";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -27,24 +26,13 @@ export default async function Layout({
   // if they are an admin in this instance, they should have access
   // if they are not an admin in this instance, they should have access if they are a supervisor or student in this instance
 
-  const memberAccess = await api.ac.instanceMembership({ params });
-  if (!memberAccess) {
-    return (
-      <Unauthorised
-        title="Unauthorised"
-        message="You don't have permission to access this page"
-      />
-    );
-  }
+  const memberAccess = await api.ac.isInstanceMember({ params });
+  if (!memberAccess) redirect("/forbidden");
 
   // if they are a supervisor or student they should only have access depending on the stage of the instance
 
-  const stageAccess = await api.ac.stageAccess({ params });
-  if (!stageAccess) {
-    return (
-      <Unauthorised message="You are not allowed to access the platform at this time" />
-    );
-  }
+  const stageAccess = await api.ac.hasStageAccess({ params });
+  if (!stageAccess) redirect("/forbidden");
 
   const { displayName, stage } = await api.institution.instance.get({ params });
 

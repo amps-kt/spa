@@ -44,8 +44,8 @@ export default async function Page({ params }: { params: GroupParams }) {
   }
 
   const { displayName } = await api.institution.group.get({ params });
-  const groupAdmins = await api.institution.group.groupAdmins({ params });
-  const subGroups = await api.institution.group.subGroups({ params });
+  const groupAdmins = await api.institution.group.getAllGroupAdmins({ params });
+  const subGroups = await api.institution.group.getAllSubGroups({ params });
 
   return (
     <PanelWrapper className="mt-5 gap-10">

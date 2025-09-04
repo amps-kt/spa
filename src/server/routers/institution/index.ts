@@ -14,19 +14,21 @@ export const institutionRouter = createTRPCRouter({
   subGroup: subGroupRouter,
   instance: instanceRouter,
 
-  superAdminAccess: procedure.user
+  // Move to user router
+  isSuperAdmin: procedure.user
     .output(z.boolean())
     .query(async ({ ctx: { user } }) => await user.isSuperAdmin()),
 
-  superAdmins: procedure.superAdmin
+  getAllSuperAdmins: procedure.superAdmin
     .output(z.array(userDtoSchema))
     .query(async ({ ctx: { institution } }) => await institution.getAdmins()),
 
-  groups: procedure.superAdmin
+  // Move below to group router
+  getAllGroups: procedure.superAdmin
     .output(z.array(groupDtoSchema))
     .query(async ({ ctx: { institution } }) => await institution.getGroups()),
 
-  takenGroupNames: procedure.superAdmin
+  getTakenGroupNames: procedure.superAdmin
     .output(z.set(z.string()))
     .query(
       async ({ ctx: { institution } }) =>
@@ -46,15 +48,6 @@ export const institutionRouter = createTRPCRouter({
     .mutation(async ({ ctx: { group, audit } }) => {
       audit("deleted group", group.params);
       await group.delete();
-    }),
-
-  inInstance_safe: procedure.user
-    .input(z.object({ path: z.string() }))
-    .output(z.boolean())
-    .query(async ({ ctx: { institution }, input: { path } }) => {
-      const [group, subGroup, instance] = path.split("/").toSpliced(0, 1);
-
-      return await institution.instanceExists({ group, subGroup, instance });
     }),
 
   getAllUsers: procedure.superAdmin

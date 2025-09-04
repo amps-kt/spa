@@ -67,7 +67,7 @@ export default async function Project({ params }: { params: PageParams }) {
   const exists = await api.project.exists({ params: toPP1(params) });
   if (!exists) notFound();
 
-  const userAccess = await api.ac.projectAccess({ params: toPP1(params) });
+  const userAccess = await api.ac.hasProjectAccess({ params: toPP1(params) });
 
   if (!userAccess.access) {
     return (
