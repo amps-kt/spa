@@ -14,7 +14,7 @@ import {
 import { Role, type Stage } from "@/db/types";
 
 import { type AccessCondition } from "@/components/access-control";
-import { checkAC } from "@/components/access-control/use-access-control";
+import { checkAC } from "@/components/access-control/check-ac";
 
 import { type AuditFn } from "@/lib/logging/logger";
 import { HttpMatchingService } from "@/lib/services/matching";
