@@ -1,21 +1,19 @@
+import { type InstanceDTO } from "@/dto";
+
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 
 export function getSubmissionErrors(
   preferences: ProjectPreferenceCardDto[],
-  restrictions: {
-    minPreferences: number;
-    maxPreferences: number;
-    maxPreferencesPerSupervisor: number;
-  },
+  instanceData: InstanceDTO,
 ) {
   const overSelected = computeOverSelected(
     preferences,
-    restrictions.maxPreferencesPerSupervisor,
+    instanceData.maxStudentPreferencesPerSupervisor,
   );
 
   return {
-    isOver: preferences.length > restrictions.maxPreferences,
-    isUnder: preferences.length < restrictions.minPreferences,
+    isOver: preferences.length > instanceData.maxStudentPreferences,
+    isUnder: preferences.length < instanceData.minStudentPreferences,
     hasOverSelectedSupervisor: overSelected.length > 0,
     overSelected,
   };
