@@ -8,7 +8,11 @@ import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 
-export default function ForbiddenPage() {
+export default function ForbiddenPage({
+  searchParams: { next },
+}: {
+  searchParams: { next?: string };
+}) {
   const [countdown, setCountdown] = useState(10);
   const router = useRouter();
 
@@ -17,7 +21,7 @@ export default function ForbiddenPage() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push("/");
+          router.push(next ?? "/");
           return 0;
         }
         return prev - 1;
@@ -25,7 +29,7 @@ export default function ForbiddenPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router]);
+  }, [next, router]);
 
   const progress = ((10 - countdown) / 10) * 283;
   // 283 is circumference of circle with radius 45
@@ -87,7 +91,7 @@ export default function ForbiddenPage() {
 
         <div className="space-y-4">
           <Button asChild className="w-full">
-            <Link href="/">Go Back Home</Link>
+            <Link href={next ?? "/"}>Go Back Home</Link>
           </Button>
 
           <Button variant="outline" asChild className="w-full bg-transparent">
