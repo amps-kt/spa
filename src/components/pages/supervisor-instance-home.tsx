@@ -23,7 +23,7 @@ export async function SupervisorInstanceHome({
   const stage = await api.institution.instance.getCurrentStage({ params });
 
   const { projectSubmissionDeadline: deadline } =
-    await api.user.supervisor.instancePage({ params });
+    await api.institution.instance.get({ params });
 
   const { currentSubmissionCount, submissionTarget } =
     await api.user.supervisor.projectStats({ params });
