@@ -10,7 +10,7 @@ import {
 
 import { AllocationInstance } from "@/data-objects";
 
-import { Role, roleSchema } from "@/db/types";
+import { Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
@@ -32,7 +32,7 @@ export const userRouter = createTRPCRouter({
     .output(userDtoSchema)
     .query(async ({ ctx }) => await ctx.user.toDTO()),
 
-  getById: procedure.user
+  getById: procedure.subgroup.subgroupAdmin
     .input(z.object({ userId: z.string() }))
     .output(userDtoSchema)
     .query(
@@ -40,6 +40,7 @@ export const userRouter = createTRPCRouter({
         await institution.getUserObjectById(userId).toDTO(),
     ),
 
+  // Pin -> should this be member?
   roles: procedure.instance.user
     .output(z.set(z.enum(Role)))
     .query(
@@ -47,7 +48,7 @@ export const userRouter = createTRPCRouter({
         await user.getRolesInInstance(instance.params),
     ),
 
-  hasSelfDefinedProject: procedure.instance.user
+  hasSelfDefinedProject: procedure.instance.member
     .output(z.boolean())
     .query(async ({ ctx: { user, instance } }) => {
       if (!(await user.isStudent(instance.params))) return false;
@@ -106,9 +107,7 @@ export const userRouter = createTRPCRouter({
 
   // TODO: the output type is whack
   getInstances: procedure.user
-    .output(
-      z.array(instanceDisplayDataSchema.extend({ roles: z.array(roleSchema) })),
-    )
+    .output(z.array(instanceDisplayDataSchema))
     .query(async ({ ctx: { db, user } }) => {
       const userInstances = await user.getInstances();
       if (userInstances.length === 0) return [];
@@ -139,13 +138,14 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
-  joinInstance: procedure.instance.user.mutation(
+  joinInstance: procedure.instance.member.mutation(
     async ({ ctx: { user, instance, audit } }) => {
       audit("joining instance", { instance: instance.params });
       await user.joinInstance(instance.params);
     },
   ),
 
+  // Move to a 'test' router?
   getTestUsers: procedure.user
     .output(z.array(userDtoSchema))
     .query(async ({ ctx: { db } }) => {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { stageSchema } from "@/db/types";
+import { roleSchema, stageSchema } from "@/db/types";
 
 export const groupDtoSchema = z.object({
   group: z.string(),
@@ -43,6 +43,7 @@ export const instanceDisplayDataSchema = z.object({
   group: z.object({ id: z.string(), displayName: z.string() }),
   subGroup: z.object({ id: z.string(), displayName: z.string() }),
   instance: z.object({ id: z.string(), displayName: z.string() }),
+  roles: z.array(roleSchema),
 });
 
 export type InstanceDisplayData = z.infer<typeof instanceDisplayDataSchema>;
