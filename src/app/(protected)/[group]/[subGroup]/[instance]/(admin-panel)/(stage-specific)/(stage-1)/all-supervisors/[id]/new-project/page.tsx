@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const { displayName } = await api.institution.instance.get({ params });
-  const { name } = await api.user.getById({ userId: params.id });
+  const { name } = await api.user.getById({ params, userId: params.id });
 
   return {
     title: metadataTitle([
@@ -46,7 +46,7 @@ export default async function Page({ params }: { params: PageParams }) {
   }
 
   const user = await api.user.get();
-  const supervisor = await api.user.getById({ userId: params.id });
+  const supervisor = await api.user.getById({ params, userId: params.id });
   const formInitData = await api.project.getFormInitialisationData({ params });
 
   const previousProjectData = await api.user.supervisor.getPreviousProjects({

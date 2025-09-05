@@ -8,12 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-type InstanceWithRoles = InstanceDisplayData & { roles: Role[] };
-
 export function InstanceCard({
   instanceData,
 }: {
-  instanceData: InstanceWithRoles;
+  instanceData: InstanceDisplayData;
 }) {
   const getRoleColor = (role: string) => {
     switch (role) {
