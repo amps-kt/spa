@@ -43,7 +43,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
 
   const { mask: user } = await auth();
 
-  const allocation = await api.user.student.getMaybeAllocationById({
+  const allocation = await api.user.student.byId.getMaybeAllocation({
     params,
     studentId: user.id,
   });

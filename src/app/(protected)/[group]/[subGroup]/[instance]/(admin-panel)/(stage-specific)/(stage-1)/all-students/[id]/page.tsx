@@ -46,8 +46,8 @@ export default async function Page({ params }: { params: PageParams }) {
 
   const flags = await api.institution.instance.getFlags({ params });
 
-  const student = await api.user.student.getById({ params, studentId });
-  const allocation = await api.user.student.getMaybeAllocationById({
+  const student = await api.user.student.byId.get({ params, studentId });
+  const allocation = await api.user.student.byId.getMaybeAllocation({
     params,
     studentId,
   });
