@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { userDtoSchema } from "@/dto";
 
-import { Role } from "@/db/types";
+import { preferenceTypeSchema, Role } from "@/db/types";
 import { PreferenceType, Stage } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -16,10 +16,11 @@ import {
 } from "@/lib/validations/student-preference";
 
 export const preferenceRouter = createTRPCRouter({
+  // TODO review output type
   /**
    * Get all draft preferences of a student
    */
-  getAll: procedure.instance.user
+  getAll: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
     .output(
       z.array(
@@ -47,7 +48,9 @@ export const preferenceRouter = createTRPCRouter({
    * Get all saved preferences of a student
    */
   // TODO: change output type
-  getAllSaved: procedure.instance.user
+  // TODO more granular AC (only this student)
+  getAllSaved: procedure.instance
+    .withAC({ allowedRoles: [Role.ADMIN, Role.STUDENT] })
     .input(z.object({ studentId: z.string() }))
     .output(
       z.array(
@@ -215,6 +218,7 @@ export const preferenceRouter = createTRPCRouter({
           audit("Student has self-defined a project, skipping reorder", {
             studentId: user.id,
           });
+          // TODO Return some kind of error
           return;
         }
 
@@ -227,6 +231,7 @@ export const preferenceRouter = createTRPCRouter({
             projectFlags,
             studentFlag,
           });
+          // TODO Return some kind of error
           return;
         }
 
@@ -250,7 +255,7 @@ export const preferenceRouter = createTRPCRouter({
       },
     ),
 
-  // todo: standardise MaybePreferenceType
+  // todo: standardise MaybePreferenceType (rel amps-204)
   getForProject: procedure.instance.student
     .input(z.object({ projectId: z.string() }))
     .output(z.enum(PreferenceType).or(z.literal("None")))
@@ -261,7 +266,7 @@ export const preferenceRouter = createTRPCRouter({
 
   // todo: standardise error reporting
   submit: procedure.instance
-    .withRoles([Role.ADMIN, Role.STUDENT])
+    .withAC({ allowedRoles: [Role.ADMIN, Role.STUDENT] })
     .input(z.object({ studentId: z.string() }))
     .output(z.date().optional())
     .mutation(
@@ -290,22 +295,17 @@ export const preferenceRouter = createTRPCRouter({
     ),
 
   initialBoardState: procedure.instance
-    .inStage([Stage.STUDENT_BIDDING, Stage.ALLOCATION_ADJUSTMENT])
-    .withRoles([Role.ADMIN, Role.STUDENT])
+    .withAC({
+      allowedStages: [Stage.STUDENT_BIDDING, Stage.ALLOCATION_ADJUSTMENT],
+      allowedRoles: [Role.ADMIN, Role.STUDENT],
+    })
     .input(z.object({ studentId: z.string() }))
     .output(
-      z.object({
-        initialProjects: z.object({
-          [PreferenceType.PREFERENCE]: z.array(projectPreferenceCardDtoSchema),
-          [PreferenceType.SHORTLIST]: z.array(projectPreferenceCardDtoSchema),
-        }),
-      }),
+      z.record(preferenceTypeSchema, z.array(projectPreferenceCardDtoSchema)),
     )
     .query(async ({ ctx: { instance, audit }, input: { studentId } }) => {
       const student = await instance.getStudent(studentId);
-
       audit("Fetching initial board state for student", { studentId });
-
-      return { initialProjects: await student.getPreferenceBoardState() };
+      return await student.getPreferenceBoardState();
     }),
 });
