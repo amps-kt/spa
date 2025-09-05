@@ -3,9 +3,9 @@
 import { PenIcon } from "lucide-react";
 import Link from "next/link";
 
-import { type ProjectDTO, type UserDTO } from "@/dto";
+import { type ProjectDTO } from "@/dto";
 
-import { Role, Stage } from "@/db/types";
+import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control/conditional-render";
 import { FormatDenials } from "@/components/access-control/format-denial";
@@ -16,20 +16,12 @@ import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 import { cn } from "@/lib/utils";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 
-export function EditButton({
-  user,
-  project,
-}: {
-  user: UserDTO;
-  project: ProjectDTO;
-}) {
+export function EditButton({ project }: { project: ProjectDTO }) {
   const { getPath } = usePathInInstance();
 
   return (
     <ConditionalRender
-      allowedRoles={[Role.ADMIN]}
       allowedStages={previousStages(Stage.STUDENT_BIDDING)}
-      overrides={{ roles: { OR: project.supervisorId === user.id } }}
       allowed={
         <WithTooltip tip="Edit or Delete">
           <Link
