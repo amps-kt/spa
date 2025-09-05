@@ -27,6 +27,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
+import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { toPP1, toPP4 } from "@/lib/utils/general/instance-params";
 import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -61,7 +62,9 @@ export default async function Project({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const userAccess = await api.ac.hasProjectAccess({ params: toPP1(params) });
-  if (!userAccess.access) redirect("/forbidden");
+  if (!userAccess.access) {
+    redirect(`/forbidden?next=${formatParamsAsPath(params)}`);
+  }
 
   const { project, supervisor } = await api.project.getByIdWithSupervisor({
     params: toPP1(params),
