@@ -12,16 +12,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
 
-export function StudentAllocation({
-  allocation: { project, supervisor, studentRanking },
+export function StudentAllocationCard({
+  allocation: { project, supervisor, rank },
   selfDefined,
   className,
 }: {
-  allocation: {
-    project: ProjectDTO;
-    supervisor: SupervisorDTO;
-    studentRanking: number;
-  };
+  allocation: { project: ProjectDTO; supervisor: SupervisorDTO; rank: number };
   selfDefined: boolean;
   className?: ClassValue;
 }) {
@@ -72,7 +68,7 @@ export function StudentAllocation({
             <div className="flex items-center gap-2">
               <HashIcon className="h-4 w-4 text-muted-foreground" />
               <span className="mr-2 font-medium">Rank:</span>
-              {studentRanking}
+              {rank}
             </div>
           )}
         </div>
