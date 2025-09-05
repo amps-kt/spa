@@ -12,18 +12,8 @@ import { createTRPCRouter } from "@/server/trpc";
 
 import { preferenceRouter } from "./preference";
 
-export const studentRouter = createTRPCRouter({
-  preference: preferenceRouter,
-
-  exists: procedure.instance.user
-    .input(z.object({ studentId: z.string() }))
-    .output(z.boolean())
-    .query(
-      async ({ ctx: { instance }, input: { studentId } }) =>
-        await instance.isStudent(studentId),
-    ),
-
-  getById: procedure.instance.subGroupAdmin
+const byId = createTRPCRouter({
+  get: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
     .output(studentDtoSchema)
     .query(async ({ ctx: { instance }, input: { studentId } }) => {
@@ -31,18 +21,7 @@ export const studentRouter = createTRPCRouter({
       return await student.get();
     }),
 
-  getAllocation: procedure.instance.student
-    .output(
-      z.object({
-        allocationMethod: allocationMethodSchema,
-        project: projectDtoSchema,
-        supervisor: supervisorDtoSchema,
-        rank: z.number(),
-      }),
-    )
-    .query(async ({ ctx: { user } }) => await user.getAllocation()),
-
-  getMaybeAllocationById: procedure.instance.subGroupAdmin
+  getMaybeAllocation: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
     .output(
       z.discriminatedUnion("allocationMethod", [
@@ -62,6 +41,59 @@ export const studentRouter = createTRPCRouter({
       if (await student.hasAllocation()) return await student.getAllocation();
       return { allocationMethod: ProjectAllocationStatus.UNALLOCATED };
     }),
+
+  latestSubmission: procedure.instance.subGroupAdmin
+    .input(z.object({ studentId: z.string() }))
+    .output(z.date().optional())
+    .query(async ({ ctx: { instance }, input: { studentId } }) => {
+      const student = await instance.getStudent(studentId);
+      return await student.getLatestSubmissionDateTime();
+    }),
+
+  getSuitableProjects: procedure.instance.subGroupAdmin
+    .input(z.object({ studentId: z.string() }))
+    .output(z.array(projectDtoSchema))
+    .query(async ({ ctx: { instance }, input: { studentId } }) => {
+      const student = await instance.getStudent(studentId);
+      const { flag: studentFlag } = await student.get();
+
+      const preferences = await student.getAllDraftPreferences();
+      const preferenceIds = new Set(preferences.map(({ project: p }) => p.id));
+
+      const projectData = await instance.getProjectDetails();
+
+      return projectData
+        .filter((p) => {
+          if (preferenceIds.has(p.project.id)) return false;
+          if (p.project.preAllocatedStudentId) return false;
+          return p.project.flags.map((f) => f.id).includes(studentFlag.id);
+        })
+        .map(({ project }) => project);
+    }),
+});
+
+export const studentRouter = createTRPCRouter({
+  byId,
+  preference: preferenceRouter,
+
+  exists: procedure.instance.user
+    .input(z.object({ studentId: z.string() }))
+    .output(z.boolean())
+    .query(
+      async ({ ctx: { instance }, input: { studentId } }) =>
+        await instance.isStudent(studentId),
+    ),
+
+  getAllocation: procedure.instance.student
+    .output(
+      z.object({
+        allocationMethod: allocationMethodSchema,
+        project: projectDtoSchema,
+        supervisor: supervisorDtoSchema,
+        rank: z.number(),
+      }),
+    )
+    .query(async ({ ctx: { user } }) => await user.getAllocation()),
 
   // MOVE to instance router
   allocationAccess: procedure.instance.student
@@ -85,14 +117,6 @@ export const studentRouter = createTRPCRouter({
     .query(
       async ({ ctx: { user } }) => await user.getLatestSubmissionDateTime(),
     ),
-
-  latestSubmissionById: procedure.instance.subGroupAdmin
-    .input(z.object({ studentId: z.string() }))
-    .output(z.date().optional())
-    .query(async ({ ctx: { instance }, input: { studentId } }) => {
-      const student = await instance.getStudent(studentId);
-      return await student.getLatestSubmissionDateTime();
-    }),
 
   isPreAllocated: procedure.instance.student
     .output(z.boolean())
@@ -140,25 +164,5 @@ export const studentRouter = createTRPCRouter({
         studentRanking,
         supervisor: await supervisor.get(),
       };
-    }),
-
-  // TODO also filter for pre-allocations
-  getSuitableProjectsById: procedure.instance.subGroupAdmin
-    .input(z.object({ studentId: z.string() }))
-    .output(z.array(projectDtoSchema))
-    .query(async ({ ctx: { instance }, input: { studentId } }) => {
-      const student = await instance.getStudent(studentId);
-      const { flag: studentFlag } = await student.get();
-      const preferences = await student.getAllDraftPreferences();
-      const preferenceIds = new Set(preferences.map(({ project: p }) => p.id));
-
-      const projectData = await instance.getProjectDetails();
-
-      return projectData
-        .filter((p) => {
-          if (preferenceIds.has(p.project.id)) return false;
-          return p.project.flags.map((f) => f.id).includes(studentFlag.id);
-        })
-        .map(({ project }) => project);
     }),
 });

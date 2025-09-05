@@ -50,19 +50,18 @@ export default async function Page({ params }: { params: PageParams }) {
     );
   }
 
-  const student = await api.user.student.getById({ params, studentId });
+  const student = await api.user.student.byId.get({ params, studentId });
 
   const { initialProjects } =
     await api.user.student.preference.initialBoardState({ params, studentId });
 
-  const latestSubmissionDateTime = await api.user.student.latestSubmissionById({
-    params,
-    studentId,
-  });
+  const latestSubmissionDateTime = await api.user.student.byId.latestSubmission(
+    { params, studentId },
+  );
 
   const instanceData = await api.institution.instance.get({ params });
 
-  const availableProjects = await api.user.student.getSuitableProjectsById({
+  const availableProjects = await api.user.student.byId.getSuitableProjects({
     params,
     studentId,
   });
