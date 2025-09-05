@@ -108,7 +108,7 @@ export class AllocationInstance extends DataObject {
   static async toQualifiedPaths(
     db: DB,
     instances: InstanceDTO[],
-  ): Promise<InstanceDisplayData[]> {
+  ): Promise<Omit<InstanceDisplayData, "roles">[]> {
     const instanceData = await db.allocationInstance.findMany({
       where: { OR: instances.map((x) => toInstanceId(x)) },
       include: { allocationSubGroup: { include: { allocationGroup: true } } },

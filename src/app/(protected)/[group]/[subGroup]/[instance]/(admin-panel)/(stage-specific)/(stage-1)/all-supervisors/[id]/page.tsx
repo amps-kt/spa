@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const { displayName } = await api.institution.instance.get({ params });
-  const { name } = await api.user.getById({ userId: params.id });
+  const { name } = await api.user.getById({ params, userId: params.id });
 
   return {
     title: metadataTitle([
