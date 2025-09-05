@@ -6,7 +6,7 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
+import { AllocationMethod, type DB } from "@/db/types";
 
 import { expand, toPP2 } from "@/lib/utils/general/instance-params";
 import { type ProjectParams } from "@/lib/validations/params";
@@ -137,6 +137,30 @@ export class Project extends DataObject {
       where: toPP2(this.params),
       data: { preAllocatedStudentId: null },
     });
+  }
+
+  public async getAllocation(): Promise<
+    { student: StudentDTO; rank: number; isPreAllocated: boolean } | undefined
+  > {
+    const data = await this.db.studentProjectAllocation.findFirst({
+      where: { projectId: this.params.projectId },
+      include: {
+        student: {
+          include: {
+            userInInstance: { include: { user: true } },
+            studentFlag: true,
+          },
+        },
+      },
+    });
+
+    if (!data) return undefined;
+
+    return {
+      student: T.toStudentDTO(data.student),
+      rank: data.studentRanking,
+      isPreAllocated: data.allocationMethod === AllocationMethod.PRE_ALLOCATED,
+    };
   }
 
   public async delete(): Promise<void> {

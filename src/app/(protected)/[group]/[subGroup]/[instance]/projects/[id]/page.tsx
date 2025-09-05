@@ -1,5 +1,3 @@
-import { Fragment } from "react";
-
 import {
   BookmarkIcon,
   FlagIcon,
@@ -16,9 +14,9 @@ import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO, type SupervisorDTO } from "@/dto";
 
-import { Role } from "@/db/types";
+import { Role, Stage } from "@/db/types";
 
-import { ConditionalRender } from "@/components/access-control";
+import { ServerSideConditionalRender } from "@/components/access-control/server-side-conditional-render";
 import { Heading, SectionHeading } from "@/components/heading";
 import { MarkdownRenderer } from "@/components/markdown-editor";
 import { PanelWrapper } from "@/components/panel-wrapper";
@@ -29,10 +27,9 @@ import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
-import { toPP1 } from "@/lib/utils/general/instance-params";
+import { toPP1, toPP4 } from "@/lib/utils/general/instance-params";
 import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
-import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
 import { EditButton } from "./_components/edit-button";
 import { StudentPreferenceButton } from "./_components/student-preference-button";
@@ -59,11 +56,7 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   };
 }
 
-// TODO: this is super messy and should be reviewed and fixed a lil
-
 export default async function Project({ params }: { params: PageParams }) {
-  const projectId = params.id;
-
   const exists = await api.project.exists({ params: toPP1(params) });
   if (!exists) notFound();
 
@@ -73,42 +66,23 @@ export default async function Project({ params }: { params: PageParams }) {
   const { project, supervisor } = await api.project.getByIdWithSupervisor({
     params: toPP1(params),
   });
+
   const user = await api.user.get();
   const roles = await api.user.roles({ params });
 
-  let isPreAllocated = false;
-  let preferenceStatus: StudentPreferenceType = "None";
-
-  if (roles.has(Role.STUDENT)) {
-    isPreAllocated = !!(await api.user.student.isPreAllocated({ params }));
-    preferenceStatus = await api.user.student.preference.getForProject({
-      params,
-      projectId,
-    });
-  }
-
-  const allocatedStudent = await api.project.getAllocation({
-    params: toPP1(params),
-  });
+  const isAdmin = roles.has(Role.ADMIN);
+  const isStudent = roles.has(Role.STUDENT);
+  const isProjectSupervisor = project.supervisorId === user.id;
 
   return (
     <PanelWrapper>
-      <Heading
-        className={cn(
-          "flex items-center justify-between gap-2 text-4xl",
-          project.title.length > 30 && "text-3xl",
-        )}
-      >
+      <Heading className="flex items-center justify-between gap-2 text-3xl">
         {project.title}
-        <StudentPreferenceButton
-          isPreAllocated={isPreAllocated}
+        <Controls
+          params={params}
           project={project}
-          defaultStatus={preferenceStatus}
-        />
-        <ConditionalRender
-          allowedRoles={[Role.ADMIN]}
-          overrides={{ roles: { OR: project.supervisorId === user.id } }}
-          allowed={<EditButton project={project} user={user} />}
+          isProjectSupervisor={isProjectSupervisor}
+          isStudent={isStudent}
         />
       </Heading>
 
@@ -127,69 +101,68 @@ export default async function Project({ params }: { params: PageParams }) {
         <div className="w-1/4">
           <ProjectDetailsCard
             projectData={{ project, supervisor }}
-            roles={roles}
+            isAdmin={isAdmin}
           />
         </div>
       </div>
 
-      <ConditionalRender
+      <ServerSideConditionalRender
+        params={params}
         allowedRoles={[Role.ADMIN]}
-        overrides={{
-          roles: {
-            OR: project.supervisorId === user.id,
-            AND: !!allocatedStudent,
-          },
-        }}
-        allowed={
-          <Fragment>
-            {allocatedStudent && (
-              <section className={cn("mt-16 flex flex-col gap-8")}>
-                <SectionHeading icon={FolderCheckIcon}>
-                  Allocation
-                </SectionHeading>
-                <AllocatedStudentCard
-                  studentAllocation={allocatedStudent}
-                  preAllocated={!!project.preAllocatedStudentId}
-                />
-              </section>
-            )}
-            <Separator />
-          </Fragment>
-        }
-      />
-      <ConditionalRender
-        allowedRoles={[Role.ADMIN]}
-        overrides={{ roles: { AND: !project.preAllocatedStudentId } }}
-        allowed={<StudentPreferenceSection params={params} />}
+        overrides={{ roles: { OR: isProjectSupervisor } }}
+        allowed={<StudentInformationSection params={params} />}
       />
     </PanelWrapper>
   );
 }
 
-async function StudentPreferenceSection({ params }: { params: PageParams }) {
-  const studentPreferences = await api.project.getAllStudentPreferences({
-    params: toPP1(params),
-  });
+async function Controls({
+  params,
+  project,
+  isProjectSupervisor,
+  isStudent,
+}: {
+  params: PageParams;
+  project: ProjectDTO;
+  isProjectSupervisor: boolean;
+  isStudent: boolean;
+}) {
+  const isPreAllocated =
+    isStudent && (await api.user.student.isPreAllocated({ params }));
 
-  const projectDescriptors =
-    await api.institution.instance.getAllProjectDescriptors({ params });
+  const preferenceStatus = isStudent
+    ? await api.user.student.preference.getForProject(toPP4(params))
+    : "None";
 
   return (
-    <section className="mt-16 flex flex-col gap-8">
-      <SectionHeading icon={BookmarkIcon}>Student Preferences</SectionHeading>
-      <StudentPreferenceDataTable
-        data={studentPreferences}
-        projectDescriptors={projectDescriptors}
+    <>
+      <ServerSideConditionalRender
+        params={params}
+        allowedRoles={[Role.STUDENT]}
+        allowedStages={[Stage.STUDENT_BIDDING]}
+        overrides={{ roles: { AND: !isPreAllocated } }}
+        allowed={
+          <StudentPreferenceButton
+            project={project}
+            defaultStatus={preferenceStatus}
+          />
+        }
       />
-    </section>
+      <ServerSideConditionalRender
+        params={params}
+        allowedRoles={[Role.ADMIN]}
+        overrides={{ roles: { OR: isProjectSupervisor } }}
+        allowed={<EditButton project={project} />}
+      />
+    </>
   );
 }
 
 async function ProjectDetailsCard({
-  roles,
+  isAdmin,
   projectData,
 }: {
-  roles: Set<Role>;
+  isAdmin: boolean;
   projectData: { project: ProjectDTO; supervisor: SupervisorDTO };
 }) {
   return (
@@ -201,7 +174,7 @@ async function ProjectDetailsCard({
             <h3 className="text-sm font-medium text-muted-foreground">
               Supervisor
             </h3>
-            {roles.has(Role.ADMIN) ? (
+            {isAdmin ? (
               <Link
                 className={cn(
                   buttonVariants({ variant: "link" }),
@@ -251,48 +224,81 @@ async function ProjectDetailsCard({
   );
 }
 
-// TODO: standardise params type
-function AllocatedStudentCard({
-  studentAllocation,
-  preAllocated,
+async function StudentInformationSection({ params }: { params: PageParams }) {
+  const allocation = await api.project.getAllocation({ params: toPP1(params) });
+
+  const isPreAllocated = allocation?.isPreAllocated ?? false;
+
+  return (
+    <>
+      {allocation && <AllocatedStudentSection allocation={allocation} />}
+      {allocation && !isPreAllocated && <Separator />}
+      {!isPreAllocated && <StudentPreferenceSection params={params} />}
+    </>
+  );
+}
+
+function AllocatedStudentSection({
+  allocation: { student, rank, isPreAllocated },
 }: {
-  studentAllocation: { student: StudentDTO; rank: number };
-  preAllocated: boolean;
+  allocation: { student: StudentDTO; rank: number; isPreAllocated: boolean };
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <Card className="w-fit max-w-sm border-none bg-accent px-6 py-3">
-        <CardContent className="flex flex-col p-0">
-          <div className="flex items-center space-x-4">
-            <UserIcon className="h-6 w-6 flex-none text-blue-500" />
-            <div className="flex flex-col">
-              <h3 className="-mb-1 text-sm font-medium text-muted-foreground">
-                Student
-              </h3>
-              <Link
-                className={cn(
-                  buttonVariants({ variant: "link" }),
-                  "text-nowrap p-0 text-base",
-                )}
-                href={`../${PAGES.allStudents.href}/${studentAllocation.student.id}`}
-              >
-                {studentAllocation.student.name}
-              </Link>
+    <section className={cn("mt-16 flex flex-col gap-8")}>
+      <SectionHeading icon={FolderCheckIcon}>Allocation</SectionHeading>
+      <div className="flex items-center gap-2">
+        <Card className="w-fit max-w-sm border-none bg-accent px-6 py-3">
+          <CardContent className="flex flex-col p-0">
+            <div className="flex items-center space-x-4">
+              <UserIcon className="h-6 w-6 flex-none text-blue-500" />
+              <div className="flex flex-col">
+                <h3 className="-mb-1 text-sm font-medium text-muted-foreground">
+                  Student
+                </h3>
+                <Link
+                  className={cn(
+                    buttonVariants({ variant: "link" }),
+                    "text-nowrap p-0 text-base",
+                  )}
+                  href={`../${PAGES.allStudents.href}/${student.id}`}
+                >
+                  {student.name}
+                </Link>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      {preAllocated ? (
-        <p>The student self-defined this project.</p>
-      ) : (
-        <p>
-          This was the student&apos;s{" "}
-          <span className="font-semibold text-indigo-600">
-            {toPositional(studentAllocation.rank)}
-          </span>{" "}
-          choice.
-        </p>
-      )}
-    </div>
+          </CardContent>
+        </Card>
+        {isPreAllocated ? (
+          <p>The student self-defined this project.</p>
+        ) : (
+          <p>
+            This was the student&apos;s{" "}
+            <span className="font-semibold text-indigo-600">
+              {toPositional(rank)}
+            </span>{" "}
+            choice.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
+
+async function StudentPreferenceSection({ params }: { params: PageParams }) {
+  const studentPreferences = await api.project.getStudentPreferencesForProject({
+    params: toPP1(params),
+  });
+
+  const projectDescriptors =
+    await api.institution.instance.getAllProjectDescriptors({ params });
+
+  return (
+    <section className="mt-16 flex flex-col gap-8">
+      <SectionHeading icon={BookmarkIcon}>Student Preferences</SectionHeading>
+      <StudentPreferenceDataTable
+        data={studentPreferences}
+        projectDescriptors={projectDescriptors}
+      />
+    </section>
   );
 }

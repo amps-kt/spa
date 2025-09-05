@@ -189,8 +189,10 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  // TODO: rename maybe? getStudentPreferencesForId
-  getAllStudentPreferences: procedure.project.subGroupAdmin
+  // Pin => AC check is not quite strict enough - should only be supervisor for *this* project
+  // ACtually, maybe we should ask paul about that?
+  getStudentPreferencesForProject: procedure.project
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
     .output(
       z.array(
         z.object({
@@ -418,30 +420,19 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  getAllocation: procedure.project.user
+  // Pin -> technically AC should be stricter
+  getAllocation: procedure.project
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
     .output(
-      z.object({ student: studentDtoSchema, rank: z.number() }).optional(),
+      z
+        .object({
+          student: studentDtoSchema,
+          rank: z.number(),
+          isPreAllocated: z.boolean(),
+        })
+        .optional(),
     )
-    .query(async ({ ctx: { project, db } }) => {
-      const allocation = await db.studentProjectAllocation.findFirst({
-        where: { projectId: project.params.projectId },
-        include: {
-          student: {
-            include: {
-              userInInstance: { include: { user: true } },
-              studentFlag: true,
-            },
-          },
-        },
-      });
-
-      if (!allocation) return undefined;
-
-      return {
-        student: T.toStudentDTO(allocation.student),
-        rank: allocation.studentRanking,
-      };
-    }),
+    .query(async ({ ctx: { project } }) => await project.getAllocation()),
 
   supervisorSubmissionInfo: procedure.instance.subGroupAdmin
     .output(
