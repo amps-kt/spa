@@ -6,6 +6,8 @@ import { format } from "date-fns";
 import { AlertCircleIcon, ClockIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { type InstanceDTO } from "@/dto";
+
 import { PreferenceType } from "@/db/types";
 
 import { getSubmissionErrors } from "@/components/pages/student-preferences/get-submission-errors";
@@ -22,17 +24,13 @@ export function SubmissionArea({
   studentId,
   initialProjects,
   latestSubmissionDateTime,
-  restrictions,
+  instanceData,
 }: {
   title: string;
   studentId: string;
   initialProjects: PreferenceBoard;
   latestSubmissionDateTime: Date | undefined;
-  restrictions: {
-    minPreferences: number;
-    maxPreferences: number;
-    maxPreferencesPerSupervisor: number;
-  };
+  instanceData: InstanceDTO;
 }) {
   const params = useInstanceParams();
 
@@ -43,7 +41,7 @@ export function SubmissionArea({
   const preferenceList = initialProjects[PreferenceType.PREFERENCE];
 
   const { isOver, isUnder, hasOverSelectedSupervisor, overSelected } =
-    getSubmissionErrors(preferenceList, restrictions);
+    getSubmissionErrors(preferenceList, instanceData);
 
   const utils = api.useUtils();
 
@@ -100,8 +98,8 @@ export function SubmissionArea({
               Not enough projects selected
             </AlertTitle>
             <AlertDescription className="text-base">
-              You need to have at least {restrictions.minPreferences} projects
-              in your preference list.
+              You need to have at least {instanceData.minStudentPreferences}{" "}
+              projects in your preference list.
             </AlertDescription>
           </Alert>
         )}
@@ -112,8 +110,8 @@ export function SubmissionArea({
               Too many projects selected
             </AlertTitle>
             <AlertDescription className="text-base">
-              You need to have at most {restrictions.maxPreferences} projects in
-              your preference list.
+              You need to have at most {instanceData.maxStudentPreferences}{" "}
+              projects in your preference list.
             </AlertDescription>
           </Alert>
         )}
@@ -131,7 +129,7 @@ export function SubmissionArea({
               Currently have {s.count} projects by Supervisor{" "}
               <span className="font-bold">{s.name}</span> in your preference
               list. The maximum number per supervisor is{" "}
-              {restrictions.maxPreferencesPerSupervisor}.
+              {instanceData.maxStudentPreferencesPerSupervisor}.
             </AlertDescription>
           </Alert>
         ))}

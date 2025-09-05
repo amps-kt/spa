@@ -49,21 +49,20 @@ export default async function Page({ params }: { params: PageParams }) {
       <Unauthorised message="You are not allowed to access this resource at this time" />
     );
   }
-  const { student } = await api.user.student.getById({ params, studentId });
+
+  const student = await api.user.student.getById({ params, studentId });
 
   const { initialProjects } =
     await api.user.student.preference.initialBoardState({ params, studentId });
 
-  const latestSubmissionDateTime = await api.user.student.latestSubmission({
+  const latestSubmissionDateTime = await api.user.student.latestSubmissionById({
     params,
     studentId,
   });
 
-  const restrictions = await api.user.student.preferenceRestrictions({
-    params,
-  });
+  const instanceData = await api.institution.instance.get({ params });
 
-  const availableProjects = await api.user.student.getSuitableProjects({
+  const availableProjects = await api.user.student.getSuitableProjectsById({
     params,
     studentId,
   });
@@ -81,7 +80,7 @@ export default async function Page({ params }: { params: PageParams }) {
           studentId={studentId}
           initialProjects={initialProjects}
           latestSubmissionDateTime={latestSubmissionDateTime}
-          restrictions={restrictions}
+          instanceData={instanceData}
         />
       </section>
 

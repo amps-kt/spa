@@ -1,9 +1,11 @@
 import { z } from "zod";
 
-import { studentDtoSchema } from "@/dto";
+import { ProjectAllocationStatus, studentDtoSchema } from "@/dto";
 import { projectDtoSchema, supervisorDtoSchema } from "@/dto";
 
 import { Supervisor } from "@/data-objects";
+
+import { allocationMethodSchema } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
@@ -21,58 +23,48 @@ export const studentRouter = createTRPCRouter({
         await instance.isStudent(studentId),
     ),
 
-  // TODO: change output
   getById: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
+    .output(studentDtoSchema)
+    .query(async ({ ctx: { instance }, input: { studentId } }) => {
+      const student = await instance.getStudent(studentId);
+      return await student.get();
+    }),
+
+  getAllocation: procedure.instance.student
     .output(
       z.object({
-        student: studentDtoSchema,
-        selfDefinedProjectId: z.string().optional(),
-        allocation: z
-          .object({
-            project: projectDtoSchema,
-            supervisor: supervisorDtoSchema,
-            studentRanking: z.number(),
-          })
-          .optional(),
+        allocationMethod: allocationMethodSchema,
+        project: projectDtoSchema,
+        supervisor: supervisorDtoSchema,
+        rank: z.number(),
       }),
+    )
+    .query(async ({ ctx: { user } }) => await user.getAllocation()),
+
+  getMaybeAllocationById: procedure.instance.subGroupAdmin
+    .input(z.object({ studentId: z.string() }))
+    .output(
+      z.discriminatedUnion("allocationMethod", [
+        z.object({
+          allocationMethod: z.literal(ProjectAllocationStatus.UNALLOCATED),
+        }),
+        z.object({
+          allocationMethod: allocationMethodSchema,
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          rank: z.number(),
+        }),
+      ]),
     )
     .query(async ({ ctx: { instance }, input: { studentId } }) => {
       const student = await instance.getStudent(studentId);
-      const studentData = await student.get();
-
-      if (!(await student.hasAllocation())) {
-        // no allocation
-        return {
-          allocation: undefined,
-          selfDefinedProjectId: undefined,
-          student: studentData,
-        };
-      }
-
-      // definitely has allocation
-      const { project, supervisor, studentRanking } =
-        await student.getAllocation();
-
-      if (!(await student.hasSelfDefinedProject())) {
-        // no self defined project
-        return {
-          allocation: { project, supervisor, studentRanking },
-          selfDefinedProjectId: undefined,
-          student: studentData,
-        };
-      }
-
-      // definitely has self defined project
-      return {
-        allocation: { project, supervisor, studentRanking },
-        selfDefinedProjectId: project.id,
-        student: studentData,
-      };
+      if (await student.hasAllocation()) return await student.getAllocation();
+      return { allocationMethod: ProjectAllocationStatus.UNALLOCATED };
     }),
 
   // MOVE to instance router
-  allocationAccess: procedure.instance.user
+  allocationAccess: procedure.instance.student
     .output(z.boolean())
     .query(async ({ ctx: { instance } }) => {
       const { studentAllocationAccess } = await instance.get();
@@ -85,72 +77,28 @@ export const studentRouter = createTRPCRouter({
     .output(z.boolean())
     .mutation(async ({ ctx: { instance, audit }, input: { access } }) => {
       audit("Set student allocation access", { setTo: access });
-      return instance.setStudentPublicationAccess(access);
+      return await instance.setStudentPublicationAccess(access);
     }),
 
-  // TODO rename + split
-  overviewData: procedure.instance.student
-    .output(
-      z.object({
-        displayName: z.string(),
-        preferenceSubmissionDeadline: z.date(),
-      }),
-    )
-    .query(async ({ ctx: { instance } }) => {
-      const {
-        displayName,
-        studentPreferenceSubmissionDeadline: preferenceSubmissionDeadline,
-      } = await instance.get();
+  latestSubmission: procedure.instance.student
+    .output(z.date().optional())
+    .query(
+      async ({ ctx: { user } }) => await user.getLatestSubmissionDateTime(),
+    ),
 
-      return { displayName, preferenceSubmissionDeadline };
-    }),
-
-  // Can anyone see this?
-  latestSubmission: procedure.instance.user
+  latestSubmissionById: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
     .output(z.date().optional())
     .query(async ({ ctx: { instance }, input: { studentId } }) => {
       const student = await instance.getStudent(studentId);
-      return student.getLatestSubmissionDateTime();
+      return await student.getLatestSubmissionDateTime();
     }),
 
   isPreAllocated: procedure.instance.student
     .output(z.boolean())
     .query(async ({ ctx: { user } }) => await user.hasSelfDefinedProject()),
 
-  getPreAllocation: procedure.instance.student
-    .output(
-      z.object({
-        project: projectDtoSchema,
-        supervisor: supervisorDtoSchema,
-        studentRanking: z.number(),
-      }),
-    )
-    .query(async ({ ctx: { user } }) => await user.getAllocation()),
-
-  // MOVE to instance router
-  // this sucks actually
-  preferenceRestrictions: procedure.instance.user
-    .output(
-      z.object({
-        minPreferences: z.number(),
-        maxPreferences: z.number(),
-        maxPreferencesPerSupervisor: z.number(),
-        preferenceSubmissionDeadline: z.date(),
-      }),
-    )
-    .query(async ({ ctx: { instance } }) => {
-      // ? should this be a method on the instance object
-      const data = await instance.get();
-
-      return {
-        minPreferences: data.minStudentPreferences,
-        maxPreferences: data.maxStudentPreferences,
-        maxPreferencesPerSupervisor: data.maxStudentPreferencesPerSupervisor,
-        preferenceSubmissionDeadline: data.studentPreferenceSubmissionDeadline,
-      };
-    }),
-
+  // Move to marking (or kill)
   // TODO: change output type
   // TODO: split into two procedures
   getAllocatedProject: procedure.instance.user
@@ -194,7 +142,8 @@ export const studentRouter = createTRPCRouter({
       };
     }),
 
-  getSuitableProjects: procedure.instance.subGroupAdmin
+  // TODO also filter for pre-allocations
+  getSuitableProjectsById: procedure.instance.subGroupAdmin
     .input(z.object({ studentId: z.string() }))
     .output(z.array(projectDtoSchema))
     .query(async ({ ctx: { instance }, input: { studentId } }) => {

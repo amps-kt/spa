@@ -26,21 +26,21 @@ import Layout from "./layout";
 export async function StudentOverview({ params }: { params: InstanceParams }) {
   const stage = await api.institution.instance.getCurrentStage({ params });
 
-  const { displayName, preferenceSubmissionDeadline: deadline } =
-    await api.user.student.overviewData({ params });
+  const { displayName, studentPreferenceSubmissionDeadline: deadline } =
+    await api.institution.instance.get({ params });
 
-  const { minPreferences, maxPreferences } =
-    await api.user.student.preferenceRestrictions({ params });
+  const {
+    minStudentPreferences: minPreferences,
+    maxStudentPreferences: maxPreferences,
+  } = await api.institution.instance.get({ params });
 
   if (stage === Stage.STUDENT_BIDDING) {
-    const preAllocatedProject = await api.user.student.isPreAllocated({
-      params,
-    });
+    const isPreAllocated = await api.user.student.isPreAllocated({ params });
 
     const instancePath = formatParamsAsPath(params);
 
-    if (preAllocatedProject) {
-      const { project } = await api.user.student.getPreAllocation({ params });
+    if (isPreAllocated) {
+      const { project } = await api.user.student.getAllocation({ params });
 
       return (
         <ThinLayout pageName={displayName} params={params}>

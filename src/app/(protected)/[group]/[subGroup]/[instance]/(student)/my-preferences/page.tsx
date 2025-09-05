@@ -53,12 +53,9 @@ export default async function Page({ params }: { params: InstanceParams }) {
 
   const latestSubmissionDateTime = await api.user.student.latestSubmission({
     params,
-    studentId: user.id,
   });
 
-  const restrictions = await api.user.student.preferenceRestrictions({
-    params,
-  });
+  const instanceData = await api.institution.instance.get({ params });
 
   return (
     <PanelWrapper className="gap-10">
@@ -72,7 +69,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
             studentId={user.id}
             initialProjects={initialProjects}
             latestSubmissionDateTime={latestSubmissionDateTime}
-            restrictions={restrictions}
+            instanceData={instanceData}
           />
         }
       />
