@@ -1,6 +1,8 @@
 import { compareAsc } from "date-fns";
 import { z } from "zod";
 
+import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
+
 import {
   algorithmDtoSchema,
   algorithmResultDtoSchema,
@@ -15,10 +17,6 @@ import { Transformers as T } from "@/db/transformers";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import {
-  adjustTarget,
-  adjustUpperBound,
-} from "@/lib/utils/algorithm/modifiers";
 import { expand } from "@/lib/utils/general/instance-params";
 import {
   matchingResultDtoSchema,
@@ -27,7 +25,6 @@ import {
 import { instanceParamsSchema } from "@/lib/validations/params";
 
 export const algorithmRouter = createTRPCRouter({
-  // pin
   run: procedure.algorithm.subGroupAdmin
     .output(z.object({ total: z.number(), matched: z.number() }))
     .mutation(async ({ ctx: { alg, instance, audit } }) => {
