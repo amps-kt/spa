@@ -531,16 +531,26 @@ export class AllocationInstance extends DataObject {
   }
 
   public async getSupervisorPreAllocations(): Promise<Record<string, number>> {
-    const supervisorPreAllocations = await this.db.project
+    const supervisorPreAllocations = await this.db.supervisorDetails
       .findMany({
-        where: { ...expand(this.params), preAllocatedStudentId: { not: null } },
+        where: expand(this.params),
+        include: {
+          _count: {
+            select: {
+              projects: {
+                where: {
+                  studentAllocations: {
+                    some: { allocationMethod: AllocationMethod.PRE_ALLOCATED },
+                  },
+                },
+              },
+            },
+          },
+        },
       })
       .then((data) =>
         data.reduce(
-          (acc, val) => {
-            acc[val.supervisorId] = (acc[val.supervisorId] ?? 0) + 1;
-            return acc;
-          },
+          (acc, { userId, _count }) => ({ ...acc, [userId]: _count.projects }),
           {} as Record<string, number>,
         ),
       );
