@@ -10,11 +10,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { type SupervisorMatchingDetailsDto } from "@/lib/validations/matching";
+import { type SupervisorMatchingDetailsDTO } from "@/lib/validations/matching";
 
 export function useSupervisorResultsColumns(): ColumnDef<{
   supervisor: UserDTO;
-  matchingDetails: SupervisorMatchingDetailsDto;
+  matchingDetails: SupervisorMatchingDetailsDTO;
 }>[] {
   return [
     {

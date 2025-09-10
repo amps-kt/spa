@@ -182,7 +182,6 @@ export const algorithmRouter = createTRPCRouter({
       };
     }),
 
-  // BREAKING output type changed
   allSupervisorResults: procedure.instance.subGroupAdmin
     .output(
       z.object({

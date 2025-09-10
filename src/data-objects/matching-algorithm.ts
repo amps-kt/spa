@@ -16,7 +16,7 @@ import {
   type MatchingResultDTO,
   type MatchingDataDTO,
   blankResult,
-  type SupervisorMatchingDetailsDto,
+  type SupervisorMatchingDetailsDTO,
 } from "@/lib/validations/matching";
 import { type AlgorithmInstanceParams } from "@/lib/validations/params";
 
@@ -158,7 +158,7 @@ export class MatchingAlgorithm extends DataObject {
   public async getSupervisorResults(
     supervisorPreAllocationCounts: Record<string, number>,
   ): Promise<
-    { supervisor: UserDTO; matchingDetails: SupervisorMatchingDetailsDto }[]
+    { supervisor: UserDTO; matchingDetails: SupervisorMatchingDetailsDTO }[]
   > {
     const algData = await this.get();
     const { targetModifier, upperBoundModifier } = algData;
