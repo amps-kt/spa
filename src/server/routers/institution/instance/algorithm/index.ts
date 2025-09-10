@@ -1,8 +1,6 @@
 import { compareAsc } from "date-fns";
 import { z } from "zod";
 
-import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
-
 import {
   algorithmDtoSchema,
   algorithmResultDtoSchema,

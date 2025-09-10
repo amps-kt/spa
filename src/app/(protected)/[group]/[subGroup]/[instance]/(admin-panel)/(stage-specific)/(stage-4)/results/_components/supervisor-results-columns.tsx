@@ -19,7 +19,7 @@ export function useSupervisorResultsColumns(): ColumnDef<{
   return [
     {
       id: "Supervisor",
-      accessorFn: (s) => s.supervisor.id,
+      accessorFn: (s) => `${s.supervisor.name} ${s.supervisor.id}`,
       header: ({ column }) => (
         <DataTableColumnHeader column={column} title="Supervisor" />
       ),
