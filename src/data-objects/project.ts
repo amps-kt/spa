@@ -139,6 +139,27 @@ export class Project extends DataObject {
     });
   }
 
+  public async getAllSubmittedPreferences(): Promise<
+    { student: StudentDTO; rank: number }[]
+  > {
+    const data = await this.db.studentSubmittedPreference.findMany({
+      where: { ...expand(this.params), projectId: this.params.projectId },
+      include: {
+        student: {
+          include: {
+            userInInstance: { include: { user: true } },
+            studentFlag: true,
+          },
+        },
+      },
+    });
+
+    return data.map(({ rank, student }) => ({
+      student: T.toStudentDTO(student),
+      rank,
+    }));
+  }
+
   public async getAllocation(): Promise<
     { student: StudentDTO; rank: number; isPreAllocated: boolean } | undefined
   > {
