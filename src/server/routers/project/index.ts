@@ -15,8 +15,7 @@ import {
   linkProjectFlagIds,
   linkProjectTagIds,
 } from "@/db/transactions/project-flags";
-import { Transformers as T } from "@/db/transformers";
-import { PreferenceType, Stage } from "@/db/types";
+import { Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -190,84 +189,13 @@ export const projectRouter = createTRPCRouter({
     }),
 
   // Pin => AC check is not quite strict enough - should only be supervisor for *this* project
-  // ACtually, maybe we should ask paul about that?
   getStudentPreferencesForProject: procedure.project
     .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
-    .output(
-      z.array(
-        z.object({
-          student: studentDtoSchema,
-          preference: z.object({
-            type: z.enum(PreferenceType).or(z.literal("SUBMITTED")),
-            rank: z.number().optional(),
-          }),
-        }),
-      ),
-    )
-    .query(async ({ ctx: { instance, project, db } }) => {
-      const projectId = project.params.projectId;
-      const studentPreferences = await instance.getStudentPreferenceDetails();
-
-      const studentPreferenceMap = studentPreferences.reduce(
-        (acc, val) => {
-          const draft = val.draftPreferences
-            .filter((x) => x.type === PreferenceType.PREFERENCE)
-            .map((x) => x.projectId);
-
-          return { ...acc, [val.student.id]: draft };
-        },
-        {} as Record<string, string[]>,
-      );
-
-      const hello = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          inStudentDraftPreferences: {
-            include: {
-              student: {
-                include: {
-                  studentFlag: true,
-                  userInInstance: { include: { user: true } },
-                },
-              },
-            },
-          },
-          inStudentSubmittedPreferences: {
-            include: {
-              student: {
-                include: {
-                  studentFlag: true,
-                  userInInstance: { include: { user: true } },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const submittedPreferences = hello.inStudentSubmittedPreferences.map(
-        (x) => ({
-          student: T.toStudentDTO(x.student),
-          preference: { type: "SUBMITTED" as const, rank: x.rank },
-        }),
-      );
-
-      const draftPreferences = hello.inStudentDraftPreferences.map((x) => {
-        const student = T.toStudentDTO(x.student);
-        return {
-          student,
-          preference: {
-            type: x.type,
-            rank:
-              x.type === PreferenceType.PREFERENCE
-                ? studentPreferenceMap[x.student.userId].indexOf(projectId) + 1
-                : undefined,
-          },
-        };
-      });
-
-      return [...submittedPreferences, ...draftPreferences];
-    }),
+    .output(z.array(z.object({ student: studentDtoSchema, rank: z.number() })))
+    .query(
+      async ({ ctx: { project } }) =>
+        await project.getAllSubmittedPreferences(),
+    ),
 
   delete: procedure.project
     .withAC({

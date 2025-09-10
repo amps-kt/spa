@@ -15,10 +15,6 @@ import { Transformers as T } from "@/db/transformers";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import {
-  adjustTarget,
-  adjustUpperBound,
-} from "@/lib/utils/algorithm/modifiers";
 import { expand } from "@/lib/utils/general/instance-params";
 import {
   matchingResultDtoSchema,
@@ -27,7 +23,6 @@ import {
 import { instanceParamsSchema } from "@/lib/validations/params";
 
 export const algorithmRouter = createTRPCRouter({
-  // pin
   run: procedure.algorithm.subGroupAdmin
     .output(z.object({ total: z.number(), matched: z.number() }))
     .mutation(async ({ ctx: { alg, instance, audit } }) => {
@@ -166,7 +161,27 @@ export const algorithmRouter = createTRPCRouter({
       };
     }),
 
-  // BREAKING output type changed
+  supervisorResultsForAlg: procedure.algorithm.subGroupAdmin
+    .output(
+      z.object({
+        algorithm: algorithmDtoSchema,
+        data: z.array(
+          z.object({
+            supervisor: userDtoSchema,
+            matchingDetails: supervisorMatchingDetailsDtoSchema,
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx: { instance, alg } }) => {
+      const preAllocationCounts = await instance.getSupervisorPreAllocations();
+
+      return {
+        algorithm: await alg.get(),
+        data: await alg.getSupervisorResults(preAllocationCounts),
+      };
+    }),
+
   allSupervisorResults: procedure.instance.subGroupAdmin
     .output(
       z.object({
@@ -184,99 +199,22 @@ export const algorithmRouter = createTRPCRouter({
         ),
       }),
     )
-    .query(async ({ ctx: { instance, db } }) => {
-      // instance.getSupervisorResults
-      const algorithmData = await db.algorithm.findMany({
-        where: expand(instance.params),
-        include: {
-          matchingResult: {
-            include: {
-              matching: {
-                include: {
-                  student: true,
-                  project: {
-                    include: {
-                      supervisor: {
-                        include: {
-                          userInInstance: { include: { user: true } },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        orderBy: { createdAt: "asc" },
-      });
+    .query(async ({ ctx: { instance } }) => {
+      const allAlgs = await instance.getAllAlgorithms();
+      const preAllocationCounts = await instance.getSupervisorPreAllocations();
 
-      const preAllocationsMap = await instance.getSupervisorPreAllocations();
+      const results = await Promise.all(
+        allAlgs
+          .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
+          .map(async (algData) => {
+            const alg = instance.getAlgorithm(algData.id);
 
-      const results = algorithmData
-        .sort((a, b) => compareAsc(a.createdAt, b.createdAt))
-        .map((x) => {
-          const algorithm = T.toAlgorithmDTO(x);
-          const matchingData = x.matchingResult?.matching ?? [];
-
-          const algAllocationsMap = matchingData.reduce(
-            (acc, { project }) => ({
-              ...acc,
-              [project.supervisorId]: (acc[project.supervisorId] ?? 0) + 1,
-            }),
-            {} as Record<string, number>,
-          );
-
-          const targetModifier = x.targetModifier;
-          const upperBoundModifier = x.upperBoundModifier;
-
-          return {
-            algorithm,
-            data: matchingData.map(({ project }) => {
-              const s = T.toSupervisorDTO(project.supervisor);
-
-              const preAllocationCount = preAllocationsMap[s.id] ?? 0;
-              const algAllocationCount = algAllocationsMap[s.id] ?? 0;
-              const totalCount = algAllocationCount + preAllocationCount;
-
-              return {
-                supervisor: s,
-                matchingDetails: {
-                  // the supervisor's target that was given to the algorithm
-                  projectTarget: adjustTarget(
-                    s.allocationTarget,
-                    targetModifier,
-                  ),
-
-                  // the supervisor's target that setup in the allocation instance
-                  actualTarget: s.allocationTarget,
-
-                  // the supervisor's upper quota that was given to the algorithm
-                  projectUpperQuota: adjustUpperBound(
-                    s.allocationUpperBound,
-                    upperBoundModifier,
-                  ),
-
-                  // the supervisor's upper quota that setup in the allocation instance
-                  actualUpperQuota: s.allocationUpperBound,
-
-                  // the number of students that were allocated to the supervisor by the algorithm
-                  allocationCount: algAllocationCount,
-
-                  // the number of students that were pre-allocated to the supervisor
-                  preAllocatedCount: preAllocationCount,
-
-                  // the difference between the number of students that were allocated to the supervisor by the algorithm and the supervisor's target in the allocation instance
-                  algorithmTargetDifference:
-                    algAllocationCount - s.allocationTarget,
-
-                  // the difference between the number of students that were allocated to the supervisor in total and the supervisor's target in the allocation instance
-                  actualTargetDifference: totalCount - s.allocationTarget,
-                },
-              };
-            }),
-          };
-        });
+            return {
+              algorithm: algData,
+              data: await alg.getSupervisorResults(preAllocationCounts),
+            };
+          }),
+      );
 
       const firstNonEmptyIdx = results.findIndex((r) => r.data.length > 0);
 

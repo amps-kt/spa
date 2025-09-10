@@ -1,6 +1,7 @@
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
+import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
 
 import {
   type UnitOfAssessmentDTO,
@@ -17,7 +18,6 @@ import {
   type ReaderDTO,
 } from "@/dto";
 
-import { collectMatchingData } from "@/db/transactions/collect-matching-data";
 import { Transformers as T } from "@/db/transformers";
 import {
   type DB,
@@ -169,7 +169,115 @@ export class AllocationInstance extends DataObject {
 
   public async getMatchingData(algorithm: MatchingAlgorithm) {
     const instanceData = await this.get();
-    return await collectMatchingData(this.db, instanceData, algorithm);
+
+    const { maxRank, targetModifier, upperBoundModifier } =
+      await this.db.algorithm
+        .findFirstOrThrow({ where: { id: algorithm.params.algConfigId } })
+        .then((x) => T.toAlgorithmDTO(x));
+
+    const preAllocations = await this.db.project
+      .groupBy({
+        by: ["supervisorId"],
+        _count: { _all: true },
+        where: {
+          ...expand(instanceData),
+          preAllocatedStudentId: { not: null },
+        },
+      })
+      .then((data) =>
+        data.reduce(
+          (acc, x) => ({ ...acc, [x.supervisorId]: x._count._all }),
+          {} as Record<string, number>,
+        ),
+      );
+
+    const students = await this.db.studentDetails
+      .findMany({
+        where: {
+          ...expand(instanceData),
+          latestSubmissionDateTime: { not: null },
+          projectAllocation: { is: null },
+        },
+        include: {
+          submittedPreferences: {
+            include: { project: true },
+            orderBy: { rank: "asc" },
+          },
+        },
+      })
+      .then((data) =>
+        data
+          .filter((s) => {
+            // emit some kind of error message here
+            return (
+              s.submittedPreferences.length >=
+                instanceData.minStudentPreferences &&
+              s.submittedPreferences.length <=
+                instanceData.maxStudentPreferences
+            );
+          })
+          .map((s) => ({
+            id: s.userId,
+            preferences: s.submittedPreferences.map(
+              ({ project }) => project.id,
+            ),
+          })),
+      );
+
+    const supervisors = await this.db.supervisorDetails
+      .findMany({
+        where: expand(instanceData),
+        select: {
+          userId: true,
+          projectAllocationLowerBound: true,
+          projectAllocationTarget: true,
+          projectAllocationUpperBound: true,
+        },
+      })
+      .then((data) =>
+        data.map((s) => ({
+          id: s.userId,
+          lowerBound: s.projectAllocationLowerBound,
+          target: s.projectAllocationTarget - (preAllocations[s.userId] ?? 0),
+          upperBound:
+            s.projectAllocationUpperBound - (preAllocations[s.userId] ?? 0),
+        })),
+      );
+
+    const projects = await this.db.project
+      .findMany({
+        where: { ...expand(instanceData), preAllocatedStudentId: null },
+      })
+      .then((data) =>
+        data.map((p) => ({
+          id: p.id,
+          lowerBound: p.capacityLowerBound,
+          upperBound: p.capacityUpperBound,
+          supervisorId: p.supervisorId,
+        })),
+      );
+
+    return {
+      students: students.map(({ preferences, id }) => ({
+        id,
+        preferences: preferences.slice(
+          0,
+          maxRank === -1 ? preferences.length : maxRank,
+        ),
+      })),
+      projects,
+      supervisors: supervisors.map(({ target, upperBound, id, lowerBound }) => {
+        const newTarget = adjustTarget(target, targetModifier);
+        const newUpperBound = adjustUpperBound(upperBound, upperBoundModifier);
+
+        return {
+          id,
+          lowerBound,
+          target: newTarget,
+          upperBound: Math.max(newTarget, newUpperBound),
+        };
+      }),
+    };
   }
 
   public async getAllAlgorithms(): Promise<AlgorithmDTO[]> {
@@ -423,16 +531,26 @@ export class AllocationInstance extends DataObject {
   }
 
   public async getSupervisorPreAllocations(): Promise<Record<string, number>> {
-    const supervisorPreAllocations = await this.db.project
+    const supervisorPreAllocations = await this.db.supervisorDetails
       .findMany({
-        where: { ...expand(this.params), preAllocatedStudentId: { not: null } },
+        where: expand(this.params),
+        include: {
+          _count: {
+            select: {
+              projects: {
+                where: {
+                  studentAllocations: {
+                    some: { allocationMethod: AllocationMethod.PRE_ALLOCATED },
+                  },
+                },
+              },
+            },
+          },
+        },
       })
       .then((data) =>
         data.reduce(
-          (acc, val) => {
-            acc[val.supervisorId] = (acc[val.supervisorId] ?? 0) + 1;
-            return acc;
-          },
+          (acc, { userId, _count }) => ({ ...acc, [userId]: _count.projects }),
           {} as Record<string, number>,
         ),
       );
@@ -1149,7 +1267,12 @@ export class AllocationInstance extends DataObject {
       }),
 
       this.db.studentProjectAllocation.createMany({
-        data: matchingData?.matching ?? [],
+        data: (matchingData?.matching ?? []).map(
+          ({ matchingResultId, ...rest }) => ({
+            ...rest,
+            allocationMethod: AllocationMethod.ALGORITHMIC,
+          }),
+        ),
       }),
 
       this.db.allocationInstance.update({
@@ -1224,8 +1347,8 @@ export class AllocationInstance extends DataObject {
   }
 
   public async deleteStudentAllocation(userId: string): Promise<void> {
-    await this.db.studentProjectAllocation.delete({
-      where: { studentProjectAllocationId: { ...expand(this.params), userId } },
+    await this.db.studentProjectAllocation.deleteMany({
+      where: { ...expand(this.params), userId },
     });
   }
 
