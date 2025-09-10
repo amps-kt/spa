@@ -2,8 +2,6 @@
 
 import { type FlagDTO, type StudentDTO } from "@/dto";
 
-import { type ExtendedPreferenceType } from "@/db/types";
-
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { useStudentPreferenceColumns } from "./student-preference-columns";
@@ -12,10 +10,7 @@ export function StudentPreferenceDataTable({
   data,
   projectDescriptors,
 }: {
-  data: {
-    student: StudentDTO;
-    preference: { type: ExtendedPreferenceType; rank?: number };
-  }[];
+  data: { student: StudentDTO; rank: number }[];
   projectDescriptors: { flags: FlagDTO[] };
 }) {
   const columns = useStudentPreferenceColumns();
