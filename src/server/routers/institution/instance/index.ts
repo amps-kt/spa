@@ -131,6 +131,14 @@ export const instanceRouter = createTRPCRouter({
       return { id, displayName };
     }),
 
+  setSelectedAlgorithm: procedure.instance.subGroupAdmin
+    .input(z.object({ algId: z.string() }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { algId } }) => {
+      audit("Set selected algorithm", { algId });
+      return await instance.selectAlg(algId);
+    }),
+
   // TODO do we have this schema (or parts of it) elsewhere?
   /**
    * return the allocations in this instance, in three views:

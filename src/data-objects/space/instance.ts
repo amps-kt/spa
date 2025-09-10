@@ -1149,7 +1149,12 @@ export class AllocationInstance extends DataObject {
       }),
 
       this.db.studentProjectAllocation.createMany({
-        data: matchingData?.matching ?? [],
+        data: (matchingData?.matching ?? []).map(
+          ({ matchingResultId, ...rest }) => ({
+            ...rest,
+            allocationMethod: AllocationMethod.ALGORITHMIC,
+          }),
+        ),
       }),
 
       this.db.allocationInstance.update({
