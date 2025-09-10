@@ -49,7 +49,7 @@ export function useAlgorithmResultColumns({
   }
 
   const { mutateAsync: selectMatchingAsync } =
-    api.institution.instance.matching.select.useMutation();
+    api.institution.instance.setSelectedAlgorithm.useMutation();
 
   function handleSelection(algId: string) {
     void toast.promise(
