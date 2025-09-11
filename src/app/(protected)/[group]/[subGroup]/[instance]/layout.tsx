@@ -2,6 +2,8 @@ import { type ReactNode } from "react";
 
 import { notFound } from "next/navigation";
 
+import { Role } from "@/db/types";
+
 import { InstanceParamsProvider } from "@/components/params-context";
 import { SidebarInset } from "@/components/ui/sidebar";
 
@@ -13,9 +15,17 @@ import { AppSidebar } from "./_components/app-sidebar";
 
 export default async function Layout({
   children,
+  adminHome,
+  supervisorHome,
+  studentHome,
+  readerHome,
   params,
 }: {
   children: ReactNode;
+  adminHome: ReactNode;
+  supervisorHome: ReactNode;
+  studentHome: ReactNode;
+  readerHome: ReactNode;
   params: InstanceParams;
 }) {
   // check if this instance exists
@@ -48,6 +58,10 @@ export default async function Layout({
         <SidebarInset>
           <div className="absolute flex flex-1 w-full flex-col gap-4 p-4">
             {children}
+            {roles.has(Role.ADMIN) && adminHome}
+            {roles.has(Role.SUPERVISOR) && supervisorHome}
+            {roles.has(Role.STUDENT) && studentHome}
+            {roles.has(Role.READER) && readerHome}
           </div>
         </SidebarInset>
       </div>
