@@ -35,6 +35,8 @@ export default async function Page({ params }: { params: InstanceParams }) {
       methods: [AllocationMethod.RANDOM],
     });
 
+  const flags = await api.institution.instance.getFlags({ params });
+
   const unallocatedStudentData = unallocatedStudents.map((student) => ({
     student,
     project: undefined,
@@ -52,7 +54,10 @@ export default async function Page({ params }: { params: InstanceParams }) {
         <SectionHeading icon={ListIcon} className="mb-2">
           All Unmatched Students
         </SectionHeading>
-        <RandomAllocationsDataTable studentData={allStudentData} />
+        <RandomAllocationsDataTable
+          studentData={allStudentData}
+          flags={flags}
+        />
       </section>
     </PanelWrapper>
   );

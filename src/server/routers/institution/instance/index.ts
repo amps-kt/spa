@@ -1105,6 +1105,7 @@ export const instanceRouter = createTRPCRouter({
     }),
 
   assignReaders: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.READER_BIDDING, Stage.READER_ALLOCATION])
     .subGroupAdmin.input(
       z.object({ newReaderAllocations: z.array(newReaderAllocationSchema) }),
@@ -1156,6 +1157,7 @@ export const instanceRouter = createTRPCRouter({
     ),
 
   getAllUnitsOfAssessment: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
     .subGroupAdmin.output(
       z.array(
@@ -1184,6 +1186,7 @@ export const instanceRouter = createTRPCRouter({
     }),
 
   setUnitOfAssessmentAccess: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
     .subGroupAdmin.input(
       z.object({ unitOfAssessmentId: z.string(), open: z.boolean() }),

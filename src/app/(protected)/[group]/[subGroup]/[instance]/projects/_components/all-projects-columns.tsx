@@ -128,6 +128,7 @@ export function useAllProjectsColumns({
           <p className="font-medium">{supervisor.name}</p>
         ),
     },
+    // this column doesn't really add much value to students, since we pre-filter out unsuitable projects anyway
     {
       id: "Flags",
       accessorFn: (row) => row.project.flags,
