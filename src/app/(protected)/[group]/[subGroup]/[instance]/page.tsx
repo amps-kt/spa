@@ -26,6 +26,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 export default async function Page({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
 
+  const isJoined = await api.user.isJoined({ params });
   const roles = await api.user.roles({ params });
   const hasMultipleRoles = roles.size > 1;
 
@@ -50,7 +51,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
         <ReaderHome params={params} hasMultipleRoles={hasMultipleRoles} />
       )}
       {roles.has(Role.STUDENT) && <StudentHome params={params} />}
-      <JoinInstance />
+      <JoinInstance isJoined={isJoined} />
     </PanelWrapper>
   );
 }

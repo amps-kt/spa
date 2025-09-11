@@ -48,6 +48,21 @@ export const userRouter = createTRPCRouter({
         await user.getRolesInInstance(instance.params),
     ),
 
+  isJoined: procedure.instance.member
+    .output(z.boolean())
+    .query(
+      async ({ ctx: { user, instance } }) =>
+        await user.isJoined(instance.params),
+    ),
+
+  // ? for users with multiple roles should we track join per-role (reader/supervisor)
+  joinInstance: procedure.instance.member.mutation(
+    async ({ ctx: { user, instance, audit } }) => {
+      audit("joining instance", { instance: instance.params });
+      await user.joinInstance(instance.params);
+    },
+  ),
+
   hasSelfDefinedProject: procedure.instance.member
     .output(z.boolean())
     .query(async ({ ctx: { user, instance } }) => {
@@ -137,14 +152,6 @@ export const userRouter = createTRPCRouter({
         };
       });
     }),
-
-  // ? for users with multiple roles should we track join per-role (reader/supervisor)
-  joinInstance: procedure.instance.member.mutation(
-    async ({ ctx: { user, instance, audit } }) => {
-      audit("joining instance", { instance: instance.params });
-      await user.joinInstance(instance.params);
-    },
-  ),
 
   // Move to a 'test' router?
   getTestUsers: procedure.user
