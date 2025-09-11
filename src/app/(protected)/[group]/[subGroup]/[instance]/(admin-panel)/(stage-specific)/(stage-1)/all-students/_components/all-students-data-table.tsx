@@ -7,8 +7,6 @@ import { spacesLabels } from "@/config/spaces";
 
 import { type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
-import { type Role } from "@/db/types";
-
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
@@ -17,13 +15,11 @@ import { api } from "@/lib/trpc/client";
 import { useAllStudentsColumns } from "./all-students-columns";
 
 export function StudentsDataTable({
-  roles,
   data,
-  projectDescriptors,
+  flags,
 }: {
-  roles: Set<Role>;
   data: { student: StudentDTO; allocation?: ProjectDTO }[];
-  projectDescriptors: { flags: FlagDTO[] };
+  flags: FlagDTO[];
 }) {
   const params = useInstanceParams();
   const router = useRouter();
@@ -55,17 +51,13 @@ export function StudentsDataTable({
       .then(() => router.refresh());
   }
 
-  const columns = useAllStudentsColumns({
-    roles,
-    deleteStudent,
-    deleteManyStudents,
-  });
+  const columns = useAllStudentsColumns({ deleteStudent, deleteManyStudents });
 
   const filters = [
     {
       title: "filter by Flag",
       columnId: "Flag",
-      options: projectDescriptors.flags.map((flag) => ({
+      options: flags.map((flag) => ({
         id: flag.displayName,
         displayName: flag.displayName,
       })),
