@@ -6,11 +6,13 @@ import { api } from "@/lib/trpc/client";
 
 import { useInstanceParams } from "./params-context";
 
-export function JoinInstance() {
+export function JoinInstance({ isJoined }: { isJoined: boolean }) {
   const params = useInstanceParams();
-  const { mutateAsync } = api.user.joinInstance.useMutation();
+  const { mutateAsync: api_joinInstance } = api.user.joinInstance.useMutation();
 
-  useEffect(() => void mutateAsync({ params }), [mutateAsync, params]);
+  useEffect(() => {
+    if (!isJoined) void api_joinInstance({ params });
+  }, [isJoined, api_joinInstance, params]);
 
   return <Fragment />;
 }
