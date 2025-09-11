@@ -1,5 +1,3 @@
-import { type ReactNode } from "react";
-
 import { format } from "date-fns";
 import { Clock10Icon, ListTodoIcon, ListCheckIcon } from "lucide-react";
 
@@ -9,91 +7,47 @@ import { Stage } from "@/db/types";
 
 import { SectionHeading } from "@/components/heading";
 import { InstanceLink } from "@/components/instance-link";
-import { JoinInstance } from "@/components/join-instance";
+import { NothingToDo } from "@/components/nothing-to-do";
 import { Calendar } from "@/components/ui/calendar";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
-import { stageGte } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 
-export async function SupervisorHome({ params }: { params: InstanceParams }) {
+export function SupervisorHome({
+  hasMultipleRoles,
+  params,
+}: {
+  hasMultipleRoles: boolean;
+  params: InstanceParams;
+}) {
+  return (
+    <section className="flex flex-col gap-4">
+      {hasMultipleRoles && (
+        <SectionHeading className="text-muted-foreground -mb-6 text-xl">
+          Supervisor Info
+        </SectionHeading>
+      )}
+      <SupervisorHomeInner params={params} />
+    </section>
+  );
+}
+
+async function SupervisorHomeInner({ params }: { params: InstanceParams }) {
   const stage = await api.institution.instance.getCurrentStage({ params });
 
-  const { projectSubmissionDeadline: deadline } =
-    await api.institution.instance.get({ params });
+  switch (stage) {
+    case Stage.PROJECT_SUBMISSION:
+      return <ProjectSubmissionDeadline params={params} />;
 
-  const { currentSubmissionCount, submissionTarget } =
-    await api.user.supervisor.projectStats({ params });
+    case Stage.ALLOCATION_PUBLICATION:
+      if (
+        !(await api.institution.instance.getSupervisorAllocationAccess({
+          params,
+        }))
+      )
+        return <NothingToDo />;
 
-  if (stage === Stage.PROJECT_SUBMISSION) {
-    return (
-      <ThinLayout>
-        <div className="mt-9 flex justify-between">
-          <div className="flex flex-col justify-start">
-            <div className="flex flex-col gap-4">
-              <SectionHeading icon={Clock10Icon} className="mb-2">
-                Project Upload Deadline
-              </SectionHeading>
-              <p className="flex gap-2 text-xl">
-                {format(deadline, "dd MMM yyyy - HH:mm")}
-                <span className="text-muted-foreground">
-                  {format(deadline, "OOOO")}
-                </span>
-              </p>
-            </div>
-            <div className="mt-16 flex flex-col gap-4">
-              <SectionHeading icon={ListTodoIcon} className="mb-2">
-                Task List
-              </SectionHeading>
-              <ul className="ml-6 list-disc [&>li]:mt-2">
-                {submissionTarget > 0 && (
-                  <li>
-                    Submit {submissionTarget} projects{" "}
-                    <span className="text-muted-foreground">
-                      (currently submitted: {currentSubmissionCount})
-                    </span>
-                  </li>
-                )}
-                <li>Submit any self-defined projects</li>
-              </ul>
-            </div>
-          </div>
-          <Calendar
-            className="rounded-md border"
-            mode="single"
-            selected={deadline}
-            defaultMonth={deadline}
-          />
-        </div>
-      </ThinLayout>
-    );
-  }
-
-  const allocationAccess =
-    await api.institution.instance.getSupervisorAllocationAccess({ params });
-
-  if (
-    stage === Stage.STUDENT_BIDDING ||
-    stage === Stage.PROJECT_ALLOCATION ||
-    stage === Stage.ALLOCATION_ADJUSTMENT ||
-    (stage === Stage.ALLOCATION_PUBLICATION && !allocationAccess)
-  ) {
-    return (
-      <ThinLayout>
-        <div className="mt-9 flex flex-col gap-4">
-          <SectionHeading icon={ListTodoIcon} className="mb-2">
-            Task List
-          </SectionHeading>
-          <p>Nothing to do at this stage</p>
-        </div>
-      </ThinLayout>
-    );
-  }
-
-  if (stage === Stage.ALLOCATION_PUBLICATION && allocationAccess) {
-    return (
-      <ThinLayout>
+      return (
         <div className="mt-9 flex flex-col gap-4">
           <SectionHeading icon={ListCheckIcon} className="mb-2">
             Allocations Released
@@ -106,13 +60,10 @@ export async function SupervisorHome({ params }: { params: InstanceParams }) {
             page to view your allocated projects
           </p>
         </div>
-      </ThinLayout>
-    );
-  }
+      );
 
-  if (stageGte(stage, Stage.READER_BIDDING)) {
-    return (
-      <ThinLayout>
+    case Stage.READER_BIDDING:
+      return (
         <div className="mt-9 flex flex-col gap-4">
           <SectionHeading
             icon={ListCheckIcon}
@@ -128,20 +79,73 @@ export async function SupervisorHome({ params }: { params: InstanceParams }) {
             page to view the projects you have to mark
           </p>
         </div>
-      </ThinLayout>
-    );
-  }
+      );
 
-  return (
-    <Unauthorised message="You are not allowed to access the platform at this time" />
-  );
+    case Stage.READER_ALLOCATION:
+      // todo: fill as appropriate
+      return <NothingToDo />;
+
+    case Stage.MARK_SUBMISSION:
+      // todo: fill as appropriate
+      return <NothingToDo />;
+
+    case Stage.GRADE_PUBLICATION:
+      // todo: fill as appropriate
+      return <NothingToDo />;
+
+    default:
+      return <NothingToDo />;
+  }
 }
 
-function ThinLayout({ children }: { children: ReactNode }) {
+async function ProjectSubmissionDeadline({
+  params,
+}: {
+  params: InstanceParams;
+}) {
+  const { projectSubmissionDeadline: deadline } =
+    await api.institution.instance.get({ params });
+
+  const { currentSubmissionCount, submissionTarget } =
+    await api.user.supervisor.projectStats({ params });
+
   return (
-    <>
-      {children}
-      <JoinInstance />
-    </>
+    <div className="mt-9 flex justify-between">
+      <div className="flex flex-col justify-start">
+        <div className="flex flex-col gap-4">
+          <SectionHeading icon={Clock10Icon} className="mb-2">
+            Project Upload Deadline
+          </SectionHeading>
+          <p className="flex gap-2 text-xl">
+            {format(deadline, "dd MMM yyyy - HH:mm")}
+            <span className="text-muted-foreground">
+              {format(deadline, "OOOO")}
+            </span>
+          </p>
+        </div>
+        <div className="mt-16 flex flex-col gap-4">
+          <SectionHeading icon={ListTodoIcon} className="mb-2">
+            Task List
+          </SectionHeading>
+          <ul className="ml-6 list-disc [&>li]:mt-2">
+            {submissionTarget > 0 && (
+              <li>
+                Submit {submissionTarget} projects{" "}
+                <span className="text-muted-foreground">
+                  (currently submitted: {currentSubmissionCount})
+                </span>
+              </li>
+            )}
+            <li>Submit any self-defined projects</li>
+          </ul>
+        </div>
+      </div>
+      <Calendar
+        className="rounded-md border"
+        mode="single"
+        selected={deadline}
+        defaultMonth={deadline}
+      />
+    </div>
   );
 }
