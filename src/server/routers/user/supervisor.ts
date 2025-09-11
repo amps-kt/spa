@@ -34,22 +34,6 @@ export const supervisorRouter = createTRPCRouter({
       return await supervisor.toDTO();
     }),
 
-  allocationAccess: procedure.instance.supervisor
-    .output(z.boolean())
-    .query(async ({ ctx: { instance } }) => {
-      const { supervisorAllocationAccess } = await instance.get();
-      return supervisorAllocationAccess;
-    }),
-
-  // Move
-  setAllocationAccess: procedure.instance.subGroupAdmin
-    .input(z.object({ access: z.boolean() }))
-    .output(z.boolean())
-    .mutation(async ({ ctx: { instance, audit }, input: { access } }) => {
-      audit("Set supervisor allocation access", { access });
-      return await instance.setSupervisorPublicationAccess(access);
-    }),
-
   instanceProjects: procedure.instance.subGroupAdmin
     .input(z.object({ supervisorId: z.string() }))
     .output(

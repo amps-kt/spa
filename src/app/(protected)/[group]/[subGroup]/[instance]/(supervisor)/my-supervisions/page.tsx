@@ -21,17 +21,15 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const allocationAccess = await api.user.supervisor.allocationAccess({
-    params,
-  });
-
-  if (!allocationAccess) {
+  if (
+    !(await api.institution.instance.getSupervisorAllocationAccess({ params }))
+  ) {
+    // ? should this redirect to forbidden?
     return (
       <Unauthorised message="You are not allowed to access this resource at this time" />
     );
   }
 
-  // pin: output type is not standard
   const allocations = await api.user.supervisor.allocations({ params });
 
   return (
