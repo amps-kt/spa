@@ -18,7 +18,7 @@ export function SupervisorAccessToggle({
   const [access, setAccess] = useState(supervisor);
 
   const { mutateAsync: setAllocationAccess } =
-    api.user.supervisor.setAllocationAccess.useMutation();
+    api.institution.instance.setSupervisorAllocationAccess.useMutation();
 
   function handleToggle(access: boolean) {
     void toast.promise(

@@ -95,21 +95,23 @@ export const studentRouter = createTRPCRouter({
     )
     .query(async ({ ctx: { user } }) => await user.getAllocation()),
 
-  // MOVE to instance router
-  allocationAccess: procedure.instance.student
-    .output(z.boolean())
-    .query(async ({ ctx: { instance } }) => {
-      const { studentAllocationAccess } = await instance.get();
-      return studentAllocationAccess;
-    }),
-
-  // MOVE to instance router
-  setAllocationAccess: procedure.instance.subGroupAdmin
-    .input(z.object({ access: z.boolean() }))
-    .output(z.boolean())
-    .mutation(async ({ ctx: { instance, audit }, input: { access } }) => {
-      audit("Set student allocation access", { setTo: access });
-      return await instance.setStudentPublicationAccess(access);
+  getMaybeAllocation: procedure.instance.student
+    .output(
+      z.discriminatedUnion("allocationMethod", [
+        z.object({
+          allocationMethod: z.literal(ProjectAllocationStatus.UNALLOCATED),
+        }),
+        z.object({
+          allocationMethod: allocationMethodSchema,
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          rank: z.number(),
+        }),
+      ]),
+    )
+    .query(async ({ ctx: { user } }) => {
+      if (await user.hasAllocation()) return await user.getAllocation();
+      return { allocationMethod: ProjectAllocationStatus.UNALLOCATED };
     }),
 
   latestSubmission: procedure.instance.student

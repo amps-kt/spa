@@ -14,7 +14,7 @@ export function StudentAccessToggle({ student }: { student: boolean }) {
   const [access, setAccess] = useState(student);
 
   const { mutateAsync: setAllocationAccess } =
-    api.user.student.setAllocationAccess.useMutation();
+    api.institution.instance.setStudentAllocationAccess.useMutation();
 
   function handleToggle(access: boolean) {
     void toast.promise(

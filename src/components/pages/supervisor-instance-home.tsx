@@ -70,9 +70,8 @@ export async function SupervisorInstanceHome({
     );
   }
 
-  const allocationAccess = await api.user.supervisor.allocationAccess({
-    params,
-  });
+  const allocationAccess =
+    await api.institution.instance.getSupervisorAllocationAccess({ params });
 
   if (
     stage === Stage.STUDENT_BIDDING ||
