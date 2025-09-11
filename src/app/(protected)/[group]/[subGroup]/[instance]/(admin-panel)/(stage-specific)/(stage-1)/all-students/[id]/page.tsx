@@ -65,11 +65,7 @@ export default async function Page({ params }: { params: PageParams }) {
         <StudentDetailsCard className="w-1/2" student={student} flags={flags} />
         {/* If the student has been allocated a project show it */}
         {allocation.allocationMethod !== PAS.UNALLOCATED && (
-          <StudentAllocationCard
-            className="w-1/2"
-            allocation={allocation}
-            selfDefined={isSelfDefined}
-          />
+          <StudentAllocationCard className="w-1/2" allocation={allocation} />
         )}
       </section>
 

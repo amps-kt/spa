@@ -14,7 +14,7 @@ import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO } from "@/dto";
 
-import { Role, Stage } from "@/db/types";
+import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
@@ -51,11 +51,9 @@ import {
 type StudentWithAllocation = { student: StudentDTO; allocation?: ProjectDTO };
 
 export function useAllStudentsColumns({
-  roles,
   deleteStudent,
   deleteManyStudents,
 }: {
-  roles: Set<Role>;
   deleteStudent: (id: string) => Promise<void>;
   deleteManyStudents: (ids: string[]) => Promise<void>;
 }): ColumnDef<StudentWithAllocation>[] {
@@ -173,11 +171,7 @@ export function useAllStudentsColumns({
         .getSelectedRowModel()
         .rows.map((e) => e.original.student.id);
 
-      if (
-        someSelected &&
-        roles.has(Role.ADMIN) &&
-        stageLte(stage, Stage.STUDENT_BIDDING)
-      )
+      if (someSelected && stageLte(stage, Stage.STUDENT_BIDDING))
         return (
           <div className="flex w-14 items-center justify-center">
             <DropdownMenu>
@@ -298,8 +292,6 @@ export function useAllStudentsColumns({
       </div>
     ),
   };
-
-  if (!roles.has(Role.ADMIN)) return userCols;
 
   return stageLte(stage, Stage.STUDENT_BIDDING)
     ? [selectCol, ...userCols, actionsCol]

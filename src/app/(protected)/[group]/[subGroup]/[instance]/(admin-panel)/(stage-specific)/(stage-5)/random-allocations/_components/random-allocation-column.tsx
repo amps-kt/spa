@@ -3,8 +3,8 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { ShuffleIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
+import { z } from "zod";
 
-import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO } from "@/dto";
@@ -62,65 +62,53 @@ export function useRandomAllocationColumns({
       },
     },
     {
-      id: `Student ${INSTITUTION.ID_NAME}`,
-      accessorFn: (a) => a.student.id,
+      id: "Student",
+      accessorFn: (s) => `${s.student.name} ${s.student.id}`,
       header: ({ column }) => (
-        <DataTableColumnHeader
-          className="w-28"
-          column={column}
-          title={`Student ${INSTITUTION.ID_NAME}`}
-        />
+        <DataTableColumnHeader column={column} title="Student" />
       ),
       cell: ({
         row: {
           original: { student },
         },
-      }) => <p className="pl-3">{student.id}</p>,
-    },
-    {
-      id: "Student Name",
-      accessorFn: (a) => a.student.name,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Student Name" />
-      ),
-      cell: ({
-        row: {
-          original: {
-            student: { id, name },
-          },
-        },
       }) => (
-        <Link
-          className={cn(buttonVariants({ variant: "link" }), "pl-2 text-left")}
-          href={`./${PAGES.allStudents.href}/${id}`}
-          scroll={true}
-        >
-          {name}
-        </Link>
+        <div className="flex flex-col gap-2 items-start">
+          <Link
+            className={buttonVariants({ variant: "link" })}
+            href={`./${PAGES.allStudents.href}/${student.id}`}
+          >
+            {student.name}
+          </Link>
+          <p className="font-mono text-muted-foreground ml-4">{student.id}</p>
+        </div>
       ),
     },
     {
       id: "Flag",
-      accessorFn: (a) => a.student.flag.id,
+      accessorFn: ({ student }) => student.flag.displayName,
       header: ({ column }) => (
-        <DataTableColumnHeader className="w-16" column={column} title="Flag" />
+        <DataTableColumnHeader className="w-20" column={column} title="Flag" />
       ),
       cell: ({
         row: {
           original: { student },
         },
       }) => (
-        <p className="grid w-16 place-items-center">
-          <Badge variant="outline" className="w-fit">
+        <div className="grid w-40 place-items-center">
+          <Badge variant="accent" className="rounded-md">
             {student.flag.displayName}
           </Badge>
-        </p>
+        </div>
       ),
+      filterFn: (row, columnId, value) => {
+        const selectedFilters = z.array(z.string()).parse(value);
+        return selectedFilters.includes(row.getValue<string>(columnId));
+      },
     },
     {
       id: "Allocated Project",
       accessorFn: (a) => a.student.name,
-      header: () => <p className="w-60 text-wrap py-2">Allocated Project</p>,
+      header: () => <p className="text-wrap py-2">Allocated Project</p>,
       cell: ({
         row: {
           original: { project },
@@ -131,7 +119,7 @@ export function useRandomAllocationColumns({
             <Link
               className={cn(
                 buttonVariants({ variant: "link" }),
-                "line-clamp-3 inline-block h-max w-60 pl-2 text-start",
+                "line-clamp-3 inline-block h-max pl-2 text-start",
               )}
               href={`./projects/${project.id}`}
               scroll={true}
