@@ -19,7 +19,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Unauthorised } from "@/components/unauthorised";
 
-import { auth } from "@/lib/auth";
 import { api } from "@/lib/trpc/server";
 import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -33,20 +32,16 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const allocationAccess = await api.user.student.allocationAccess({ params });
-
-  if (!allocationAccess) {
+  if (
+    !(await api.institution.instance.getStudentAllocationAccess({ params }))
+  ) {
+    // ? should this redirect to forbidden?
     return (
       <Unauthorised message="You are not allowed to access this resource at this time" />
     );
   }
 
-  const { mask: user } = await auth();
-
-  const allocation = await api.user.student.byId.getMaybeAllocation({
-    params,
-    studentId: user.id,
-  });
+  const allocation = await api.user.student.getMaybeAllocation({ params });
 
   return (
     <PanelWrapper className="gap-10">

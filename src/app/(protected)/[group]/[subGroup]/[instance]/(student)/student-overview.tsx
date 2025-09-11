@@ -120,7 +120,8 @@ export async function StudentOverview({ params }: { params: InstanceParams }) {
     );
   }
 
-  const allocationAccess = await api.user.student.allocationAccess({ params });
+  const allocationAccess =
+    await api.institution.instance.getStudentAllocationAccess({ params });
 
   if (
     stage === Stage.ALLOCATION_ADJUSTMENT ||

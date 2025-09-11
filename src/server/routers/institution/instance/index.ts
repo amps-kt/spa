@@ -883,6 +883,36 @@ export const instanceRouter = createTRPCRouter({
       return results;
     }),
 
+  getSupervisorAllocationAccess: procedure.instance.member
+    .output(z.boolean())
+    .query(async ({ ctx: { instance } }) => {
+      const { supervisorAllocationAccess } = await instance.get();
+      return supervisorAllocationAccess;
+    }),
+
+  setSupervisorAllocationAccess: procedure.instance.subGroupAdmin
+    .input(z.object({ access: z.boolean() }))
+    .output(z.boolean())
+    .mutation(async ({ ctx: { instance, audit }, input: { access } }) => {
+      audit("Set supervisor allocation access", { access });
+      return await instance.setSupervisorPublicationAccess(access);
+    }),
+
+  getStudentAllocationAccess: procedure.instance.member
+    .output(z.boolean())
+    .query(async ({ ctx: { instance } }) => {
+      const { studentAllocationAccess } = await instance.get();
+      return studentAllocationAccess;
+    }),
+
+  setStudentAllocationAccess: procedure.instance.subGroupAdmin
+    .input(z.object({ access: z.boolean() }))
+    .output(z.boolean())
+    .mutation(async ({ ctx: { instance, audit }, input: { access } }) => {
+      audit("Set student allocation access", { setTo: access });
+      return await instance.setStudentPublicationAccess(access);
+    }),
+
   getSidePanelTabs: procedure.instance.member
     .output(z.array(tabGroupSchema))
     .query(async ({ ctx: { instance, user } }) => {
