@@ -17,10 +17,10 @@ import { MarkdownRenderer } from "@/components/markdown-editor";
 import { PanelWrapper } from "@/components/panel-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
 import { toPositional } from "@/lib/utils/general/to-positional";
+import { unauthorised } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
@@ -35,10 +35,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
   if (
     !(await api.institution.instance.getStudentAllocationAccess({ params }))
   ) {
-    // ? should this redirect to forbidden?
-    return (
-      <Unauthorised message="You are not allowed to access this resource at this time" />
-    );
+    unauthorised(params);
   }
 
   const allocation = await api.user.student.getMaybeAllocation({ params });
