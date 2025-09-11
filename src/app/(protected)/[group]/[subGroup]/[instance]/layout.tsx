@@ -1,11 +1,12 @@
 import { type ReactNode } from "react";
 
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { InstanceParamsProvider } from "@/components/params-context";
 import { SidebarInset } from "@/components/ui/sidebar";
 
 import { api } from "@/lib/trpc/server";
+import { forbidden } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AppSidebar } from "./_components/app-sidebar";
@@ -27,12 +28,12 @@ export default async function Layout({
   // if they are not an admin in this instance, they should have access if they are a supervisor or student in this instance
 
   const memberAccess = await api.ac.isInstanceMember({ params });
-  if (!memberAccess) redirect("/forbidden");
+  if (!memberAccess) forbidden();
 
   // if they are a supervisor or student they should only have access depending on the stage of the instance
 
   const stageAccess = await api.ac.hasStageAccess({ params });
-  if (!stageAccess) redirect("/forbidden");
+  if (!stageAccess) forbidden();
 
   const { displayName, stage } = await api.institution.instance.get({ params });
 
