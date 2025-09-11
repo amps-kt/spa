@@ -12,7 +12,7 @@ export default async function Layout({
   children: ReactNode;
 }) {
   const access = await api.ac.isAdminInInstance({ params });
-  if (!access) forbidden(params);
+  if (!access) forbidden({ params });
 
   return <>{children}</>;
 }

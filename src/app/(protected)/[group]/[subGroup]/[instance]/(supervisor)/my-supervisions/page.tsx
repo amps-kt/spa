@@ -24,7 +24,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
   if (
     !(await api.institution.instance.getSupervisorAllocationAccess({ params }))
   ) {
-    unauthorised(params);
+    unauthorised({ params });
   }
 
   const allocations = await api.user.supervisor.allocations({ params });
