@@ -15,7 +15,7 @@ export default async function Layout({
 }) {
   // replace with user.isSupervisorInInstance
   const roles = await api.user.roles({ params });
-  if (!roles.has(Role.SUPERVISOR)) forbidden(params);
+  if (!roles.has(Role.SUPERVISOR)) forbidden({ params });
 
   // potentially add instance.getSupervisorAccess check here
 
