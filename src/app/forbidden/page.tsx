@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-import { ShieldXIcon } from "lucide-react";
+import { CopyIcon, ShieldXIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+import { app } from "@/config/meta";
+
 import { Button } from "@/components/ui/button";
+
+import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
 
 export default function ForbiddenPage({
   searchParams: { next },
@@ -94,8 +98,15 @@ export default function ForbiddenPage({
             <Link href={next ?? "/"}>Go Back Home</Link>
           </Button>
 
-          <Button variant="outline" asChild className="w-full bg-transparent">
-            <Link href="/contact">Contact Support</Link>
+          <Button
+            variant="outline"
+            className="w-full bg-transparent"
+            onClick={async () =>
+              await copyToClipboard(app.supportEmail, "support email")
+            }
+          >
+            <CopyIcon className="size-4 mr-2" />
+            Contact Support
           </Button>
         </div>
       </div>
