@@ -35,7 +35,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
   if (
     !(await api.institution.instance.getStudentAllocationAccess({ params }))
   ) {
-    unauthorised(params);
+    unauthorised({ params });
   }
 
   const allocation = await api.user.student.getMaybeAllocation({ params });

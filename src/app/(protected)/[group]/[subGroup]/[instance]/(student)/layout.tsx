@@ -16,11 +16,11 @@ export default async function Layout({
 }) {
   // replace with user.isStudentInInstance
   const roles = await api.user.roles({ params });
-  if (!roles.has(Role.STUDENT)) forbidden(params);
+  if (!roles.has(Role.STUDENT)) forbidden({ params });
 
   // potentially replace with instance.getStudentAccess - once stages get killed
   const stage = await api.institution.instance.getCurrentStage({ params });
-  if (stageLt(stage, Stage.STUDENT_BIDDING)) unauthorised(params);
+  if (stageLt(stage, Stage.STUDENT_BIDDING)) unauthorised({ params });
 
   return <section className="mr-12 w-full">{children}</section>;
 }

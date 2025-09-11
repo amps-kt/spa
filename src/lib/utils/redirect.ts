@@ -4,12 +4,20 @@ import { type InstanceParams } from "../validations/params";
 
 import { formatParamsAsPath } from "./general/get-instance-path";
 
-export function forbidden(params?: InstanceParams) {
-  if (!params) return redirect("/forbidden");
-  return redirect(`${formatParamsAsPath(params)}/forbidden`);
+type RedirectArgs = { params?: InstanceParams; next?: string };
+
+export function forbidden(args?: RedirectArgs) {
+  let url = "/forbidden";
+  if (args?.next) url += `?next=${args.next}`;
+
+  if (!args?.params) return redirect(url);
+  return redirect(`${formatParamsAsPath(args.params)}/${url}`);
 }
 
-export function unauthorised(params?: InstanceParams) {
-  if (!params) return redirect("/unauthorised");
-  return redirect(`${formatParamsAsPath(params)}/unauthorised`);
+export function unauthorised(args?: RedirectArgs) {
+  let url = "/unauthorised";
+  if (args?.next) url += `?next=${args.next}`;
+
+  if (!args?.params) return redirect(url);
+  return redirect(`${formatParamsAsPath(args.params)}/${url}`);
 }
