@@ -138,6 +138,7 @@ export const userRouter = createTRPCRouter({
       });
     }),
 
+  // ? for users with multiple roles should we track join per-role (reader/supervisor)
   joinInstance: procedure.instance.member.mutation(
     async ({ ctx: { user, instance, audit } }) => {
       audit("joining instance", { instance: instance.params });

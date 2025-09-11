@@ -8,7 +8,7 @@ import { api } from "@/lib/trpc/server";
 
 import { InstanceCard } from "./instance-card";
 
-export default async function UserSpacesGrid() {
+export async function UserSpacesGrid() {
   const instances = await api.user.getInstances();
   const adminPanels = await api.user.getAdminPanels();
 
