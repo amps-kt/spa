@@ -13,9 +13,9 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
+import { forbidden } from "@/lib/utils/redirect";
 import { type SubGroupParams } from "@/lib/validations/params";
 
 import { AdminRemovalButton } from "./_components/admin-removal-button";
@@ -36,12 +36,7 @@ export default async function Page({ params }: { params: SubGroupParams }) {
   if (!allocationSubGroup) notFound();
 
   const access = await api.institution.subGroup.access({ params });
-
-  if (!access) {
-    return (
-      <Unauthorised message="You need to be an admin to access this page" />
-    );
-  }
+  if (!access) forbidden();
 
   const subGroupAdmins = await api.institution.subGroup.getAllSubGroupAdmins({
     params,

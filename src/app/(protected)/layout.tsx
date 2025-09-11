@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { auth, whitelisted } from "@/lib/auth";
+import { unauthorised } from "@/lib/utils/redirect";
 
 import { SiteHeader } from "./_components/site-header";
 
@@ -19,9 +20,7 @@ export default async function Layout({
   // Currently we're doing a platform-wide testing block
   // If the user is not whitelisted, redirect them to the test message page
   // would be better to have a more granular control in the future, i.e. per group, sub-group, or instance
-  if (env.AUTH_WHITELIST_ENABLED === "ON" && !whitelisted(user)) {
-    redirect("/unauthorised");
-  }
+  if (env.AUTH_WHITELIST_ENABLED === "ON" && !whitelisted(user)) unauthorised();
 
   return (
     <div className="[--header-height:calc(--spacing(14))]">
