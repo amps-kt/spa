@@ -1,7 +1,7 @@
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
-import { Role, Stage } from "@/db/types";
+import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { Heading } from "@/components/heading";
@@ -28,14 +28,6 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const roles = await api.user.roles({ params });
-
-  if (!roles.has(Role.STUDENT)) {
-    return (
-      <Unauthorised message="You need to be a Student to access this page" />
-    );
-  }
-
   const { mask: user } = await auth();
 
   const isPreAllocated = await api.user.student.isPreAllocated({ params });

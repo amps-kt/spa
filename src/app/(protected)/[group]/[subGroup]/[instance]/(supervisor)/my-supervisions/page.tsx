@@ -5,9 +5,9 @@ import { PAGES } from "@/config/pages";
 
 import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
-import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
+import { unauthorised } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationCard } from "./_components/allocation-card";
@@ -24,10 +24,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
   if (
     !(await api.institution.instance.getSupervisorAllocationAccess({ params }))
   ) {
-    // ? should this redirect to forbidden?
-    return (
-      <Unauthorised message="You are not allowed to access this resource at this time" />
-    );
+    unauthorised(params);
   }
 
   const allocations = await api.user.supervisor.allocations({ params });
