@@ -23,6 +23,7 @@ import { createTRPCRouter } from "../trpc";
 // TODO: fix
 export const markingRouter = createTRPCRouter({
   byProjectMarkingSummary: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.MARK_SUBMISSION))
     .subGroupAdmin.output(z.array(projectMarkingOverviewSchema))
     .query(async ({ ctx: { db, instance } }) => {
@@ -284,6 +285,7 @@ export const markingRouter = createTRPCRouter({
     }),
 
   sendOverdueMarkingReminder: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.MARK_SUBMISSION))
     .subGroupAdmin.output(z.void())
     .input(z.object({ markers: z.array(z.object({ email: z.string() })) }))
@@ -298,6 +300,7 @@ export const markingRouter = createTRPCRouter({
     ),
 
   sendOverdueNegotiationReminder: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.MARK_SUBMISSION))
     .subGroupAdmin.output(z.void())
     .input(z.object({ markers: z.array(z.object({ email: z.string() })) }))
