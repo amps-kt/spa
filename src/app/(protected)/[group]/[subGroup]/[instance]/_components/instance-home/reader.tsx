@@ -1,11 +1,9 @@
 import { SectionHeading } from "@/components/heading";
 import { NothingToDo } from "@/components/nothing-to-do";
 
-import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function ReaderHome({
-  params,
   hasMultipleRoles,
 }: {
   params: InstanceParams;
@@ -18,17 +16,7 @@ export async function ReaderHome({
           Reader Info
         </SectionHeading>
       )}
-      <ReaderHomeInner params={params} />
+      <NothingToDo />
     </section>
   );
-}
-
-async function ReaderHomeInner({ params }: { params: InstanceParams }) {
-  const stage = await api.institution.instance.getCurrentStage({ params });
-
-  switch (stage) {
-    // todo: fill as appropriate
-    default:
-      return <NothingToDo />;
-  }
 }

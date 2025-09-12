@@ -26,37 +26,35 @@ export async function AdminHome({
   const stageInfo = STAGES[stage];
 
   return (
-    <>
-      <section className="mt-6 flex flex-col gap-4">
-        {hasMultipleRoles && (
-          <SectionHeading className="text-muted-foreground -mb-6 text-xl">
-            Admin Info
-          </SectionHeading>
-        )}
-        <div className="mt-9 flex flex-col gap-3">
-          <SectionHeading icon={LayersIcon} className="mb-4">
-            Current Stage
-          </SectionHeading>
-          <Card className="w-max">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Badge
-                  variant="secondary"
-                  className="mr-3 text-2xl rounded-full size-10 grid place-items-center"
-                >
-                  {stageInfo.number}
-                </Badge>
-                {stageInfo.displayName}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CardDescription className="text-lg">
-                {stageInfo.description}
-              </CardDescription>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-    </>
+    <section className="mt-6 flex flex-col gap-4">
+      {hasMultipleRoles && (
+        <SectionHeading className="text-muted-foreground -mb-6 text-xl">
+          Admin Info
+        </SectionHeading>
+      )}
+      <div className="mt-9 flex flex-col gap-3">
+        <SectionHeading icon={LayersIcon} className="mb-4">
+          Current Stage
+        </SectionHeading>
+        <Card className="w-max">
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Badge
+                variant="secondary"
+                className="mr-3 text-2xl rounded-full size-10 grid place-items-center"
+              >
+                {stageInfo.number}
+              </Badge>
+              {stageInfo.displayName}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CardDescription className="text-lg">
+              {stageInfo.description}
+            </CardDescription>
+          </CardContent>
+        </Card>
+      </div>
+    </section>
   );
 }
