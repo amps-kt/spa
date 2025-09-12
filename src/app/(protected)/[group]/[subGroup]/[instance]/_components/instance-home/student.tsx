@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Clock10Icon, ListCheckIcon, ListTodoIcon } from "lucide-react";
 import Link from "next/link";
 
@@ -6,6 +5,7 @@ import { PAGES } from "@/config/pages";
 
 import { Stage } from "@/db/types";
 
+import { DisplayDeadline } from "@/components/display-deadline";
 import { SectionHeading } from "@/components/heading";
 import { InstanceLink } from "@/components/instance-link";
 import { NothingToDo } from "@/components/nothing-to-do";
@@ -20,13 +20,14 @@ import { type InstanceParams } from "@/lib/validations/params";
 export async function StudentHome({ params }: { params: InstanceParams }) {
   const stage = await api.institution.instance.getCurrentStage({ params });
 
-  switch (stage) {
-    case Stage.STUDENT_BIDDING:
-      const isPreAllocated = await api.user.student.isPreAllocated({ params });
-      if (isPreAllocated) return <PreAllocatedInfoSection params={params} />;
-      return <PreferenceSubmissionInfoSection params={params} />;
+  if (stage === Stage.STUDENT_BIDDING) {
+    const isPreAllocated = await api.user.student.isPreAllocated({ params });
+    if (isPreAllocated) return <PreAllocatedInfoSection params={params} />;
+    return <PreferenceSubmissionInfoSection params={params} />;
+  }
 
-    case Stage.ALLOCATION_PUBLICATION:
+  if (stage === Stage.ALLOCATION_PUBLICATION) {
+    {
       if (await api.institution.instance.getStudentAllocationAccess({ params }))
         return (
           <div className="mt-9 flex flex-col gap-4">
@@ -43,9 +44,9 @@ export async function StudentHome({ params }: { params: InstanceParams }) {
             </p>
           </div>
         );
+    }
 
-    default:
-      return <NothingToDo />;
+    return <NothingToDo />;
   }
 }
 
@@ -69,12 +70,7 @@ async function PreferenceSubmissionInfoSection({
           <SectionHeading icon={Clock10Icon} className="mb-2">
             Preference List Submission Deadline
           </SectionHeading>
-          <p className="flex gap-2 text-xl">
-            {format(deadline, "dd MMM yyyy - HH:mm")}
-            <span className="text-muted-foreground">
-              {format(deadline, "OOOO")}
-            </span>
-          </p>
+          <DisplayDeadline deadline={deadline} />
         </div>
         <div className="mt-16 flex flex-col gap-4">
           <SectionHeading className="mb-2 flex items-center">

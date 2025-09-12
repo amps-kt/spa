@@ -1,10 +1,10 @@
-import { format } from "date-fns";
 import { Clock10Icon, ListTodoIcon, ListCheckIcon } from "lucide-react";
 
 import { PAGES } from "@/config/pages";
 
 import { Stage } from "@/db/types";
 
+import { DisplayDeadline } from "@/components/display-deadline";
 import { SectionHeading } from "@/components/heading";
 import { InstanceLink } from "@/components/instance-link";
 import { NothingToDo } from "@/components/nothing-to-do";
@@ -35,67 +35,48 @@ export function SupervisorHome({
 async function SupervisorHomeInner({ params }: { params: InstanceParams }) {
   const stage = await api.institution.instance.getCurrentStage({ params });
 
-  switch (stage) {
-    case Stage.PROJECT_SUBMISSION:
-      return <ProjectSubmissionDeadline params={params} />;
-
-    case Stage.ALLOCATION_PUBLICATION:
-      if (
-        !(await api.institution.instance.getSupervisorAllocationAccess({
-          params,
-        }))
-      )
-        return <NothingToDo />;
-
-      return (
-        <div className="mt-9 flex flex-col gap-4">
-          <SectionHeading icon={ListCheckIcon} className="mb-2">
-            Allocations Released
-          </SectionHeading>
-          <p className="text-lg">
-            Check the{" "}
-            <InstanceLink href={PAGES.mySupervisions.href}>
-              {PAGES.mySupervisions.title}
-            </InstanceLink>{" "}
-            page to view your allocated projects
-          </p>
-        </div>
-      );
-
-    case Stage.READER_BIDDING:
-      return (
-        <div className="mt-9 flex flex-col gap-4">
-          <SectionHeading
-            icon={ListCheckIcon}
-            className="mb-2 flex items-center"
-          >
-            Marking Allocations Released
-          </SectionHeading>
-          <p className="text-lg">
-            Check the{" "}
-            <InstanceLink href={PAGES.myMarking.href}>
-              {PAGES.myMarking.title}
-            </InstanceLink>{" "}
-            page to view the projects you have to mark
-          </p>
-        </div>
-      );
-
-    case Stage.READER_ALLOCATION:
-      // todo: fill as appropriate
-      return <NothingToDo />;
-
-    case Stage.MARK_SUBMISSION:
-      // todo: fill as appropriate
-      return <NothingToDo />;
-
-    case Stage.GRADE_PUBLICATION:
-      // todo: fill as appropriate
-      return <NothingToDo />;
-
-    default:
-      return <NothingToDo />;
+  if (stage === Stage.PROJECT_SUBMISSION) {
+    return <ProjectSubmissionDeadline params={params} />;
   }
+
+  if (
+    stage === Stage.ALLOCATION_PUBLICATION &&
+    (await api.institution.instance.getSupervisorAllocationAccess({ params }))
+  ) {
+    return (
+      <div className="mt-9 flex flex-col gap-4">
+        <SectionHeading icon={ListCheckIcon} className="mb-2">
+          Allocations Released
+        </SectionHeading>
+        <p className="text-lg">
+          Check the{" "}
+          <InstanceLink href={PAGES.mySupervisions.href}>
+            {PAGES.mySupervisions.title}
+          </InstanceLink>{" "}
+          page to view your allocated projects
+        </p>
+      </div>
+    );
+  }
+
+  if (stage === Stage.MARK_SUBMISSION) {
+    return (
+      <div className="mt-9 flex flex-col gap-4">
+        <SectionHeading icon={ListCheckIcon} className="mb-2 flex items-center">
+          Marking Allocations Released
+        </SectionHeading>
+        <p className="text-lg">
+          Check the{" "}
+          <InstanceLink href={PAGES.myMarking.href}>
+            {PAGES.myMarking.title}
+          </InstanceLink>{" "}
+          page to view the projects you have to mark
+        </p>
+      </div>
+    );
+  }
+
+  return <NothingToDo />;
 }
 
 async function ProjectSubmissionDeadline({
@@ -116,12 +97,7 @@ async function ProjectSubmissionDeadline({
           <SectionHeading icon={Clock10Icon} className="mb-2">
             Project Upload Deadline
           </SectionHeading>
-          <p className="flex gap-2 text-xl">
-            {format(deadline, "dd MMM yyyy - HH:mm")}
-            <span className="text-muted-foreground">
-              {format(deadline, "OOOO")}
-            </span>
-          </p>
+          <DisplayDeadline deadline={deadline} />
         </div>
         <div className="mt-16 flex flex-col gap-4">
           <SectionHeading icon={ListTodoIcon} className="mb-2">
