@@ -1397,6 +1397,21 @@ export class AllocationInstance extends DataObject {
   }
 
   // new RPA stuff:
+  public async getAllocatedProjects(): Promise<ProjectDTO[]> {
+    return await this.db.studentProjectAllocation
+      .findMany({
+        where: { ...expand(this.params) },
+        include: {
+          project: {
+            include: {
+              flagsOnProject: { include: { flag: true } },
+              tagsOnProject: { include: { tag: true } },
+            },
+          },
+        },
+      })
+      .then((data) => data.map((spa) => T.toProjectDTO(spa.project)));
+  }
 
   public async getReaderPreferences(): Promise<MatchingReader[]> {
     return await this.db.readerDetails

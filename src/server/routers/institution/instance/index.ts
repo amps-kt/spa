@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { z } from "zod";
 
 import { Grade } from "@/config/grades";
@@ -37,6 +38,8 @@ import { stageSchema } from "@/db/types";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
+import { HttpReaderAllocator } from "@/lib/services/reader-allocation/http-reader-allocator";
+import { matchingOutputSchema } from "@/lib/services/reader-allocation/types";
 import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
@@ -1124,6 +1127,23 @@ export const instanceRouter = createTRPCRouter({
       }
 
       return tabGroups;
+    }),
+
+  runReaderAllocation: procedure.instance.subGroupAdmin
+    .output(matchingOutputSchema)
+    .mutation(async ({ ctx: { instance } }) => {
+      const allReaders = await instance.getReaderPreferences();
+      const allProjectData = await instance.getAllocatedProjects();
+      const allProjects = allProjectData.map((p) => p.id);
+
+      const allocator = new HttpReaderAllocator(env.MATCHING_SERVER_URL);
+
+      const result = await allocator.allocate({ allProjects, allReaders });
+
+      // Writes to db; could separate this to a second proc.
+      // Thoughts @pkitazos?
+      await instance.setReaderAllocations(result.assignments);
+      return result;
     }),
 
   getMarkerSubmissions: procedure.instance.subGroupAdmin
