@@ -1,3 +1,5 @@
+import { ReaderPreferenceType } from "@prisma/client";
+
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -28,6 +30,10 @@ import {
 } from "@/db/types";
 
 import { HttpMatchingService } from "@/lib/services/matching";
+import {
+  type MatchingReader,
+  type ReaderMatchingPair,
+} from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { nubsById } from "@/lib/utils/list-unique";
@@ -1388,5 +1394,51 @@ export class AllocationInstance extends DataObject {
     await this.db.allocationInstance.delete({
       where: { instanceId: toInstanceId(this.params) },
     });
+  }
+
+  // new RPA stuff:
+
+  public async getReaderPreferences(): Promise<MatchingReader[]> {
+    return await this.db.readerDetails
+      .findMany({
+        where: expand(this.params),
+        include: {
+          preferences: true,
+          userInInstance: {
+            include: { supervisorDetails: { include: { projects: true } } },
+          },
+        },
+      })
+      .then((data) =>
+        data.map(
+          (r) =>
+            ({
+              id: r.userId,
+              capacity: r.readingWorkloadQuota,
+              preferable: r.preferences
+                .filter((p) => p.type === ReaderPreferenceType.PREFERRED)
+                .map((p) => p.projectId),
+
+              unacceptable: r.preferences
+                .filter((p) => p.type === ReaderPreferenceType.UNACCEPTABLE)
+                .map((p) => p.projectId),
+
+              conflict:
+                r.userInInstance.supervisorDetails?.projects.map((p) => p.id) ??
+                [],
+            }) satisfies MatchingReader,
+        ),
+      );
+  }
+
+  public async setReaderAllocations(data: ReaderMatchingPair[]) {
+    await this.db.readerProjectAllocation.createMany({
+      data: data.map(({ projectId, readerId }) => ({
+        ...expand(this.params),
+        projectId,
+        readerId,
+      })),
+    });
+    return;
   }
 }
