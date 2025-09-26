@@ -7,12 +7,12 @@ export const preferenceConfigs: Record<
   { label: string; tip: ReactNode }
 > = {
   [ExtendedReaderPreferenceType.ACCEPTABLE]: {
-    label: "Acceptable",
+    label: "Neural",
     tip: (
       <p>
         Project is currently considered{" "}
-        <span className="font-semibold">Acceptable</span>, click to change
-        status to <span className="font-semibold">Preferred</span>
+        <span className="font-semibold">Neutral</span>, click to change status
+        to <span className="font-semibold">Preferred</span>
       </p>
     ),
   },
@@ -32,7 +32,7 @@ export const preferenceConfigs: Record<
       <p>
         Project is currently considered{" "}
         <span className="font-semibold">Unacceptable</span>, click to change
-        status to <span className="font-semibold">Acceptable</span>
+        status to <span className="font-semibold">Neutral</span>
       </p>
     ),
   },
