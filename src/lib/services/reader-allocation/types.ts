@@ -12,6 +12,8 @@ const matchingReaderSchema = z.object({
   capacity: z.number(),
 });
 
+export type MatchingReader = z.infer<typeof matchingReaderSchema>;
+
 export const matchingInputSchema = z.object({
   allProjects: projectIdSchema.array(),
   allReaders: matchingReaderSchema.array(),
@@ -19,13 +21,15 @@ export const matchingInputSchema = z.object({
 
 export type MatchingInput = z.infer<typeof matchingInputSchema>;
 
-const matchingPairSchema = z.object({
+const readerMatchingPairSchema = z.object({
   readerId: readerIdSchema,
   projectId: projectIdSchema,
 });
 
+export type ReaderMatchingPair = z.infer<typeof readerMatchingPairSchema>;
+
 export const matchingOutputSchema = z.object({
-  assignments: matchingPairSchema.array(),
+  assignments: readerMatchingPairSchema.array(),
   unassignedProjects: projectIdSchema.array(),
   load: z.record(readerIdSchema, z.int()),
 });
