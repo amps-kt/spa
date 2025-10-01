@@ -52,12 +52,12 @@ export const ADMIN_TABS_BY_STAGE: Record<Stage, TabType[]> = {
   [Stage.READER_BIDDING]: [
     PAGES.allReaders,
     PAGES.addReaders,
-    PAGES.readingOverview,
+    PAGES.readerPreferenceOverview,
   ],
   [Stage.READER_ALLOCATION]: [
     PAGES.allReaders,
     PAGES.addReaders,
-    PAGES.readingOverview,
+    PAGES.readerAllocationOverview,
     PAGES.manualReadingAllocations,
   ],
   [Stage.MARK_SUBMISSION]: [PAGES.unitsOfAssessment, PAGES.markingOverview],
