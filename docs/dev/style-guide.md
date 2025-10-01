@@ -72,3 +72,23 @@ When doing this, always pull out the data into a constant first, and then return
 >     );
 > }
 > ```
+
+## Prefetch-query pattern
+
+```tsx Page.tsx
+async function Page() {
+  const initialData = await api.query_for_data();
+
+  return <QueryManager initialData={initialData} />;
+}
+```
+
+```tsx QueryManager.tsx
+function QueryManager({ initialData }: { initialData: TData }) {
+  const { data, ...etc } = api.query_for_data.useQuery({ initialData });
+
+  // rest of component, presumably consuming `data`
+
+  return <div>{data}</div>;
+}
+```
