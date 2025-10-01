@@ -429,6 +429,23 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
     hasSubRoute: true,
   },
+  // TODO review
+  readerById: {
+    title: "",
+    href: "",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      readerId,
+    }: InInstance<{ readerId: string }>) =>
+      `/${group}/${subGroup}/${instance}/all-readers/${readerId}`,
+    icon: "file",
+    level: 5,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+
   projectById: {
     title: "",
     href: "",
@@ -556,14 +573,24 @@ export const PAGES = {
     allowedRoles: [Role.SUPERVISOR, Role.READER],
     hasSubRoute: false,
   },
-  readingOverview: {
-    title: "Reading Overview",
-    href: "reading-overview",
+  readerPreferenceOverview: {
+    title: "Reader Preference Overview",
+    href: "reader-preference-overview",
     mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
-      `/${group}/${subGroup}/${instance}/reading-overview`,
+      `/${group}/${subGroup}/${instance}/reader-preference-overview`,
     icon: "book-text",
     level: 4,
-    allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+  readerAllocationOverview: {
+    title: "Reader Allocation Overview ",
+    href: "reader-allocation-overview",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/reader-allocation-overview`,
+    icon: "book-text",
+    level: 4,
+    allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
   myMarking: {

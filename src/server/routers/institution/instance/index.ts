@@ -1024,6 +1024,21 @@ export const instanceRouter = createTRPCRouter({
         );
       },
     ),
+
+  getReaderPreferenceData: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          reader: readerDtoSchema,
+          numPreferred: z.number(),
+          numVetoed: z.number(),
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance } }) => {
+      return await instance.getReaderPreferenceData();
+    }),
+
   getReadingOverviewData: procedure.instance.subGroupAdmin
     .output(z.object({ totalRequired: z.number(), totalAvailable: z.number() }))
     .query(async ({ ctx: { instance } }) => ({
