@@ -1,4 +1,5 @@
 import { DownloadIcon, FileChartColumnIcon, ZapIcon } from "lucide-react";
+import Link from "next/link";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -44,10 +45,18 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 <span className="font-semibold">{numReaders}</span> Readers have
                 not submitted their preference list.
               </p>
-              {/* TODO implement below */}
-              <Button variant="outline" className="w-54 justify-between">
-                <DownloadIcon className="size-4" />
-                Download Preferences
+              <Button
+                variant="outline"
+                className="w-54 justify-between"
+                asChild
+              >
+                <Link
+                  href="reader-preference-overview/preferences.csv"
+                  download
+                >
+                  <DownloadIcon className="size-4" />
+                  Download Preferences
+                </Link>
               </Button>
             </div>
           </CardContent>
