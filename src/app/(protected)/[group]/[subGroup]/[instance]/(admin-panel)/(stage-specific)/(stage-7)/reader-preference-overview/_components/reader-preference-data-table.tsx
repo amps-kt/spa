@@ -36,8 +36,8 @@ const cols: ColumnDef<Row>[] = [
         >
           {reader.name}
         </AppInstanceLink>
-        <div className="font-sm text-muted-foreground">{reader.id}</div>
-        <div className="text-sm text-muted-foreground">{reader.email}</div>
+        <div className="ml-4 font-sm text-muted-foreground">{reader.id}</div>
+        <div className="ml-4 text-sm text-muted-foreground">{reader.email}</div>
       </div>
     ),
   },

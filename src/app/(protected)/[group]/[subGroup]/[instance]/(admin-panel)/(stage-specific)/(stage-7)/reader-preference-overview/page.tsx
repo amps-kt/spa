@@ -18,7 +18,11 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
-    title: metadataTitle([PAGES.allReaders.title, displayName, app.name]),
+    title: metadataTitle([
+      PAGES.readerPreferenceOverview.title,
+      displayName,
+      app.name,
+    ]),
   };
 }
 
@@ -52,6 +56,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
               >
                 <Link
                   href="reader-preference-overview/preferences.csv"
+                  target="_blank"
                   download
                 >
                   <DownloadIcon className="size-4" />
