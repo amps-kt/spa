@@ -65,3 +65,29 @@ export function ReadingPreferenceButton({
     </WithTooltip>
   );
 }
+
+export function ReadingPreferenceDisplay({
+  currentPreference,
+  className,
+}: {
+  currentPreference: ExtendedReaderPreferenceType;
+  className?: string;
+}) {
+  const { label } = preferenceConfigs[currentPreference];
+
+  return (
+    <WithTooltip tip={`Reader found this project ${label}.`}>
+      <Button
+        variant="outline"
+        size="sm"
+        className={cn(
+          readingPreferenceButtonVariants({ variant: currentPreference }),
+          className,
+        )}
+      >
+        <div className="w-3 h-3 rounded-full bg-[var(--dot-color)]" />
+        <p className="mx-auto">{label}</p>
+      </Button>
+    </WithTooltip>
+  );
+}

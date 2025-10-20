@@ -3,7 +3,7 @@ import z from "zod";
 const projectIdSchema = z.string();
 const readerIdSchema = z.string();
 
-const matchingReaderSchema = z.object({
+export const matchingReaderSchema = z.object({
   id: readerIdSchema,
   // acceptable is implicit
   preferable: projectIdSchema.array(),

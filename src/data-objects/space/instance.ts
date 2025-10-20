@@ -27,6 +27,7 @@ import {
   type New,
   AllocationMethod,
   type PreferenceType,
+  ExtendedReaderPreferenceType,
 } from "@/db/types";
 
 import { HttpMatchingService } from "@/lib/services/matching";
@@ -852,6 +853,7 @@ export class AllocationInstance extends DataObject {
     });
     return access;
   }
+
   public async isReader(id: string): Promise<boolean> {
     return await new User(this.db, id).isReader(this.params);
   }
@@ -1470,5 +1472,106 @@ export class AllocationInstance extends DataObject {
       })),
     });
     return;
+  }
+
+  public async getReaderAllocation(): Promise<
+    {
+      project: ProjectDTO;
+      supervisor: SupervisorDTO;
+      student: StudentDTO;
+      reader?: ReaderDTO;
+      preferenceType?: ExtendedReaderPreferenceType;
+    }[]
+  > {
+    const projects = await this.db.studentProjectAllocation.findMany({
+      where: { ...expand(this.params) },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+            studentAllocations: {
+              include: {
+                student: {
+                  include: {
+                    userInInstance: { include: { user: true } },
+                    studentFlag: true,
+                  },
+                },
+              },
+            },
+            supervisor: {
+              include: { userInInstance: { include: { user: true } } },
+            },
+            readerAllocations: {
+              include: {
+                reader: {
+                  include: { userInInstance: { include: { user: true } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const preferences = await this.db.readerPreference.findMany({
+      where: {
+        ...expand(this.params),
+
+        OR: projects
+          .filter(({ project }) => Boolean(project.readerAllocations.at(0)))
+          .map(({ project }) => ({
+            readerId: project.readerAllocations[0].readerId,
+            projectId: project.id,
+          })),
+      },
+    });
+
+    const prefMap = preferences.reduce((acc, val) => {
+      acc.set(val.readerId, val.type);
+      return acc;
+    }, new Map<string, ReaderPreferenceType>());
+
+    return projects.map(({ project }) => {
+      const rpa = project.readerAllocations.at(0);
+      return {
+        project: T.toProjectDTO(project),
+        supervisor: T.toSupervisorDTO(project.supervisor),
+        student: T.toStudentDTO(project.studentAllocations[0].student),
+        reader: rpa === undefined ? undefined : T.toReaderDTO(rpa.reader),
+        preferenceType:
+          rpa === undefined
+            ? undefined
+            : (prefMap.get(rpa.readerId) ??
+              ExtendedReaderPreferenceType.ACCEPTABLE),
+      };
+    });
+  }
+
+  public async getReaderPreferenceData(): Promise<
+    { reader: ReaderDTO; numPreferred: number; numVetoed: number }[]
+  > {
+    const data = await this.db.readerDetails.findMany({
+      where: expand(this.params),
+
+      include: {
+        userInInstance: { include: { user: true } },
+        preferences: true,
+      },
+    });
+
+    console.log(data.length);
+    return data.map((r) => {
+      const numPreferred = r.preferences.filter(
+        (p) => p.type === ReaderPreferenceType.PREFERRED,
+      ).length;
+
+      const numVetoed = r.preferences.filter(
+        (p) => p.type === ReaderPreferenceType.UNACCEPTABLE,
+      ).length;
+
+      return { reader: T.toReaderDTO(r), numPreferred, numVetoed };
+    });
   }
 }
