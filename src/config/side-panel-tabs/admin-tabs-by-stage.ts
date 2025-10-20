@@ -57,6 +57,7 @@ export const ADMIN_TABS_BY_STAGE: Record<Stage, TabType[]> = {
   [Stage.READER_ALLOCATION]: [
     PAGES.allReaders,
     PAGES.addReaders,
+    PAGES.readerPreferenceOverview
     PAGES.readerAllocationOverview,
     PAGES.manualReadingAllocations,
   ],

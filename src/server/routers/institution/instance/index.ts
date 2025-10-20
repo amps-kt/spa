@@ -1038,9 +1038,7 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => {
-      return await instance.getReaderPreferenceData();
-    }),
+    .query(async ({ ctx: { instance } }) => await instance.getReaderPreferenceData()),
 
   getReadingOverviewData: procedure.instance.subGroupAdmin
     .output(z.object({ totalRequired: z.number(), totalAvailable: z.number() }))
@@ -1061,9 +1059,7 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => {
-      return await instance.getReaderAllocation();
-    }),
+    .query(async ({ ctx: { instance } }) => await instance.getReaderAllocation()),
 
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))
@@ -1171,9 +1167,7 @@ export const instanceRouter = createTRPCRouter({
 
   getAllReaderPreferences: procedure.instance.subGroupAdmin
     .output(z.array(matchingReaderSchema))
-    .query(async ({ ctx: { instance } }) => {
-      return await instance.getReaderPreferences();
-    }),
+    .query(async ({ ctx: { instance } }) => await instance.getReaderPreferences()),
 
   runReaderAllocation: procedure.instance.subGroupAdmin
     .output(matchingOutputSchema)

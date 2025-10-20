@@ -1561,7 +1561,6 @@ export class AllocationInstance extends DataObject {
       },
     });
 
-    console.log(data.length);
     return data.map((r) => {
       const numPreferred = r.preferences.filter(
         (p) => p.type === ReaderPreferenceType.PREFERRED,

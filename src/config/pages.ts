@@ -429,7 +429,6 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
     hasSubRoute: true,
   },
-  // TODO review
   supervisorById: {
     title: "",
     href: "",
