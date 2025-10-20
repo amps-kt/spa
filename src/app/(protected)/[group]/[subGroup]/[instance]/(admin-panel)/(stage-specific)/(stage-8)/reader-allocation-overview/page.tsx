@@ -21,6 +21,7 @@ import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { byProjectColumns } from "./_components/by-project-columns";
+import { byReaderColumns } from "./_components/by-reader-columns";
 import { RunAlgorithmButton } from "./_components/run-algorithm-button";
 
 export default async function ReaderAllocationOverview({
@@ -81,7 +82,7 @@ export default async function ReaderAllocationOverview({
             </TabsList>
           </div>
           <TabsContent value="by-reader">
-            <ByReaderTable />
+            <ByReaderTable params={params} />
           </TabsContent>
           <TabsContent value="by-project">
             <ByProjectTable params={params} />
@@ -134,9 +135,18 @@ function SummarySection({
   );
 }
 
-function ByReaderTable() {
-  // reader, target, actual, (delta)
-  return <div>summary</div>;
+async function ByReaderTable({ params }: { params: InstanceParams }) {
+  const data = await api.institution.instance.getReaderAllocationStats({
+    params,
+  });
+
+  return (
+    <DataTable
+      data={data}
+      searchParamPrefix="by-reader"
+      columns={byReaderColumns}
+    />
+  );
 }
 
 async function ByProjectTable({ params }: { params: InstanceParams }) {
