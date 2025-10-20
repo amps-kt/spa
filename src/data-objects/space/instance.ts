@@ -1549,6 +1549,23 @@ export class AllocationInstance extends DataObject {
     });
   }
 
+  public async getReaderAllocationStats(): Promise<
+    { reader: ReaderDTO; numAllocations: number }[]
+  > {
+    const data = await this.db.readerDetails.findMany({
+      where: expand(this.params),
+      include: {
+        _count: { select: { projectAllocations: true } },
+        userInInstance: { include: { user: true } },
+      },
+    });
+
+    return data.map((reader) => ({
+      reader: T.toReaderDTO(reader),
+      numAllocations: reader._count.projectAllocations,
+    }));
+  }
+
   public async getReaderPreferenceData(): Promise<
     { reader: ReaderDTO; numPreferred: number; numVetoed: number }[]
   > {
