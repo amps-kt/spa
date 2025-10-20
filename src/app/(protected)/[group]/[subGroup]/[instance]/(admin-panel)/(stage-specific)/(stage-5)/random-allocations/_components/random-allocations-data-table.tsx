@@ -5,7 +5,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { type ProjectDTO, type StudentDTO } from "@/dto";
+import { type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
@@ -16,8 +16,10 @@ import { useRandomAllocationColumns } from "./random-allocation-column";
 
 export function RandomAllocationsDataTable({
   studentData,
+  flags,
 }: {
   studentData: { student: StudentDTO; project?: ProjectDTO }[];
+  flags: FlagDTO[];
 }) {
   const params = useInstanceParams();
   const router = useRouter();
@@ -88,11 +90,22 @@ export function RandomAllocationsDataTable({
     [params, refetchData, removeAllocAsync, router],
   );
 
+  const filters = [
+    {
+      title: "filter by Flag",
+      columnId: "Flag",
+      options: flags.map((flag) => ({
+        id: flag.displayName,
+        displayName: flag.displayName,
+      })),
+    },
+  ];
+
   const columns = useRandomAllocationColumns({
     getRandomAllocation,
     getRandomAllocationForAll,
     removeAllocation,
   });
 
-  return <DataTable columns={columns} data={studentData} />;
+  return <DataTable columns={columns} data={studentData} filters={filters} />;
 }

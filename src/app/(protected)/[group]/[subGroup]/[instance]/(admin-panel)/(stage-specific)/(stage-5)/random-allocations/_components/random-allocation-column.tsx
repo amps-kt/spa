@@ -3,6 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { ShuffleIcon, Trash2Icon } from "lucide-react";
 import Link from "next/link";
+import z from "zod";
 
 import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
@@ -101,21 +102,25 @@ export function useRandomAllocationColumns({
     },
     {
       id: "Flag",
-      accessorFn: (a) => a.student.flag.id,
+      accessorFn: ({ student }) => student.flag.displayName,
       header: ({ column }) => (
-        <DataTableColumnHeader className="w-16" column={column} title="Flag" />
+        <DataTableColumnHeader className="w-20" column={column} title="Flag" />
       ),
       cell: ({
         row: {
           original: { student },
         },
       }) => (
-        <p className="grid w-16 place-items-center">
-          <Badge variant="outline" className="w-fit">
+        <div className="grid w-40 place-items-center">
+          <Badge variant="accent" className="rounded-md">
             {student.flag.displayName}
           </Badge>
-        </p>
+        </div>
       ),
+      filterFn: (row, columnId, value) => {
+        const selectedFilters = z.array(z.string()).parse(value);
+        return selectedFilters.includes(row.getValue<string>(columnId));
+      },
     },
     {
       id: "Allocated Project",
