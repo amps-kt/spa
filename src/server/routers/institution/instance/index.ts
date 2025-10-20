@@ -39,7 +39,10 @@ import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
 import { HttpReaderAllocator } from "@/lib/services/reader-allocation/http-reader-allocator";
-import { matchingOutputSchema } from "@/lib/services/reader-allocation/types";
+import {
+  matchingOutputSchema,
+  matchingReaderSchema,
+} from "@/lib/services/reader-allocation/types";
 import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
@@ -1046,6 +1049,22 @@ export const instanceRouter = createTRPCRouter({
       totalAvailable: await instance.getTotalReadingUnits(),
     })),
 
+  getReaderAllocation: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          student: studentDtoSchema,
+          reader: readerDtoSchema.optional(),
+          preferenceType: extendedReaderPreferenceTypeSchema.optional(),
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance } }) => {
+      return await instance.getReaderAllocation();
+    }),
+
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))
     .query(async ({ ctx, input }) => {
@@ -1148,6 +1167,12 @@ export const instanceRouter = createTRPCRouter({
       }
 
       return tabGroups;
+    }),
+
+  getAllReaderPreferences: procedure.instance.subGroupAdmin
+    .output(z.array(matchingReaderSchema))
+    .query(async ({ ctx: { instance } }) => {
+      return await instance.getReaderPreferences();
     }),
 
   runReaderAllocation: procedure.instance.subGroupAdmin

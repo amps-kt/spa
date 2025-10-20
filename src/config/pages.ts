@@ -430,6 +430,37 @@ export const PAGES = {
     hasSubRoute: true,
   },
   // TODO review
+  supervisorById: {
+    title: "",
+    href: "",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      supervisorId,
+    }: InInstance<{ supervisorId: string }>) =>
+      `/${group}/${subGroup}/${instance}/all-supervisors/${supervisorId}`,
+    icon: "file",
+    level: 5,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+  studentById: {
+    title: "",
+    href: "",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      studentId,
+    }: InInstance<{ studentId: string }>) =>
+      `/${group}/${subGroup}/${instance}/all-students/${studentId}`,
+    icon: "file",
+    level: 5,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+
   readerById: {
     title: "",
     href: "",
