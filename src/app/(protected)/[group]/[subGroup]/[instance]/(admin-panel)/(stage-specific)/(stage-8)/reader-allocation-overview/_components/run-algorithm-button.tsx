@@ -17,8 +17,8 @@ export function RunAlgorithmButton({ params }: { params: InstanceParams }) {
   const run = useCallback(() => {
     toast.promise(api_runReaderAllocation({ params }), {
       loading: "Loading",
-      error: "idk",
-      success: "bingo!",
+      error: "Something went wrong",
+      success: "Matching complete",
     });
   }, [api_runReaderAllocation, params]);
 
