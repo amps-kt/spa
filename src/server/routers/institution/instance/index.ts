@@ -1038,7 +1038,9 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => await instance.getReaderPreferenceData()),
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderPreferenceData(),
+    ),
 
   getReadingOverviewData: procedure.instance.subGroupAdmin
     .output(z.object({ totalRequired: z.number(), totalAvailable: z.number() }))
@@ -1059,7 +1061,9 @@ export const instanceRouter = createTRPCRouter({
         }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => await instance.getReaderAllocation()),
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderAllocation(),
+    ),
 
   getReaderAllocationStats: procedure.instance.subGroupAdmin
     .output(
@@ -1177,13 +1181,15 @@ export const instanceRouter = createTRPCRouter({
 
   getAllReaderPreferences: procedure.instance.subGroupAdmin
     .output(z.array(matchingReaderSchema))
-    .query(async ({ ctx: { instance } }) => await instance.getReaderPreferences()),
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderPreferences(),
+    ),
 
   runReaderAllocation: procedure.instance.subGroupAdmin
     .output(matchingOutputSchema)
     .mutation(async ({ ctx: { instance } }) => {
       const allReaders = await instance.getReaderPreferences();
-      const allProjectData = await instance.getAllocatedProjects();
+      const allProjectData = await instance.getAllocatedProjectsWithoutReader();
       const allProjects = allProjectData.map((p) => p.id);
 
       const allocator = new HttpReaderAllocator(env.MATCHING_SERVER_URL);

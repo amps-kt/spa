@@ -1414,10 +1414,13 @@ export class AllocationInstance extends DataObject {
   }
 
   // new RPA stuff:
-  public async getAllocatedProjects(): Promise<ProjectDTO[]> {
+  public async getAllocatedProjectsWithoutReader(): Promise<ProjectDTO[]> {
     return await this.db.studentProjectAllocation
       .findMany({
-        where: { ...expand(this.params) },
+        where: {
+          ...expand(this.params),
+          project: { readerAllocations: { none: {} } },
+        },
         include: {
           project: {
             include: {
@@ -1435,6 +1438,7 @@ export class AllocationInstance extends DataObject {
       .findMany({
         where: expand(this.params),
         include: {
+          _count: { select: { projectAllocations: true } },
           preferences: true,
           userInInstance: {
             include: { supervisorDetails: { include: { projects: true } } },
@@ -1446,7 +1450,7 @@ export class AllocationInstance extends DataObject {
           (r) =>
             ({
               id: r.userId,
-              capacity: r.readingWorkloadQuota,
+              capacity: r.readingWorkloadQuota - r._count.projectAllocations,
               preferable: r.preferences
                 .filter((p) => p.type === ReaderPreferenceType.PREFERRED)
                 .map((p) => p.projectId),
