@@ -1078,9 +1078,7 @@ export const instanceRouter = createTRPCRouter({
         z.object({ reader: readerDtoSchema, numAllocations: z.number() }),
       ),
     )
-    .query(async ({ ctx: { instance } }) => {
-      return await instance.getReaderAllocationStats();
-    }),
+    .query(async ({ ctx: { instance } }) => await instance.getReaderAllocationStats()),
 
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))
