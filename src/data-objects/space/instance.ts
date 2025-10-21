@@ -483,6 +483,12 @@ export class AllocationInstance extends DataObject {
     return _sum.readingWorkloadQuota ?? 0;
   }
 
+  public async getTotalProjectsRead(): Promise<number> {
+    return await this.db.readerProjectAllocation.count({
+      where: expand(this.params),
+    });
+  }
+
   // TODO: standardise return type
   public async getStudentPreferenceDetails(): Promise<
     {

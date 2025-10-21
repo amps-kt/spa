@@ -29,7 +29,7 @@ export default async function ReaderAllocationOverview({
 }: {
   params: InstanceParams;
 }) {
-  const { totalRequired, totalAvailable } =
+  const { totalRequired, totalAvailable, numRead } =
     await api.institution.instance.getReadingOverviewData({ params });
 
   return (
@@ -37,7 +37,7 @@ export default async function ReaderAllocationOverview({
       <Heading>{PAGES.readerAllocationOverview.title}</Heading>
       <section className="flex w-full flex-col gap-5">
         <SectionHeading icon={BarChartBigIcon}>Summary</SectionHeading>
-        <SummarySection data={{ totalRequired, totalAvailable }} />
+        <SummarySection data={{ totalRequired, totalAvailable, numRead }} />
       </section>
       <section className="flex flex-col gap-5">
         <SectionHeading icon={ZapIcon}>Quick Actions</SectionHeading>
@@ -96,7 +96,7 @@ export default async function ReaderAllocationOverview({
 function SummarySection({
   data,
 }: {
-  data: { totalRequired: number; totalAvailable: number };
+  data: { totalRequired: number; totalAvailable: number; numRead: number };
 }) {
   return (
     <Card className="w-full max-w-96">
@@ -125,6 +125,32 @@ function SummarySection({
                   variant="accent"
                 >
                   <p className="w-full">{data.totalAvailable}</p>
+                </Badge>
+              </TableCell>
+            </TableRow>
+            <TableRow className="flex items-center justify-between">
+              <TableCell className="text-base font-medium">
+                Read Projects:
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className="min-w-10 rounded-full text-center"
+                  variant="accent"
+                >
+                  <p className="w-full">{data.numRead}</p>
+                </Badge>
+              </TableCell>
+            </TableRow>
+            <TableRow className="flex items-center justify-between">
+              <TableCell className="text-base font-medium">
+                Unread projects:
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className="min-w-10 rounded-full text-center"
+                  variant="accent"
+                >
+                  <p className="w-full">{data.totalRequired - data.numRead}</p>
                 </Badge>
               </TableCell>
             </TableRow>
