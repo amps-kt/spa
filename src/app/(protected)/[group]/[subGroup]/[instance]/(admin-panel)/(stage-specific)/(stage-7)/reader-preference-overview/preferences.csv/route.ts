@@ -1,7 +1,7 @@
-import { env } from "@/env";
 import { NextResponse } from "next/server";
 import { unparse } from "papaparse";
 
+import { redirect } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -20,8 +20,7 @@ export async function GET(
 ) {
   // We have to do our own AC here (since there is no layout to do it for us):
   const isAdmin = await api.ac.adminInInstance({ params });
-  // TODO use real link
-  if (!isAdmin) return Response.redirect(`${env.FRONTEND_SERVER_URL}/`);
+  if (!isAdmin) return redirect("unauthorised", undefined);
 
   // We then get the data we need:
   const readerPreferences =

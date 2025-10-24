@@ -1,9 +1,9 @@
-import { env } from "@/env";
 import { NextResponse } from "next/server";
 import { unparse } from "papaparse";
 
 import { type ExtendedReaderPreferenceType } from "@/db/types";
 
+import { redirect } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -30,8 +30,7 @@ export async function GET(
   { params }: { params: InstanceParams },
 ) {
   const isAdmin = await api.ac.adminInInstance({ params });
-  // TODO use real link
-  if (!isAdmin) return Response.redirect(`${env.FRONTEND_SERVER_URL}/`);
+  if (!isAdmin) return redirect("unauthorised", undefined);
 
   const matching = await api.institution.instance.getReaderAllocation({
     params,
