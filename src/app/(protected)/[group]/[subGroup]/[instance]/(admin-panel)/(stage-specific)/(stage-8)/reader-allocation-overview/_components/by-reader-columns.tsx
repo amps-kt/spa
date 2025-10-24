@@ -24,24 +24,19 @@ export const byReaderColumns: ColumnDef<{
       row: {
         original: { reader },
       },
-    }) =>
-      reader === undefined ? (
-        <div />
-      ) : (
-        <div>
-          <AppInstanceLink
-            className={buttonVariants({ variant: "link" })}
-            page="readerById"
-            linkArgs={{ readerId: reader.id }}
-          >
-            {reader.name}
-          </AppInstanceLink>
-          <div className="ml-4 font-sm text-muted-foreground">{reader.id}</div>
-          <div className="ml-4 text-sm text-muted-foreground">
-            {reader.email}
-          </div>
-        </div>
-      ),
+    }) => (
+      <div>
+        <AppInstanceLink
+          className={buttonVariants({ variant: "link" })}
+          page="readerById"
+          linkArgs={{ readerId: reader.id }}
+        >
+          {reader.name}
+        </AppInstanceLink>
+        <div className="ml-4 font-sm text-muted-foreground">{reader.id}</div>
+        <div className="ml-4 text-sm text-muted-foreground">{reader.email}</div>
+      </div>
+    ),
   },
   {
     id: "target",
