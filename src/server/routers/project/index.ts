@@ -183,7 +183,7 @@ export const projectRouter = createTRPCRouter({
       ),
     )
     .query(async ({ ctx: { instance, user } }) => {
-      const allProjects = await instance.getProjectDetails();
+      const allProjects = await instance.getProjectAllocations();
 
       const readingPreferences = await user.getPreferencesMap();
 
