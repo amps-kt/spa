@@ -21,6 +21,14 @@ export interface PageConfig {
 }
 
 export const PAGES = {
+  unauthorised: {
+    title: "Unauthorised",
+    href: "",
+    mkUrl: () => "/unauthorised",
+    level: 1,
+    allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
+    hasSubRoute: false,
+  },
   home: {
     title: "Home",
     href: "",
