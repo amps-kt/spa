@@ -49,12 +49,6 @@ export const markerRouter = createTRPCRouter({
           project: projectDtoSchema,
           student: studentDtoSchema,
           markerType: markerTypeSchema,
-          unitsOfAssessment: z.array(
-            z.object({
-              unit: unitOfAssessmentDtoSchema,
-              status: markingSubmissionStatusSchema,
-            }),
-          ),
         }),
       ),
     )

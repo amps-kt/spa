@@ -12,7 +12,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
@@ -77,7 +76,7 @@ export function SubmissionsTable({ data }: { data: SubmissionTableRow[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[30px]"></TableHead>
+              {/* <TableHead className="w-[30px]"></TableHead> */}
               <TableHead>Submission Title</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Flag</TableHead>
@@ -104,11 +103,11 @@ export function SubmissionsTable({ data }: { data: SubmissionTableRow[] }) {
 }
 
 function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
-  const isExpanded = row.getIsExpanded();
+  // const isExpanded = row.getIsExpanded();
   return (
     <>
       <TableRow className="cursor-pointer hover:bg-muted/50">
-        <TableCell>
+        {/* <TableCell>
           <Button
             variant="ghost"
             size="icon"
@@ -121,7 +120,7 @@ function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
               <ChevronRight className="h-4 w-4" />
             )}
           </Button>
-        </TableCell>
+        </TableCell> */}
         <TableCell colSpan={2}>
           <div className="font-medium">{row.original.project.title}</div>
           <div className="text-sm text-muted-foreground">
@@ -140,17 +139,18 @@ function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
             : "Reader"}
         </TableCell>
       </TableRow>
-      {isExpanded &&
+      {/* {isExpanded &&
         row.original.unitsOfAssessment.map((data) => (
           <AssessmentUnitRow
             key={data.unit.id}
             data={data}
             studentId={row.original.student.id}
           />
-        ))}
+        ))} */}
     </>
   );
 }
+
 function AssessmentUnitRow({
   data,
   studentId,

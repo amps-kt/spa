@@ -2,12 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 
-import {
-  type ProjectDTO,
-  type StudentDTO,
-  type UnitOfAssessmentDTO,
-} from "@/dto";
-import { type MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
+import { type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { type MarkerType } from "@/db/types";
 
@@ -15,10 +10,6 @@ export type SubmissionTableRow = {
   project: ProjectDTO;
   student: StudentDTO;
   markerType: MarkerType;
-  unitsOfAssessment: {
-    unit: UnitOfAssessmentDTO;
-    status: MarkingSubmissionStatus;
-  }[];
 };
 
 export const columns: ColumnDef<SubmissionTableRow>[] = [
