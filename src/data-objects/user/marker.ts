@@ -1,7 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import {
@@ -151,54 +147,54 @@ export class Marker extends User {
       const readerAllocations = await this.db.readerProjectAllocation.findMany({
         where: { ...expand(this.instance.params), readerId: this.id },
         include: {
-          student: {
+          project: {
             include: {
-              userInInstance: { include: { user: true } },
-              studentFlag: {
+              flagsOnProject: { include: { flag: true } },
+              tagsOnProject: { include: { tag: true } },
+              studentAllocations: {
                 include: {
-                  unitsOfAssessment: {
-                    where: { allowedMarkerTypes: { has: "READER" } },
+                  student: {
                     include: {
-                      assessmentCriteria: true,
-                      flag: true,
-                      markerSubmissions: { where: { markerId: this.id } },
+                      userInInstance: { include: { user: true } },
+                      studentFlag: {
+                        include: {
+                          unitsOfAssessment: {
+                            include: { markerSubmissions: true },
+                          },
+                        },
+                      },
                     },
                   },
                 },
               },
             },
           },
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-            },
-          },
         },
       });
 
       assignedProjects = assignedProjects.concat(
-        readerAllocations.flatMap((a) => ({
-          project: T.toProjectDTO(a.project),
-          student: T.toStudentDTO(a.student),
+        readerAllocations.flatMap(({ project }) => ({
+          project: T.toProjectDTO(project),
+          student: T.toStudentDTO(project.studentAllocations[0].student),
           markerType: MarkerType.READER,
-          unitsOfAssessment: a.student.studentFlag.unitsOfAssessment.map(
-            (u) => {
-              const submission = u.markerSubmissions.find(
-                (s) => s.studentId === a.student.userId,
-              );
+          unitsOfAssessment:
+            project.studentAllocations[0].student.studentFlag.unitsOfAssessment.map(
+              (u) => {
+                const submission = u.markerSubmissions.find(
+                  (s) => s.studentId === project.studentAllocations[0].userId,
+                );
 
-              const unit = T.toUnitOfAssessmentDTO(u);
+                const unit = T.toUnitOfAssessmentDTO(u);
 
-              return {
-                unit,
-                status: Marker.computeStatus(
+                return {
                   unit,
-                  submission && T.toMarkingSubmissionDTO(submission),
-                ),
-              };
-            },
-          ),
+                  status: Marker.computeStatus(
+                    unit,
+                    submission && T.toMarkingSubmissionDTO(submission),
+                  ),
+                };
+              },
+            ),
         })),
       );
     }
