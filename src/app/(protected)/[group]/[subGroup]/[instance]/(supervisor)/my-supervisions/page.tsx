@@ -7,7 +7,7 @@ import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
 import { api } from "@/lib/trpc/server";
-import { unauthorised } from "@/lib/utils/redirect";
+import { unauthorised } from "@/lib/utils/shorcuts";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationCard } from "./_components/allocation-card";

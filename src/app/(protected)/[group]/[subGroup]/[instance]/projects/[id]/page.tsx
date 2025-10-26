@@ -25,11 +25,11 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
 import { toPP1, toPP4 } from "@/lib/utils/general/instance-params";
 import { toPositional } from "@/lib/utils/general/to-positional";
-import { forbidden } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { EditButton } from "./_components/edit-button";

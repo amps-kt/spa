@@ -36,4 +36,4 @@ export { AppLink } from "./link";
 export { AppInstanceLink } from "./instance-link";
 export { useAppRouter } from "./router";
 export { useAppInstanceRouter } from "./instance-router";
-export { redirect } from "./redirect";
+export { redirect, forbidden, unauthorised } from "./redirect";

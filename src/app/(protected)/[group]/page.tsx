@@ -14,8 +14,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { forbidden } from "@/lib/utils/redirect";
 import { type GroupParams } from "@/lib/validations/params";
 
 import { AdminRemovalButton } from "./_components/admin-removal-button";

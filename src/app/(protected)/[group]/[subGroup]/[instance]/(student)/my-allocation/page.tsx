@@ -20,7 +20,7 @@ import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
 import { toPositional } from "@/lib/utils/general/to-positional";
-import { unauthorised } from "@/lib/utils/redirect";
+import { unauthorised } from "@/lib/utils/shorcuts";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {

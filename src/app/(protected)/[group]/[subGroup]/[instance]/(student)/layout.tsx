@@ -4,7 +4,7 @@ import { Role, Stage } from "@/db/types";
 
 import { api } from "@/lib/trpc/server";
 import { stageLt } from "@/lib/utils/permissions/stage-check";
-import { forbidden, unauthorised } from "@/lib/utils/redirect";
+import { forbidden, unauthorised } from "@/lib/utils/shorcuts";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
