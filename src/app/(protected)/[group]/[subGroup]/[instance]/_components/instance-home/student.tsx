@@ -1,5 +1,4 @@
 import { Clock10Icon, ListCheckIcon, ListTodoIcon } from "lucide-react";
-import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
 
@@ -7,14 +6,11 @@ import { Stage } from "@/db/types";
 
 import { DisplayDeadline } from "@/components/display-deadline";
 import { SectionHeading } from "@/components/heading";
-import { InstanceLink } from "@/components/instance-link";
 import { NothingToDo } from "@/components/nothing-to-do";
-import { buttonVariants } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { cn } from "@/lib/utils";
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function StudentHome({ params }: { params: InstanceParams }) {
@@ -28,7 +24,9 @@ export async function StudentHome({ params }: { params: InstanceParams }) {
 
   if (stage === Stage.ALLOCATION_PUBLICATION) {
     {
-      if (await api.institution.instance.getStudentAllocationAccess({ params }))
+      if (
+        (await api.institution.instance.get({ params })).studentAllocationAccess
+      )
         return (
           <div className="mt-9 flex flex-col gap-4">
             <SectionHeading icon={ListCheckIcon} className="mb-2">
@@ -37,9 +35,13 @@ export async function StudentHome({ params }: { params: InstanceParams }) {
 
             <p className="text-lg">
               Check the{" "}
-              <InstanceLink href={PAGES.myAllocation.href}>
+              <AppInstanceLink
+                className="text-indigo-600 hover:text-indigo-800"
+                page="myAllocation"
+                linkArgs={{}}
+              >
                 {PAGES.myAllocation.title}
-              </InstanceLink>{" "}
+              </AppInstanceLink>{" "}
               page to view your allocated project
             </p>
           </div>
@@ -103,8 +105,6 @@ async function PreAllocatedInfoSection({ params }: { params: InstanceParams }) {
 
   const { project } = await api.user.student.getAllocation({ params });
 
-  const instancePath = formatParamsAsPath(params);
-
   return (
     <div className="mt-9 flex justify-between">
       <div className="flex flex-col justify-start">
@@ -118,12 +118,12 @@ async function PreAllocatedInfoSection({ params }: { params: InstanceParams }) {
           </p>
           <p className="flex items-center justify-start gap-2">
             View your project:
-            <Link
-              href={`${instancePath}/projects/${project.id}`}
-              className={cn(buttonVariants({ variant: "link" }), "text-base")}
+            <AppInstanceLink
+              page="projectById"
+              linkArgs={{ projectId: project.id }}
             >
               {project.title}
-            </Link>
+            </AppInstanceLink>
           </p>
         </div>
       </div>
