@@ -102,7 +102,11 @@ export class Reader extends Marker {
   }
 
   public async getPreferences(): Promise<
-    { project: ProjectDTO; type: ExtendedReaderPreferenceType }[]
+    {
+      project: ProjectDTO;
+      student: StudentDTO;
+      type: ExtendedReaderPreferenceType;
+    }[]
   > {
     const data = await this.db.readerPreference.findMany({
       where: { ...expand(this.instance.params), readerId: this.id },
@@ -111,6 +115,16 @@ export class Reader extends Marker {
           include: {
             flagsOnProject: { include: { flag: true } },
             tagsOnProject: { include: { tag: true } },
+            studentAllocations: {
+              include: {
+                student: {
+                  include: {
+                    studentFlag: true,
+                    userInInstance: { include: { user: true } },
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -118,6 +132,7 @@ export class Reader extends Marker {
 
     return data.map((x) => ({
       project: T.toProjectDTO(x.project),
+      student: T.toStudentDTO(x.project.studentAllocations[0].student),
       type: x.type,
     }));
   }

@@ -1,14 +1,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  MoreHorizontal as MoreIcon,
+  MoreHorizontalIcon as MoreIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { Stage } from "@/db/types";
 
@@ -36,6 +34,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import {
   previousStages,
@@ -65,21 +64,6 @@ export function useMyProjectColumns({
 
   const userCols: ColumnDef<SupervisorProjectDataDto>[] = [
     {
-      id: "ID",
-      accessorFn: ({ id }) => id,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="ID" />
-      ),
-      cell: ({ row: { original: project } }) => (
-        <WithTooltip
-          align="start"
-          tip={<div className="max-w-xs">{project.id}</div>}
-        >
-          <p className="max-w-28 truncate">{project.id}</p>
-        </WithTooltip>
-      ),
-    },
-    {
       id: "Project Title",
       accessorFn: ({ title }) => title,
       header: () => (
@@ -91,15 +75,16 @@ export function useMyProjectColumns({
         },
       }) => (
         <WithTooltip tip={<p className="max-w-96">{title}</p>}>
-          <Link
+          <AppInstanceLink
             className={cn(
               buttonVariants({ variant: "link" }),
               "inline-block w-52 truncate px-0 text-start",
             )}
-            href={getInstancePath([PAGES.allProjects.href, id])}
+            page="projectById"
+            linkArgs={{ projectId: id }}
           >
             {title}
-          </Link>
+          </AppInstanceLink>
         </WithTooltip>
       ),
     },
@@ -231,9 +216,10 @@ export function useMyProjectColumns({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath([PAGES.allProjects.href, project.id])}
+                  page="projectById"
+                  linkArgs={{ projectId: project.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <p className="flex items-center">
@@ -241,23 +227,20 @@ export function useMyProjectColumns({
                     <p className="max-w-40 truncate">{project.title}</p>
                     &quot;
                   </p>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <ConditionalRender
                 allowedStages={previousStages(Stage.STUDENT_BIDDING)}
                 allowed={
                   <DropdownMenuItem className="group/item">
-                    <Link
+                    <AppInstanceLink
                       className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                      href={getInstancePath([
-                        PAGES.allProjects.href,
-                        project.id,
-                        PAGES.editProject.href,
-                      ])}
+                      page="editProject"
+                      linkArgs={{ projectId: project.id }}
                     >
                       <PenIcon className="h-4 w-4" />
                       <span>Edit Project details</span>
-                    </Link>
+                    </AppInstanceLink>
                   </DropdownMenuItem>
                 }
                 denied={(data) => (

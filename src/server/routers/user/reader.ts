@@ -31,6 +31,7 @@ export const readerRouter = createTRPCRouter({
       z.array(
         z.object({
           project: projectDtoSchema,
+          student: studentDtoSchema,
           type: extendedReaderPreferenceTypeSchema,
         }),
       ),

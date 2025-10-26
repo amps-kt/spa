@@ -1058,26 +1058,10 @@ export class AllocationInstance extends DataObject {
         PAGES.myProposedProjects,
         ...allocationsTab,
       ],
-      [Stage.READER_BIDDING]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
-      [Stage.READER_ALLOCATION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
-      [Stage.MARK_SUBMISSION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
-      [Stage.GRADE_PUBLICATION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
+      [Stage.READER_BIDDING]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.READER_ALLOCATION]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.MARK_SUBMISSION]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.GRADE_PUBLICATION]: [PAGES.myProposedProjects, ...allocationsTab],
     };
 
     return tabs[stage];
@@ -1096,15 +1080,13 @@ export class AllocationInstance extends DataObject {
       [Stage.READER_BIDDING]: [
         PAGES.allAvailableProjects,
         PAGES.myReadingPreferences,
-        PAGES.myMarking,
       ],
       [Stage.READER_ALLOCATION]: [
         PAGES.allAvailableProjects,
         PAGES.myReadingPreferences,
-        PAGES.myMarking,
       ],
-      [Stage.MARK_SUBMISSION]: [PAGES.myMarking],
-      [Stage.GRADE_PUBLICATION]: [PAGES.myMarking],
+      [Stage.MARK_SUBMISSION]: [],
+      [Stage.GRADE_PUBLICATION]: [],
     };
 
     return tabs[stage];

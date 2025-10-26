@@ -179,6 +179,7 @@ export const projectRouter = createTRPCRouter({
       z.array(
         z.object({
           project: projectDtoSchema,
+          student: studentDtoSchema,
           readingPreference: extendedReaderPreferenceTypeSchema,
         }),
       ),
@@ -191,8 +192,9 @@ export const projectRouter = createTRPCRouter({
       return allProjects
         .filter((x) => x.project.supervisorId !== user.id)
         .sort((a, b) => a.project.title.localeCompare(b.project.title))
-        .map(({ project }) => ({
+        .map(({ project, student }) => ({
           project,
+          student,
           readingPreference: RPT.toExtended(readingPreferences.get(project.id)),
         }));
     }),

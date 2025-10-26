@@ -6,7 +6,7 @@ import { type Row, type ColumnDef } from "@tanstack/react-table";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { flagDtoSchema, type ProjectDTO } from "@/dto";
+import { type StudentDTO, type ProjectDTO, type FlagDTO } from "@/dto";
 
 import {
   ExtendedReaderPreferenceType,
@@ -25,15 +25,12 @@ import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
-// Cells are really just components
-// this one is super nasty, so I pulled it out to a separate fn.
-// You can safely inline it however
-// but because 'cell' doesn't start with an upper case 'c', eslint will cry at you.
 function ReadingPreferenceCell({
   row: { original },
 }: {
   row: Row<{
     project: ProjectDTO;
+    student: StudentDTO;
     readingPreference: ExtendedReaderPreferenceType;
   }>;
 }) {
@@ -82,10 +79,12 @@ function ReadingPreferenceCell({
 
 export function useAllAvailableProjectsColumns(): ColumnDef<{
   project: ProjectDTO;
+  student: StudentDTO;
   readingPreference: ExtendedReaderPreferenceType;
 }>[] {
   const baseCols: ColumnDef<{
     project: ProjectDTO;
+    student: StudentDTO;
     readingPreference: ExtendedReaderPreferenceType;
   }>[] = [
     {
@@ -112,66 +111,25 @@ export function useAllAvailableProjectsColumns(): ColumnDef<{
       ),
     },
     {
-      id: "Flags",
-      accessorFn: (row) => row.project.flags,
-      header: () => <div className="text-center">Flags</div>,
+      id: "Flag",
+      accessorFn: (row) => row.student.flag,
+      header: () => <div className="text-center">Flag</div>,
       filterFn: (row, columnId, value) => {
         const selectedFilters = z.array(z.string()).parse(value);
-        const rowFlags = z.array(flagDtoSchema).parse(row.getValue(columnId));
-
-        return (
-          new Set(rowFlags.map((f) => f.id)).size > 0 &&
-          selectedFilters.some((f) => rowFlags.some((rf) => rf.id === f))
-        );
+        const rowFlag = row.getValue<FlagDTO>(columnId);
+        return selectedFilters.some((f) => rowFlag.id === f);
       },
       cell: ({
         row: {
-          original: { project },
+          original: {
+            student: { flag },
+          },
         },
       }) => (
         <div className="flex flex-col gap-2">
-          {project.flags.length > 2 ? (
-            <>
-              <Badge
-                variant="accent"
-                className="w-40 rounded-md"
-                key={project.flags[0].id}
-              >
-                {project.flags[0].displayName}
-              </Badge>
-              <WithTooltip
-                side="right"
-                tip={
-                  <ul className="flex list-disc flex-col gap-1 p-2 pl-1">
-                    {project.flags.slice(1).map((flag) => (
-                      <Badge
-                        variant="accent"
-                        className="w-40 rounded-md"
-                        key={flag.id}
-                      >
-                        {flag.displayName}
-                      </Badge>
-                    ))}
-                  </ul>
-                }
-              >
-                <div
-                  className={cn(
-                    badgeVariants({ variant: "accent" }),
-                    "w-fit rounded-md font-normal",
-                  )}
-                >
-                  {project.flags.length - 1}+
-                </div>
-              </WithTooltip>
-            </>
-          ) : (
-            project.flags.map((flag) => (
-              <Badge variant="accent" className="w-40 rounded-md" key={flag.id}>
-                {flag.displayName}
-              </Badge>
-            ))
-          )}
+          <Badge variant="accent" className="w-40 rounded-md">
+            {flag.displayName}
+          </Badge>
         </div>
       ),
     },

@@ -47,7 +47,7 @@ import {
 } from "@/lib/services/reader-allocation/types";
 import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
-import { previousStages } from "@/lib/utils/permissions/stage-check";
+import { previousStages, stageGte } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
 import { instanceParamsSchema } from "@/lib/validations/params";
@@ -55,7 +55,7 @@ import {
   convertPreferenceType,
   studentPreferenceSchema,
 } from "@/lib/validations/student-preference";
-import { tabGroupSchema } from "@/lib/validations/tabs";
+import { tabGroupSchema, type TabType } from "@/lib/validations/tabs";
 
 import { algorithmRouter } from "./algorithm";
 import { matchingRouter } from "./matching";
@@ -1098,13 +1098,6 @@ export const instanceRouter = createTRPCRouter({
       return { headerTabs, instancePath };
     }),
 
-  // getSupervisorAllocationAccess: procedure.instance.member
-  //   .output(z.boolean())
-  //   .query(async ({ ctx: { instance } }) => {
-  //     const { supervisorAllocationAccess } = await instance.get();
-  //     return supervisorAllocationAccess;
-  //   }),
-
   setSupervisorAllocationAccess: procedure.instance.subGroupAdmin
     .input(z.object({ access: z.boolean() }))
     .output(z.boolean())
@@ -1113,6 +1106,9 @@ export const instanceRouter = createTRPCRouter({
       return await instance.setSupervisorPublicationAccess(access);
     }),
 
+  /**
+   * @deprecated use instance.get instead
+   */
   getStudentAllocationAccess: procedure.instance.member
     .output(z.boolean())
     .query(async ({ ctx: { instance } }) => {
@@ -1140,16 +1136,22 @@ export const instanceRouter = createTRPCRouter({
       const tabGroups = [];
 
       if (roles.has(Role.ADMIN)) {
-        tabGroups.push({
-          title: "General",
-          tabs: [
-            PAGES.stageControl,
-            PAGES.settings,
-            PAGES.allSupervisors,
-            PAGES.allStudents,
-            PAGES.allProjects,
-          ],
-        });
+        const generalTabs: TabType[] = [
+          PAGES.stageControl,
+          PAGES.settings,
+          PAGES.allSupervisors,
+          PAGES.allStudents,
+          PAGES.allProjects,
+        ];
+
+        if (
+          stageGte(stage, Stage.MARK_SUBMISSION) &&
+          (roles.has(Role.SUPERVISOR) || roles.has(Role.READER))
+        ) {
+          generalTabs.push(PAGES.myMarking);
+        }
+
+        tabGroups.push({ title: "General", tabs: generalTabs });
 
         tabGroups.push({
           title: "Stage-specific",
@@ -1157,45 +1159,33 @@ export const instanceRouter = createTRPCRouter({
         });
       }
 
-      if (roles.has(Role.SUPERVISOR)) {
-        const isSecondRole = roles.size > 1;
-        const supervisorTabs = await instance.getSupervisorTabs();
-
-        if (!isSecondRole) {
+      if (!roles.has(Role.ADMIN)) {
+        if (
+          stageGte(stage, Stage.MARK_SUBMISSION) &&
+          (roles.has(Role.SUPERVISOR) || roles.has(Role.READER))
+        ) {
+          tabGroups.push({
+            title: "General",
+            tabs: [PAGES.allProjects, PAGES.myMarking],
+          });
+        } else {
           tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-          supervisorTabs.unshift(PAGES.instanceTasks);
-        } else if (stage !== Stage.SETUP) {
-          supervisorTabs.unshift(PAGES.nonAdminSupervisorTasks);
         }
+      }
 
+      if (roles.has(Role.SUPERVISOR)) {
+        const supervisorTabs = await instance.getSupervisorTabs();
         tabGroups.push({ title: "Supervisor", tabs: supervisorTabs });
       }
 
       if (roles.has(Role.READER)) {
-        const isSecondRole = roles.size > 1;
         const readerTabs = await instance.getReaderTabs();
-
-        if (!isSecondRole) {
-          tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-          readerTabs.unshift(PAGES.instanceTasks);
-        } else if (stage !== Stage.SETUP) {
-          readerTabs.unshift(PAGES.nonAdminReaderTasks);
-        }
-
         tabGroups.push({ title: "Reader", tabs: readerTabs });
       }
 
       if (roles.has(Role.STUDENT)) {
-        const isSecondRole = roles.size > 1;
         const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
-
-        tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-        tabGroups.push({
-          title: "Student",
-          tabs: isSecondRole
-            ? studentTabs
-            : [PAGES.instanceTasks, ...studentTabs],
-        });
+        tabGroups.push({ title: "Student", tabs: studentTabs });
       }
 
       return tabGroups;

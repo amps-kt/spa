@@ -578,7 +578,7 @@ export const PAGES = {
       instance,
       projectId,
     }: InInstance<{ projectId: string }>) =>
-      `/${group}/${subGroup}/${instance}/projects/${projectId}/random-allocations`,
+      `/${group}/${subGroup}/${instance}/projects/${projectId}/edit`,
     icon: "pen",
     level: 5,
     allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
