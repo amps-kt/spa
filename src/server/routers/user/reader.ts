@@ -76,4 +76,11 @@ export const readerRouter = createTRPCRouter({
       const reader = await instance.getReader(readerId);
       return reader.getAllocations();
     }),
+
+  projectStats: procedure.instance.reader
+    .output(z.object({ workloadQuota: z.number(), numPreferred: z.number() }))
+    .query(async ({ ctx: { user } }) => ({
+      workloadQuota: await user.getWorkloadQuota(),
+      numPreferred: await user.getNumPreferred(),
+    })),
 });

@@ -1,3 +1,4 @@
+import { ReaderPreferenceType } from "@prisma/client";
 import { z } from "zod";
 
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
@@ -83,6 +84,16 @@ export class Reader extends Marker {
         include: { userInInstance: { include: { user: true } } },
       })
       .then((x) => T.toReaderDTO(x));
+  }
+
+  public async getNumPreferred(): Promise<number> {
+    return await this.db.readerPreference.count({
+      where: {
+        ...expand(this.instance.params),
+        readerId: this.id,
+        type: ReaderPreferenceType.PREFERRED,
+      },
+    });
   }
 
   public async setCapacityDetails({
@@ -172,5 +183,10 @@ export class Reader extends Marker {
       },
     });
     return type;
+  }
+
+  public async getWorkloadQuota(): Promise<number> {
+    const { readingWorkloadQuota } = await this.toDTO();
+    return readingWorkloadQuota;
   }
 }

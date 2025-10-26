@@ -6,10 +6,10 @@ import { Stage } from "@/db/types";
 
 import { DisplayDeadline } from "@/components/display-deadline";
 import { SectionHeading } from "@/components/heading";
-import { InstanceLink } from "@/components/instance-link";
 import { NothingToDo } from "@/components/nothing-to-do";
 import { Calendar } from "@/components/ui/calendar";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -50,9 +50,13 @@ async function SupervisorHomeInner({ params }: { params: InstanceParams }) {
         </SectionHeading>
         <p className="text-lg">
           Check the{" "}
-          <InstanceLink href={PAGES.mySupervisions.href}>
+          <AppInstanceLink
+            className="text-indigo-600 hover:text-indigo-800"
+            page="mySupervisions"
+            linkArgs={{}}
+          >
             {PAGES.mySupervisions.title}
-          </InstanceLink>{" "}
+          </AppInstanceLink>{" "}
           page to view your allocated projects
         </p>
       </div>
@@ -67,9 +71,13 @@ async function SupervisorHomeInner({ params }: { params: InstanceParams }) {
         </SectionHeading>
         <p className="text-lg">
           Check the{" "}
-          <InstanceLink href={PAGES.myMarking.href}>
+          <AppInstanceLink
+            className="text-indigo-600 hover:text-indigo-800"
+            page="myMarking"
+            linkArgs={{}}
+          >
             {PAGES.myMarking.title}
-          </InstanceLink>{" "}
+          </AppInstanceLink>{" "}
           page to view the projects you have to mark
         </p>
       </div>
