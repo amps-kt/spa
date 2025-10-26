@@ -13,8 +13,6 @@ import { PAGES } from "@/config/pages";
 
 import { type StudentDTO } from "@/dto/user";
 
-import { type ExtendedPreferenceType, PreferenceType } from "@/db/types";
-
 import { useInstancePath } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -30,10 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-type StudentPreferenceData = {
-  student: StudentDTO;
-  preference: { type: ExtendedPreferenceType; rank?: number };
-};
+type StudentPreferenceData = { student: StudentDTO; rank: number };
 
 export function useStudentPreferenceColumns(): ColumnDef<StudentPreferenceData>[] {
   const instancePath = useInstancePath();
@@ -99,43 +94,18 @@ export function useStudentPreferenceColumns(): ColumnDef<StudentPreferenceData>[
         return selectedFilters.includes(row.getValue<string>(columnId));
       },
     },
-    {
-      id: "Type",
-      accessorFn: ({ preference }) => preference.type,
-      header: ({ column }) => (
-        <DataTableColumnHeader title="Type" column={column} />
-      ),
-      cell: ({
-        row: {
-          original: { preference },
-        },
-      }) => {
-        return preference.type === PreferenceType.PREFERENCE ? (
-          <Badge className="bg-primary text-center font-semibold">
-            Preference
-          </Badge>
-        ) : (
-          <Badge className="bg-secondary text-center font-semibold">
-            Shortlist
-          </Badge>
-        );
-      },
-    },
+
     {
       id: "Rank",
-      accessorFn: ({ preference }) => preference.rank,
+      accessorFn: ({ rank }) => rank,
       header: ({ column }) => (
         <DataTableColumnHeader title="Rank" column={column} />
       ),
       cell: ({
         row: {
-          original: { preference },
+          original: { rank },
         },
-      }) => (
-        <div className="text-center font-semibold">
-          {Number.isNaN(preference.rank) ? "-" : preference.rank}
-        </div>
-      ),
+      }) => <div className="text-center font-semibold">{rank}</div>,
     },
     {
       accessorKey: "actions",

@@ -27,8 +27,8 @@ export default async function Projects({ params }: { params: InstanceParams }) {
     params,
   });
 
-  const projectDescriptors =
-    await api.institution.instance.getUsedProjectDescriptors({ params });
+  const flags = await api.institution.instance.getUsedFlags({ params });
+  const tags = await api.institution.instance.getUsedTags({ params });
 
   return (
     <PanelWrapper>
@@ -36,7 +36,7 @@ export default async function Projects({ params }: { params: InstanceParams }) {
       <HelpSection />
       <AllAvailableProjectsDataTable
         data={projectData}
-        projectDescriptors={projectDescriptors}
+        projectDescriptors={{ flags, tags }}
       />
     </PanelWrapper>
   );

@@ -13,7 +13,7 @@ export default async function Layout({
   params: InstanceParams;
   children: React.ReactNode;
 }) {
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
   const instancePath = formatParamsAsPath(params);
 
   if (stage !== Stage.ALLOCATION_ADJUSTMENT) redirect(`${instancePath}/`);

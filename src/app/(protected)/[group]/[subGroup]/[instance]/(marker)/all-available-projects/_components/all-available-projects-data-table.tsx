@@ -2,7 +2,7 @@
 
 import { readingPreferenceOptions } from "@/config/reading-preference";
 
-import { type TagDTO, type FlagDTO, type ProjectDTO } from "@/dto";
+import { type TagDTO, type FlagDTO, type ProjectDTO, StudentDTO } from "@/dto";
 
 import { type ExtendedReaderPreferenceType } from "@/db/types";
 
@@ -19,6 +19,7 @@ export function AllAvailableProjectsDataTable({
 }: {
   data: {
     project: ProjectDTO;
+    student: StudentDTO;
     readingPreference: ExtendedReaderPreferenceType;
   }[];
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };

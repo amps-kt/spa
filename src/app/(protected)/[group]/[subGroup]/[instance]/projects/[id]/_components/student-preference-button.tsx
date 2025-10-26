@@ -9,9 +9,8 @@ import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO } from "@/dto";
 
-import { PreferenceType, Role, Stage } from "@/db/types";
+import { PreferenceType } from "@/db/types";
 
-import { ConditionalRender } from "@/components/access-control";
 import { MyPreferencesButton } from "@/components/my-preferences-button";
 import {
   useInstanceParams,
@@ -37,11 +36,9 @@ import {
 
 export function StudentPreferenceButton({
   project,
-  isPreAllocated,
   defaultStatus,
 }: {
   project: ProjectDTO;
-  isPreAllocated: boolean;
   defaultStatus: StudentPreferenceType;
 }) {
   const router = useRouter();
@@ -76,42 +73,35 @@ export function StudentPreferenceButton({
   }
 
   return (
-    <ConditionalRender
-      allowedRoles={[Role.STUDENT]}
-      allowedStages={[Stage.STUDENT_BIDDING]}
-      overrides={{ roles: { AND: !isPreAllocated } }}
-      allowed={
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="min-w-32 text-nowrap">
-              {selectStatus === PreferenceType.PREFERENCE
-                ? "In Preferences"
-                : selectStatus === PreferenceType.SHORTLIST
-                  ? "In Shortlist"
-                  : "Select"}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56">
-            <DropdownMenuLabel>Save Project in:</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuRadioGroup
-              value={selectStatus}
-              onValueChange={async (value) => {
-                const preferenceChange = studentPreferenceSchema.parse(value);
-                await handleChange(preferenceChange);
-              }}
-            >
-              <DropdownMenuRadioItem value="None">None</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value={PreferenceType.SHORTLIST}>
-                Shortlist
-              </DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value={PreferenceType.PREFERENCE}>
-                Preference
-              </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      }
-    />
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button className="min-w-32 text-nowrap">
+          {selectStatus === PreferenceType.PREFERENCE
+            ? "In Preferences"
+            : selectStatus === PreferenceType.SHORTLIST
+              ? "In Shortlist"
+              : "Select"}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56">
+        <DropdownMenuLabel>Save Project in:</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuRadioGroup
+          value={selectStatus}
+          onValueChange={async (value) => {
+            const preferenceChange = studentPreferenceSchema.parse(value);
+            await handleChange(preferenceChange);
+          }}
+        >
+          <DropdownMenuRadioItem value="None">None</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value={PreferenceType.SHORTLIST}>
+            Shortlist
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value={PreferenceType.PREFERENCE}>
+            Preference
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

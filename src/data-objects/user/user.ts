@@ -142,6 +142,14 @@ export class User extends DataObject {
     return (await this.isStaff(params)) || (await this.isStudent(params));
   }
 
+  public async isJoined(params: InstanceParams): Promise<boolean> {
+    const { joined } = await this.db.userInInstance.findUniqueOrThrow({
+      where: { instanceMembership: { ...expand(params), userId: this.id } },
+    });
+
+    return joined;
+  }
+
   public async getRolesInInstance(
     instanceParams: InstanceParams,
   ): Promise<Set<Role>> {

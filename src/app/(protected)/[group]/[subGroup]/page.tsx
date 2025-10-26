@@ -13,8 +13,8 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Unauthorised } from "@/components/unauthorised";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type SubGroupParams } from "@/lib/validations/params";
 
@@ -36,15 +36,17 @@ export default async function Page({ params }: { params: SubGroupParams }) {
   if (!allocationSubGroup) notFound();
 
   const access = await api.institution.subGroup.access({ params });
+  if (!access) forbidden();
 
-  if (!access) {
-    return (
-      <Unauthorised message="You need to be an admin to access this page" />
-    );
-  }
+  const subGroupAdmins = await api.institution.subGroup.getAllSubGroupAdmins({
+    params,
+  });
 
-  const { subGroupAdmins, allocationInstances, displayName } =
-    await api.institution.subGroup.instanceManagement({ params });
+  const allocationInstances = await api.institution.subGroup.getAllInstances({
+    params,
+  });
+
+  const { displayName } = await api.institution.subGroup.get({ params });
 
   const { group, subGroup } = params;
 

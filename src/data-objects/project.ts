@@ -1,7 +1,12 @@
-import { type ProjectDTO, type FlagDTO, type StudentDTO } from "@/dto";
+import {
+  type ProjectDTO,
+  type FlagDTO,
+  type StudentDTO,
+  type SupervisorDTO,
+} from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
+import { AllocationMethod, type DB } from "@/db/types";
 
 import { expand, toPP2 } from "@/lib/utils/general/instance-params";
 import { type ProjectParams } from "@/lib/validations/params";
@@ -37,6 +42,19 @@ export class Project extends DataObject {
         },
       })
       .then((x) => T.toProjectDTO(x));
+  }
+
+  public async getSupervisor(): Promise<SupervisorDTO> {
+    const { supervisorId } = await this.get();
+
+    const data = await this.db.supervisorDetails.findUniqueOrThrow({
+      where: {
+        supervisorDetailsId: { ...expand(this.params), userId: supervisorId },
+      },
+      include: { userInInstance: { include: { user: true } } },
+    });
+
+    return T.toSupervisorDTO(data);
   }
 
   get group() {
@@ -119,6 +137,51 @@ export class Project extends DataObject {
       where: toPP2(this.params),
       data: { preAllocatedStudentId: null },
     });
+  }
+
+  public async getAllSubmittedPreferences(): Promise<
+    { student: StudentDTO; rank: number }[]
+  > {
+    const data = await this.db.studentSubmittedPreference.findMany({
+      where: { ...expand(this.params), projectId: this.params.projectId },
+      include: {
+        student: {
+          include: {
+            userInInstance: { include: { user: true } },
+            studentFlag: true,
+          },
+        },
+      },
+    });
+
+    return data.map(({ rank, student }) => ({
+      student: T.toStudentDTO(student),
+      rank,
+    }));
+  }
+
+  public async getAllocation(): Promise<
+    { student: StudentDTO; rank: number; isPreAllocated: boolean } | undefined
+  > {
+    const data = await this.db.studentProjectAllocation.findFirst({
+      where: { projectId: this.params.projectId },
+      include: {
+        student: {
+          include: {
+            userInInstance: { include: { user: true } },
+            studentFlag: true,
+          },
+        },
+      },
+    });
+
+    if (!data) return undefined;
+
+    return {
+      student: T.toStudentDTO(data.student),
+      rank: data.studentRanking,
+      isPreAllocated: data.allocationMethod === AllocationMethod.PRE_ALLOCATED,
+    };
   }
 
   public async delete(): Promise<void> {

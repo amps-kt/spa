@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { TRPCClientError } from "@trpc/client";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -47,7 +46,7 @@ export function FormButton({ params }: { params: GroupParams }) {
 
   const form = useForm<NewAdmin>({ resolver: zodResolver(newAdminSchema) });
 
-  const { mutateAsync } = api.institution.group.addAdmin.useMutation();
+  const { mutateAsync } = api.institution.group.addGroupAdmin.useMutation();
 
   function onSubmit(data: NewAdmin) {
     const newAdmin = {
@@ -64,8 +63,7 @@ export function FormButton({ params }: { params: GroupParams }) {
       }),
       {
         loading: `Adding new ${spacesLabels.group.short} Admin...`,
-        error: (err) =>
-          err instanceof TRPCClientError ? err.message : "Something went wrong",
+        error: "Something went wrong",
         success: `Successfully added ${newAdmin.name} as a new ${spacesLabels.group.short} Admin`,
       },
     );

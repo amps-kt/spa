@@ -3,6 +3,8 @@ import { ListIcon } from "lucide-react";
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
+import { AllocationMethod } from "@/db/types";
+
 import { SectionHeading, Heading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
@@ -28,7 +30,10 @@ export default async function Page({ params }: { params: InstanceParams }) {
     await api.institution.instance.getUnallocatedStudents({ params });
 
   const randomlyAllocatedStudentData =
-    await api.institution.instance.getRandomlyAllocatedStudents({ params });
+    await api.institution.instance.getAllocatedStudentsByMethod({
+      params,
+      methods: [AllocationMethod.RANDOM],
+    });
 
   const flags = await api.institution.instance.getFlags({ params });
 
@@ -50,8 +55,8 @@ export default async function Page({ params }: { params: InstanceParams }) {
           All Unmatched Students
         </SectionHeading>
         <RandomAllocationsDataTable
-          flags={flags}
           studentData={allStudentData}
+          flags={flags}
         />
       </section>
     </PanelWrapper>

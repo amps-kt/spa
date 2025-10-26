@@ -1,45 +1,44 @@
 import { type ColumnDef } from "@tanstack/react-table";
+import { HelpCircleIcon } from "lucide-react";
 import Link from "next/link";
 
-import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
 
 import { type UserDTO } from "@/dto";
 
 import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { type SupervisorMatchingDetailsDto } from "@/lib/validations/matching";
+import { type SupervisorMatchingDetailsDTO } from "@/lib/validations/matching";
 
 export function useSupervisorResultsColumns(): ColumnDef<{
   supervisor: UserDTO;
-  matchingDetails: SupervisorMatchingDetailsDto;
+  matchingDetails: SupervisorMatchingDetailsDTO;
 }>[] {
   return [
     {
-      id: INSTITUTION.ID_NAME,
-      accessorFn: (s) => s.supervisor.id,
+      id: "Supervisor",
+      accessorFn: (s) => `${s.supervisor.name} ${s.supervisor.id}`,
       header: ({ column }) => (
-        <DataTableColumnHeader column={column} title={INSTITUTION.ID_NAME} />
-      ),
-    },
-    {
-      id: "Name",
-      accessorFn: (s) => s.supervisor.name,
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Name" />
+        <DataTableColumnHeader column={column} title="Supervisor" />
       ),
       cell: ({
         row: {
           original: { supervisor },
         },
       }) => (
-        <Link
-          className={buttonVariants({ variant: "link" })}
-          href={`./${PAGES.allSupervisors.href}/${supervisor.id}`}
-        >
-          {supervisor.name}
-        </Link>
+        <div className="flex flex-col gap-2 items-start">
+          <Link
+            className={buttonVariants({ variant: "link" })}
+            href={`./${PAGES.allSupervisors.href}/${supervisor.id}`}
+          >
+            {supervisor.name}
+          </Link>
+          <p className="font-mono text-muted-foreground ml-4">
+            {supervisor.id}
+          </p>
+        </div>
       ),
     },
     {
@@ -82,8 +81,25 @@ export function useSupervisorResultsColumns(): ColumnDef<{
         b.original.matchingDetails.projectUpperQuota,
     },
     {
-      id: "Allocation Count",
+      id: "Algorithm Allocation Count",
       accessorFn: (s) => s.matchingDetails.allocationCount,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="w-28"
+          column={column}
+          title="Allocation Count (by algorithm)"
+        />
+      ),
+      cell: ({ row: { original: s } }) => (
+        <p className="w-28 text-center">{s.matchingDetails.allocationCount}</p>
+      ),
+      sortingFn: (a, b) =>
+        a.original.matchingDetails.allocationCount -
+        b.original.matchingDetails.allocationCount,
+    },
+    {
+      id: "Pre-allocated Count",
+      accessorFn: (s) => s.matchingDetails.preAllocatedCount,
       header: ({ column }) => (
         <DataTableColumnHeader
           className="w-28"
@@ -93,13 +109,41 @@ export function useSupervisorResultsColumns(): ColumnDef<{
       ),
       cell: ({ row: { original: s } }) => (
         <p className="w-28 text-center">
-          {s.matchingDetails.allocationCount} (
-          {s.matchingDetails.preAllocatedCount})
+          {s.matchingDetails.preAllocatedCount}
         </p>
       ),
       sortingFn: (a, b) =>
-        a.original.matchingDetails.allocationCount -
-        b.original.matchingDetails.allocationCount,
+        a.original.matchingDetails.preAllocatedCount -
+        b.original.matchingDetails.preAllocatedCount,
+    },
+    {
+      id: "total allocated Count",
+      accessorFn: (s) =>
+        s.matchingDetails.allocationCount + s.matchingDetails.preAllocatedCount,
+      header: ({ column }) => (
+        <DataTableColumnHeader
+          className="w-28"
+          column={column}
+          title="Allocation Count (total)"
+        />
+      ),
+      cell: ({ row: { original: s } }) => (
+        <p className="w-28 text-center">
+          {s.matchingDetails.allocationCount +
+            s.matchingDetails.preAllocatedCount}
+        </p>
+      ),
+      sortingFn: (a, b) => {
+        const aTotal =
+          a.original.matchingDetails.allocationCount +
+          a.original.matchingDetails.preAllocatedCount;
+
+        const bTotal =
+          b.original.matchingDetails.allocationCount +
+          b.original.matchingDetails.preAllocatedCount;
+
+        return aTotal - bTotal;
+      },
     },
     // {
     //   id: "Algorithm Allocation Difference",
@@ -123,11 +167,16 @@ export function useSupervisorResultsColumns(): ColumnDef<{
       id: "Target Difference",
       accessorFn: (s) => s.matchingDetails.actualTargetDifference,
       header: ({ column }) => (
-        <DataTableColumnHeader
-          className="w-28"
-          column={column}
-          title="Actual Target Difference"
-        />
+        <div className="flex items-center gap-2">
+          <WithTooltip tip="difference = target - total">
+            <HelpCircleIcon className="size-4" />
+          </WithTooltip>
+          <DataTableColumnHeader
+            className="w-28"
+            column={column}
+            title="Actual Target Difference"
+          />
+        </div>
       ),
       cell: ({ row: { original: s } }) => (
         <p className="w-28 text-center">

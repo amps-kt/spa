@@ -21,32 +21,31 @@ export function MyProjectsDataTable({
   const params = useInstanceParams();
   const router = useRouter();
 
-  const { mutateAsync: deleteAsync } = api.project.delete.useMutation();
-  const { mutateAsync: deleteSelectedAsync } =
-    api.project.deleteSelected.useMutation();
+  const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
+  const { mutateAsync: api_deleteManyProjects } =
+    api.project.deleteMany.useMutation();
 
   async function handleDelete(projectId: string) {
-    void toast.promise(
-      deleteAsync({ params: { ...params, projectId } }).then(() =>
-        router.refresh(),
-      ),
-      {
+    void toast
+      .promise(api_deleteProject({ params: { ...params, projectId } }), {
         loading: "Deleting Project...",
         error: "Something went wrong",
+        // [#14532d] use title instead of ID
         success: `Project ${projectId} deleted successfully`,
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   async function handleDeleteSelected(projectIds: string[]) {
-    void toast.promise(
-      deleteSelectedAsync({ params, projectIds }).then(() => router.refresh()),
-      {
+    void toast
+      .promise(api_deleteManyProjects({ params, projectIds }), {
         loading: "Deleting Project...",
         error: "Something went wrong",
         success: `All Projects deleted successfully`,
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   const columns = useMyProjectColumns({

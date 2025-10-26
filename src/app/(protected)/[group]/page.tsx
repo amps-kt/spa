@@ -13,8 +13,8 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
-import { Unauthorised } from "@/components/unauthorised";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -36,16 +36,11 @@ export default async function Page({ params }: { params: GroupParams }) {
   if (!allocationGroup) notFound();
 
   const access = await api.institution.group.access({ params });
-
-  if (!access) {
-    return (
-      <Unauthorised message="You need to be a super-admin or group admin to access this page" />
-    );
-  }
+  if (!access) forbidden();
 
   const { displayName } = await api.institution.group.get({ params });
-  const groupAdmins = await api.institution.group.groupAdmins({ params });
-  const subGroups = await api.institution.group.subGroups({ params });
+  const groupAdmins = await api.institution.group.getAllGroupAdmins({ params });
+  const subGroups = await api.institution.group.getAllSubGroups({ params });
 
   return (
     <PanelWrapper className="mt-5 gap-10">

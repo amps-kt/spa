@@ -14,7 +14,7 @@ import {
 } from "@/lib/validations/params";
 
 export const accessControlRouter = createTRPCRouter({
-  adminInInstance: procedure.instance.user
+  isAdminInInstance: procedure.instance.user
     .output(z.boolean())
     .query(
       async ({ ctx: { user, instance } }) =>
@@ -51,7 +51,7 @@ export const accessControlRouter = createTRPCRouter({
    * If not an admin, it then checks if the user is directly associated with the instance in the database.
    *
    */
-  instanceMembership: procedure.instance.user
+  isInstanceMember: procedure.instance.user
     .input(z.object({ params: instanceParamsSchema }))
     .output(z.boolean())
     .query(
@@ -59,7 +59,7 @@ export const accessControlRouter = createTRPCRouter({
         await user.isMember(instance.params),
     ),
 
-  stageAccess: procedure.instance.user
+  hasStageAccess: procedure.instance.user
     .output(z.boolean())
     .query(async ({ ctx: { user, instance } }) => {
       if (await user.isSubGroupAdminOrBetter(instance.params)) return true;
@@ -80,7 +80,7 @@ export const accessControlRouter = createTRPCRouter({
       return false;
     }),
 
-  projectAccess: procedure.project.user
+  hasProjectAccess: procedure.project.user
     .output(
       z.discriminatedUnion("access", [
         z.object({ access: z.literal(true) }),
@@ -93,6 +93,17 @@ export const accessControlRouter = createTRPCRouter({
       }
 
       if (await user.isStudent(instance.params)) {
+        if (await project.hasPreAllocatedStudent()) {
+          const allocatedStudent = await project.getPreAllocatedStudent();
+
+          if (allocatedStudent.id === user.id) return { access: true };
+
+          return {
+            access: false,
+            error: "Student not eligible for this project",
+          };
+        }
+
         const student = await user.toStudent(instance.params);
 
         const { flag: studentFlag } = await student.get();

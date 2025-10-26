@@ -35,14 +35,16 @@ export function AllProjectsDataTable({
   roles,
   projectPreferences,
   hasSelfDefinedProject,
-  projectDescriptors,
+  usedFlags,
+  usedTags,
 }: {
   data: { project: ProjectDTO; supervisor: SupervisorDTO }[];
   user: User;
   roles: Set<Role>;
   projectPreferences: Record<string, PreferenceType>;
   hasSelfDefinedProject: boolean;
-  projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
+  usedFlags: FlagDTO[];
+  usedTags: TagDTO[];
 }) {
   const router = useRouter();
   const params = useInstanceParams();
@@ -51,7 +53,7 @@ export function AllProjectsDataTable({
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
   const { mutateAsync: api_deleteManyProjects } =
-    api.project.deleteSelected.useMutation();
+    api.project.deleteMany.useMutation();
 
   const { mutateAsync: api_updatePreference } =
     api.user.student.preference.update.useMutation();
@@ -63,6 +65,7 @@ export function AllProjectsDataTable({
     void toast
       .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
         loading: "Deleting project...",
+        // [#14532d] use title instead of ID
         success: `Successfully deleted project ${projectId}`,
         error: "Something went wrong",
       })
@@ -130,7 +133,7 @@ export function AllProjectsDataTable({
     {
       title: "Flags",
       columnId: "Flags",
-      options: projectDescriptors.flags.map((flag) => ({
+      options: usedFlags.map((flag) => ({
         id: flag.id,
         displayName: flag.displayName,
       })),
@@ -138,10 +141,7 @@ export function AllProjectsDataTable({
     {
       title: "Keywords",
       columnId: "Keywords",
-      options: projectDescriptors.tags.map((tag) => ({
-        id: tag.id,
-        displayName: tag.title,
-      })),
+      options: usedTags.map((tag) => ({ id: tag.id, displayName: tag.title })),
     },
   ];
 

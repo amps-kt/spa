@@ -21,10 +21,35 @@ export interface PageConfig {
 }
 
 export const PAGES = {
+  forbidden: {
+    title: "Forbidden",
+    href: "/forbidden",
+    mkUrl: (args?: { params?: InstanceParams; next?: string }) => {
+      let url = "/forbidden";
+      if (args?.next) url += `?next=${args.next}`;
+
+      if (!args?.params) return url;
+
+      const { group, subGroup, instance } = args.params;
+      return `/${group}/${subGroup}/${instance}${url}`;
+    },
+
+    level: 1,
+    allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
+    hasSubRoute: false,
+  },
   unauthorised: {
     title: "Unauthorised",
     href: "",
-    mkUrl: () => "/unauthorised",
+    mkUrl: (args?: { params?: InstanceParams; next?: string }) => {
+      let url = "/unauthorised";
+      if (args?.next) url += `?next=${args.next}`;
+
+      if (!args?.params) return url;
+
+      const { group, subGroup, instance } = args.params;
+      return `/${group}/${subGroup}/${instance}${url}`;
+    },
     level: 1,
     allowedRoles: [Role.ADMIN, Role.READER, Role.STUDENT, Role.SUPERVISOR],
     hasSubRoute: false,
@@ -553,7 +578,7 @@ export const PAGES = {
       instance,
       projectId,
     }: InInstance<{ projectId: string }>) =>
-      `/${group}/${subGroup}/${instance}/projects/${projectId}/random-allocations`,
+      `/${group}/${subGroup}/${instance}/projects/${projectId}/edit`,
     icon: "pen",
     level: 5,
     allowedRoles: [Role.ADMIN, Role.SUPERVISOR],

@@ -3,6 +3,7 @@ import {
   ReaderPreferenceType,
   type PrismaClient,
   Stage,
+  AllocationMethod as DB_AllocationMethod,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -154,6 +155,13 @@ export const extendedReaderPreferenceTypeSchema = z.enum([
 export type ExtendedReaderPreferenceType = z.infer<
   typeof extendedReaderPreferenceTypeSchema
 >;
+
+export const allocationMethodSchema = z.enum([
+  DB_AllocationMethod.PRE_ALLOCATED,
+  DB_AllocationMethod.ALGORITHMIC,
+  DB_AllocationMethod.MANUAL,
+  DB_AllocationMethod.RANDOM,
+]);
 
 export {
   AlgorithmFlag,

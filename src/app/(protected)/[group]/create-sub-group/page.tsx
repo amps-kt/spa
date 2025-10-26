@@ -4,8 +4,8 @@ import { spacesLabels } from "@/config/spaces";
 
 import { Heading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
-import { Unauthorised } from "@/components/unauthorised";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -21,14 +21,11 @@ export async function generateMetadata({ params }: { params: GroupParams }) {
 
 export default async function Page({ params }: { params: GroupParams }) {
   const access = await api.institution.group.access({ params });
+  if (!access) forbidden();
 
-  if (!access) {
-    return (
-      <Unauthorised message="You need to be a super-admin or group admin to access this page" />
-    );
-  }
-
-  const takenNames = await api.institution.group.takenSubGroupNames({ params });
+  const takenNames = await api.institution.group.getAllTakenSubGroupNames({
+    params,
+  });
 
   return (
     <PanelWrapper className="mt-5 gap-10">

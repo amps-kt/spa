@@ -7,6 +7,8 @@ import { toast } from "sonner";
 
 import { type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
+import { AllocationMethod } from "@/db/types";
+
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
@@ -36,8 +38,9 @@ export function RandomAllocationsDataTable({
   const utils = api.useUtils();
 
   const refetchData = useCallback(async () => {
-    await utils.institution.instance.getRandomlyAllocatedStudents.refetch({
+    await utils.institution.instance.getAllocatedStudentsByMethod.refetch({
       params,
+      methods: [AllocationMethod.RANDOM],
     });
     await utils.institution.instance.getUnallocatedStudents.refetch({ params });
   }, [params, utils]);

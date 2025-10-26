@@ -9,15 +9,16 @@ import {
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
+import { ProjectAllocationStatus as PAS } from "@/dto";
+
 import { CopyEmailLink } from "@/components/copy-email-link";
 import { Heading, SectionHeading } from "@/components/heading";
 import { MarkdownRenderer } from "@/components/markdown-editor";
 import { PanelWrapper } from "@/components/panel-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Unauthorised } from "@/components/unauthorised";
 
-import { auth } from "@/lib/auth";
+import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -31,27 +32,18 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const allocationAccess = await api.user.student.allocationAccess({ params });
-
-  if (!allocationAccess) {
-    return (
-      <Unauthorised message="You are not allowed to access this resource at this time" />
-    );
+  if (
+    !(await api.institution.instance.getStudentAllocationAccess({ params }))
+  ) {
+    unauthorised({ params });
   }
 
-  const { mask: user } = await auth();
-
-  const allocatedProject = await api.user.student.getAllocatedProject({
-    params,
-    studentId: user.id,
-  });
-
-  // TODO: this should tell the student if their project was allocated by a different method (e.g. self-defined, random allocation)
+  const allocation = await api.user.student.getMaybeAllocation({ params });
 
   return (
     <PanelWrapper className="gap-10">
       <Heading>{PAGES.myAllocation.title}</Heading>
-      {!allocatedProject ? (
+      {allocation.allocationMethod === PAS.UNALLOCATED ? (
         <div className="mt-9 flex flex-col gap-4">
           <SectionHeading icon={FolderXIcon}>Allocation</SectionHeading>
           <p>You have not been allocated a project</p>
@@ -64,7 +56,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 <span>
                   You got your{" "}
                   <span className="font-semibold text-indigo-600">
-                    {toPositional(allocatedProject.studentRanking)}
+                    {toPositional(allocation.rank)}
                   </span>{" "}
                   choice
                 </span>
@@ -72,7 +64,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
             </CardContent>
           </Card>
           <SectionHeading icon={FolderCheckIcon}>
-            {allocatedProject.title}
+            {allocation.project.title}
           </SectionHeading>
           <div className="flex flex-col items-start">
             <div className="flex items-center gap-2 text-lg">
@@ -80,7 +72,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 <User2Icon className="h-6 w-6" />
               </div>
               <p className="text-xl font-medium">
-                {allocatedProject.supervisor.name}
+                {allocation.supervisor.name}
               </p>
             </div>
             <div className="flex items-center gap-2 text-lg">
@@ -89,11 +81,11 @@ export default async function Page({ params }: { params: InstanceParams }) {
               </div>
               <CopyEmailLink
                 className="text-base font-medium"
-                email={allocatedProject.supervisor.email}
+                email={allocation.supervisor.email}
               />
             </div>
             <Separator className="my-6" />
-            <MarkdownRenderer source={allocatedProject.description} />
+            <MarkdownRenderer source={allocation.project.description} />
           </div>
         </div>
       )}

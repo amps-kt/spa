@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
-  const takenGroupNames = await api.institution.takenGroupNames();
+  const takenGroupNames = await api.institution.getTakenGroupNames();
 
   return (
     <PanelWrapper className="mt-5 gap-10">

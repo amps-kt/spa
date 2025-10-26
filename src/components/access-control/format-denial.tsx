@@ -4,7 +4,6 @@ import { getRoleDisplayName, type Role, type Stage } from "@/db/types";
 
 import { type AccessControlContext, DenialReason } from "./types";
 
-// MOVE these to some other file if you think they might be useful to you
 function FancyStage({ stage }: { stage: Stage }) {
   return (
     <span className="font-mono bg-accent p-0.5 rounded-xs text-accent-foreground">

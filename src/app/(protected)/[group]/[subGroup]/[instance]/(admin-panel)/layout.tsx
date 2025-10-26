@@ -1,7 +1,6 @@
 import { type ReactNode } from "react";
 
-import { Unauthorised } from "@/components/unauthorised";
-
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -12,13 +11,8 @@ export default async function Layout({
   params: InstanceParams;
   children: ReactNode;
 }) {
-  const access = await api.ac.adminInInstance({ params });
-  if (!access) {
-    // could potentially throw error as this should be caught by the layout one level up
-    return (
-      <Unauthorised message="You need to be an admin to access this page" />
-    );
-  }
+  const access = await api.ac.isAdminInInstance({ params });
+  if (!access) forbidden({ params });
 
   return <>{children}</>;
 }

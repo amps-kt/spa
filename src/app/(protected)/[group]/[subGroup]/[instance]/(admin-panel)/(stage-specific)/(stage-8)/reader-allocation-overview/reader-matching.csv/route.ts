@@ -29,7 +29,7 @@ export async function GET(
   _request: Request,
   { params }: { params: InstanceParams },
 ) {
-  const isAdmin = await api.ac.adminInInstance({ params });
+  const isAdmin = await api.ac.isAdminInInstance({ params });
   if (!isAdmin) return redirect("unauthorised", undefined);
 
   const matching = await api.institution.instance.getReaderAllocation({

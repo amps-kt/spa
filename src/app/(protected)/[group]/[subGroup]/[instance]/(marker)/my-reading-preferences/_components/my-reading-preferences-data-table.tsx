@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-import { type ProjectDTO } from "@/dto";
+import { type StudentDTO, type ProjectDTO } from "@/dto";
 
 import { ExtendedReaderPreferenceType } from "@/db/types";
 
@@ -11,12 +11,16 @@ import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
 
-import { useMyReadingPreferenceColumns } from "./my-reading-preferences-columns";
+import { myReadingPreferenceColumns } from "./my-reading-preferences-columns";
 
 export function MyReadingPreferencesDataTable({
   initialData,
 }: {
-  initialData: { project: ProjectDTO; type: ExtendedReaderPreferenceType }[];
+  initialData: {
+    project: ProjectDTO;
+    student: StudentDTO;
+    type: ExtendedReaderPreferenceType;
+  }[];
 }) {
   const params = useInstanceParams();
 
@@ -27,8 +31,9 @@ export function MyReadingPreferencesDataTable({
 
   const displayData = useMemo(
     () =>
-      initialData.map(({ project }) => ({
+      initialData.map(({ project, student }) => ({
         project,
+        student,
         type:
           currentData.find((p) => p.project.id === project.id)?.type ??
           ExtendedReaderPreferenceType.ACCEPTABLE,
@@ -36,6 +41,5 @@ export function MyReadingPreferencesDataTable({
     [currentData, initialData],
   );
 
-  const columns = useMyReadingPreferenceColumns();
-  return <DataTable columns={columns} data={displayData} />;
+  return <DataTable columns={myReadingPreferenceColumns} data={displayData} />;
 }

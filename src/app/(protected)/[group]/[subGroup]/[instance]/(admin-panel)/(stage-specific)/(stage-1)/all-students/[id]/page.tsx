@@ -4,13 +4,15 @@ import { notFound } from "next/navigation";
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
+import { ProjectAllocationStatus as PAS } from "@/dto";
+
 import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { StudentAllocation } from "./_components/student-allocation";
+import { StudentAllocationCard } from "./_components/student-allocation";
 import { StudentDetailsCard } from "./_components/student-details-card";
 import { StudentPreferencesSection } from "./_components/student-preferences-section";
 import { StudentProjectSection } from "./_components/student-project-section";
@@ -25,7 +27,7 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const { displayName } = await api.institution.instance.get({ params });
-  const { name } = await api.user.getById({ userId: params.id });
+  const { name } = await api.user.getById({ params, userId: params.id });
 
   return {
     title: metadataTitle([
@@ -44,8 +46,13 @@ export default async function Page({ params }: { params: PageParams }) {
 
   const flags = await api.institution.instance.getFlags({ params });
 
-  const { student, selfDefinedProjectId, allocation } =
-    await api.user.student.getById({ params, studentId });
+  const student = await api.user.student.byId.get({ params, studentId });
+  const allocation = await api.user.student.byId.getMaybeAllocation({
+    params,
+    studentId,
+  });
+
+  const isSelfDefined = allocation.allocationMethod === PAS.PRE_ALLOCATED;
 
   return (
     <PanelWrapper>
@@ -57,17 +64,13 @@ export default async function Page({ params }: { params: PageParams }) {
       <section className="flex gap-10">
         <StudentDetailsCard className="w-1/2" student={student} flags={flags} />
         {/* If the student has been allocated a project show it */}
-        {allocation && (
-          <StudentAllocation
-            className="w-1/2"
-            allocation={allocation}
-            selfDefined={!!selfDefinedProjectId}
-          />
+        {allocation.allocationMethod !== PAS.UNALLOCATED && (
+          <StudentAllocationCard className="w-1/2" allocation={allocation} />
         )}
       </section>
 
       {/* if the student has already been allocated a project show it */}
-      {allocation && (
+      {allocation.allocationMethod !== PAS.UNALLOCATED && (
         <StudentProjectSection
           className="mt-16"
           allocatedProject={allocation.project}
@@ -75,7 +78,7 @@ export default async function Page({ params }: { params: PageParams }) {
       )}
 
       {/* if the student has not defined a project show their preferences */}
-      {!selfDefinedProjectId && <StudentPreferencesSection params={params} />}
+      {!isSelfDefined && <StudentPreferencesSection params={params} />}
     </PanelWrapper>
   );
 }

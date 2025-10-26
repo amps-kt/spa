@@ -2,8 +2,7 @@ import { type ReactNode } from "react";
 
 import { Role } from "@/db/types";
 
-import { Unauthorised } from "@/components/unauthorised";
-
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -15,12 +14,8 @@ export default async function Layout({
   children: ReactNode;
 }) {
   const roles = await api.user.roles({ params });
-
-  if (!roles.has(Role.SUPERVISOR) && !roles.has(Role.READER)) {
-    return (
-      <Unauthorised message="You need to be a Supervisor or Reader to access this page" />
-    );
-  }
+  if (!roles.has(Role.SUPERVISOR) && !roles.has(Role.READER))
+    forbidden({ params });
 
   return <section className="mr-12 w-full">{children}</section>;
 }

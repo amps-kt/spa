@@ -1,10 +1,10 @@
 import { type ReactNode } from "react";
 
-import { Role } from "@/db/types";
+import { Stage } from "@/db/types";
 
-import { Unauthorised } from "@/components/unauthorised";
-
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
+import { stageLt } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
@@ -14,13 +14,9 @@ export default async function Layout({
   params: InstanceParams;
   children: ReactNode;
 }) {
-  const roles = await api.user.roles({ params });
+  const { stage } = await api.institution.instance.get({ params });
 
-  if (!roles.has(Role.ADMIN)) {
-    return (
-      <Unauthorised message="You need to be an admin to access this page" />
-    );
-  }
+  if (stageLt(stage, Stage.MARK_SUBMISSION)) forbidden({ params });
 
   return <>{children}</>;
 }

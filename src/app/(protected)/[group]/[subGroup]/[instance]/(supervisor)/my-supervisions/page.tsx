@@ -5,8 +5,8 @@ import { PAGES } from "@/config/pages";
 
 import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
-import { Unauthorised } from "@/components/unauthorised";
 
+import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -21,17 +21,12 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const allocationAccess = await api.user.supervisor.allocationAccess({
-    params,
-  });
-
-  if (!allocationAccess) {
-    return (
-      <Unauthorised message="You are not allowed to access this resource at this time" />
-    );
+  if (
+    !(await api.institution.instance.get({ params })).supervisorAllocationAccess
+  ) {
+    unauthorised({ params });
   }
 
-  // pin: output type is not standard
   const allocations = await api.user.supervisor.allocations({ params });
 
   return (
