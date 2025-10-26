@@ -96,6 +96,7 @@ export function EditProjectForm({
       >
         Cancel
       </Button>
+      {/* // TODO: button should require confirmation */}
       <ProjectRemovalButton
         projectId={projectId}
         isAdmin={userRole === Role.ADMIN}

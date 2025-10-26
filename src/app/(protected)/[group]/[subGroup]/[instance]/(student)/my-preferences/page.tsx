@@ -1,7 +1,7 @@
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
-import { Role, Stage } from "@/db/types";
+import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { Heading } from "@/components/heading";
@@ -28,14 +28,6 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const roles = await api.user.roles({ params });
-
-  if (!roles.has(Role.STUDENT)) {
-    return (
-      <Unauthorised message="You need to be a Student to access this page" />
-    );
-  }
-
   const { mask: user } = await auth();
 
   const isPreAllocated = await api.user.student.isPreAllocated({ params });
@@ -45,20 +37,16 @@ export default async function Page({ params }: { params: InstanceParams }) {
     );
   }
 
-  const { initialProjects } =
-    await api.user.student.preference.initialBoardState({
-      params,
-      studentId: user.id,
-    });
-
-  const latestSubmissionDateTime = await api.user.student.latestSubmission({
+  const initialProjects = await api.user.student.preference.initialBoardState({
     params,
     studentId: user.id,
   });
 
-  const restrictions = await api.user.student.preferenceRestrictions({
+  const latestSubmissionDateTime = await api.user.student.latestSubmission({
     params,
   });
+
+  const instanceData = await api.institution.instance.get({ params });
 
   return (
     <PanelWrapper className="gap-10">
@@ -72,7 +60,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
             studentId={user.id}
             initialProjects={initialProjects}
             latestSubmissionDateTime={latestSubmissionDateTime}
-            restrictions={restrictions}
+            instanceData={instanceData}
           />
         }
       />

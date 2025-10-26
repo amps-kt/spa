@@ -28,7 +28,7 @@ export default async function Page({ params }: { params: PageParams }) {
 
   const user = await api.user.get();
   const roles = await api.user.roles({ params });
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
 
   const { project, supervisor } = await api.project.getByIdWithSupervisor({
     params: toPP1(params),

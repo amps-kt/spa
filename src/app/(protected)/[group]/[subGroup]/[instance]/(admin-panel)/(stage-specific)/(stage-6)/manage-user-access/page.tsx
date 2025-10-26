@@ -22,8 +22,11 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const supervisor = await api.user.supervisor.allocationAccess({ params });
-  const student = await api.user.student.allocationAccess({ params });
+  const supervisorAccess =
+    await api.institution.instance.getSupervisorAllocationAccess({ params });
+
+  const studentAccess =
+    await api.institution.instance.getStudentAllocationAccess({ params });
 
   return (
     <PanelWrapper className="gap-10">
@@ -38,7 +41,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
               Toggle the supervisor access for this instance. When enabled,
               supervisors will have be able to view their allocations.
             </CardDescription>
-            <SupervisorAccessToggle supervisor={supervisor} />
+            <SupervisorAccessToggle supervisor={supervisorAccess} />
           </CardContent>
         </Card>
       </section>
@@ -52,7 +55,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
               Toggle the student access for this instance. When enabled,
               students will have be able to view their allocations
             </CardDescription>
-            <StudentAccessToggle student={student} />
+            <StudentAccessToggle student={studentAccess} />
           </CardContent>
         </Card>
       </section>

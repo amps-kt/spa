@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   if (!exists) notFound();
 
   const { displayName } = await api.institution.instance.get({ params });
-  const { name } = await api.user.getById({ userId: params.id });
+  const { name } = await api.user.getById({ params, userId: params.id });
 
   return {
     title: metadataTitle([
@@ -43,27 +43,27 @@ export default async function Page({ params }: { params: PageParams }) {
   const exists = await api.user.student.exists({ params, studentId });
   if (!exists) notFound();
 
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
   if (stage !== Stage.STUDENT_BIDDING) {
     return (
       <Unauthorised message="You are not allowed to access this resource at this time" />
     );
   }
-  const { student } = await api.user.student.getById({ params, studentId });
 
-  const { initialProjects } =
-    await api.user.student.preference.initialBoardState({ params, studentId });
+  const student = await api.user.student.byId.get({ params, studentId });
 
-  const latestSubmissionDateTime = await api.user.student.latestSubmission({
+  const initialProjects = await api.user.student.preference.initialBoardState({
     params,
     studentId,
   });
 
-  const restrictions = await api.user.student.preferenceRestrictions({
-    params,
-  });
+  const latestSubmissionDateTime = await api.user.student.byId.latestSubmission(
+    { params, studentId },
+  );
 
-  const availableProjects = await api.user.student.getSuitableProjects({
+  const instanceData = await api.institution.instance.get({ params });
+
+  const availableProjects = await api.user.student.byId.getSuitableProjects({
     params,
     studentId,
   });
@@ -81,7 +81,7 @@ export default async function Page({ params }: { params: PageParams }) {
           studentId={studentId}
           initialProjects={initialProjects}
           latestSubmissionDateTime={latestSubmissionDateTime}
-          restrictions={restrictions}
+          instanceData={instanceData}
         />
       </section>
 

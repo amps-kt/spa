@@ -1,17 +1,11 @@
 import { type ReactNode } from "react";
 
-import { Unauthorised } from "@/components/unauthorised";
-
 import { api } from "@/lib/trpc/server";
+import { forbidden } from "@/lib/utils/redirect";
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const access = await api.institution.superAdminAccess();
-
-  if (!access) {
-    return (
-      <Unauthorised message="You need to be a super-admin to access this page" />
-    );
-  }
+  const access = await api.institution.isSuperAdmin();
+  if (!access) forbidden();
 
   return <>{children}</>;
 }

@@ -2,14 +2,20 @@ import { app, metadataTitle } from "@/config/meta";
 
 import { Role } from "@/db/types";
 
-import { Unauthorised } from "@/components/unauthorised";
+import { Heading } from "@/components/heading";
+import { JoinInstance } from "@/components/join-instance";
+import { PanelWrapper } from "@/components/panel-wrapper";
+import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import AdminPanel from "./(admin-panel)/admin-panel";
-import { StudentOverview } from "./(student)/student-overview";
-import { SupervisorOverview } from "./(supervisor)/supervisor-overview";
+import {
+  AdminHome,
+  ReaderHome,
+  StudentHome,
+  SupervisorHome,
+} from "./_components/instance-home";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
@@ -17,16 +23,35 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   return { title: metadataTitle([displayName, app.name]) };
 }
 
-// TODO: this whole thing needs some tlc tbh
 export default async function Page({ params }: { params: InstanceParams }) {
-  const isAdmin = await api.ac.adminInInstance({ params: params });
-  if (isAdmin) return <AdminPanel params={params} />;
+  const { displayName } = await api.institution.instance.get({ params });
 
+  const isJoined = await api.user.isJoined({ params });
   const roles = await api.user.roles({ params });
-  if (roles.has(Role.STUDENT)) return <StudentOverview params={params} />;
-  if (roles.has(Role.SUPERVISOR)) return <SupervisorOverview params={params} />;
-  // TODO: add READER routing
+  const hasMultipleRoles = roles.size > 1;
 
-  // could potentially throw error as this should be caught by the layout
-  return <Unauthorised message="You don't have permission to view this page" />;
+  return (
+    <PanelWrapper>
+      <Heading>{displayName}</Heading>
+      {roles.has(Role.ADMIN) && (
+        <>
+          <AdminHome params={params} hasMultipleRoles={hasMultipleRoles} />
+          {(roles.has(Role.SUPERVISOR) || roles.has(Role.READER)) && (
+            <Separator className="my-10" />
+          )}
+        </>
+      )}
+      {roles.has(Role.SUPERVISOR) && (
+        <>
+          <SupervisorHome params={params} hasMultipleRoles={hasMultipleRoles} />
+          {roles.has(Role.READER) && <Separator className="my-10" />}
+        </>
+      )}
+      {roles.has(Role.READER) && (
+        <ReaderHome params={params} hasMultipleRoles={hasMultipleRoles} />
+      )}
+      {roles.has(Role.STUDENT) && <StudentHome params={params} />}
+      <JoinInstance isJoined={isJoined} />
+    </PanelWrapper>
+  );
 }

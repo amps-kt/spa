@@ -31,9 +31,15 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const students = await api.institution.instance.getStudentsByJoinedStatus({
-    params,
-  });
+  const allStudents =
+    await api.institution.instance.getStudentsWithPreAllocationStatus({
+      params,
+    });
+
+  const notJoined = allStudents.filter(
+    (s) => !s.student.joined && !s.preAllocated,
+  );
+
   const projectDescriptors =
     await api.institution.instance.getAllProjectDescriptors({ params });
 
@@ -44,20 +50,17 @@ export default async function Page({ params }: { params: InstanceParams }) {
         <SectionHeading icon={ZapIcon}>Quick Actions</SectionHeading>
         <Card className="w-full">
           <CardContent className="mt-6 flex items-center justify-between gap-10">
-            {students.incomplete.length !== 0 ? (
+            {notJoined.length !== 0 ? (
               <>
                 <p>
-                  <span className="font-semibold">
-                    {students.incomplete.length}
-                  </span>{" "}
-                  out of{" "}
-                  <span className="font-semibold">{students.all.length}</span>{" "}
+                  <span className="font-semibold">{notJoined.length}</span> out
+                  of <span className="font-semibold">{allStudents.length}</span>{" "}
                   students have not joined the platform yet. Excludes
                   pre-allocated students by default.
                 </p>
                 <div className="flex w-44 items-center">
                   <CopyEmailsButton
-                    data={students.incomplete.map((s) => s.student)}
+                    data={notJoined.map((s) => s.student)}
                     className="w-36 rounded-r-none"
                   />
                   <DropdownMenu>
@@ -80,10 +83,9 @@ export default async function Page({ params }: { params: InstanceParams }) {
                         <CopyEmailsButton
                           className="flex w-full items-center gap-2 text-left"
                           label="Include Pre-allocated Students"
-                          data={[
-                            ...students.incomplete.map((s) => s.student),
-                            ...students.preAllocated.map((s) => s.student),
-                          ]}
+                          data={allStudents
+                            .filter((s) => !s.student.joined)
+                            .map((s) => s.student)}
                           unstyled
                         />
                       </DropdownMenuItem>
@@ -100,7 +102,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
       <section className="flex w-full flex-col gap-5">
         <SectionHeading icon={DatabaseIcon}>All data</SectionHeading>
         <StudentInvitesDataTable
-          data={students.all.map((s) => s.student)}
+          data={allStudents.map((s) => s.student)}
           projectDescriptors={projectDescriptors}
         />
       </section>

@@ -14,7 +14,7 @@ export const groupRouter = createTRPCRouter({
     .output(z.boolean())
     .query(async ({ ctx: { group } }) => await group.exists()),
 
-  get: procedure.group.user
+  get: procedure.group.groupAdmin
     .output(groupDtoSchema)
     .query(async ({ ctx: { group } }) => await group.get()),
 
@@ -30,15 +30,16 @@ export const groupRouter = createTRPCRouter({
         await user.isGroupAdminOrBetter(group.params),
     ),
 
-  subGroups: procedure.group.groupAdmin
-    .output(z.array(subGroupDtoSchema))
-    .query(async ({ ctx: { group } }) => await group.getSubGroups()),
-
-  groupAdmins: procedure.group.groupAdmin
+  getAllGroupAdmins: procedure.group.groupAdmin
     .output(z.array(userDtoSchema))
     .query(async ({ ctx: { group } }) => await group.getAdmins()),
 
-  takenSubGroupNames: procedure.group.groupAdmin
+  // Move maybe to subgroup router?
+  getAllSubGroups: procedure.group.groupAdmin
+    .output(z.array(subGroupDtoSchema))
+    .query(async ({ ctx: { group } }) => await group.getSubGroups()),
+
+  getAllTakenSubGroupNames: procedure.group.groupAdmin
     .output(z.set(z.string()))
     .query(
       async ({ ctx: { group } }) =>
@@ -62,8 +63,7 @@ export const groupRouter = createTRPCRouter({
       await subGroup.delete();
     }),
 
-  // BREAKING input and return types changed
-  addAdmin: procedure.group.superAdmin
+  addGroupAdmin: procedure.group.superAdmin
     .input(z.object({ newAdmin: userDtoSchema }))
     .output(LinkUserResultSchema)
     .mutation(
@@ -101,7 +101,7 @@ export const groupRouter = createTRPCRouter({
       },
     ),
 
-  removeAdmin: procedure.group.superAdmin
+  removeGroupAdmin: procedure.group.superAdmin
     .input(z.object({ userId: z.string() }))
     .output(z.void())
     .mutation(async ({ ctx: { group, audit }, input: { userId } }) => {

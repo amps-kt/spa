@@ -46,7 +46,8 @@ export function FormButton({ params }: { params: SubGroupParams }) {
 
   const form = useForm<NewAdmin>({ resolver: zodResolver(newAdminSchema) });
 
-  const { mutateAsync } = api.institution.subGroup.addAdmin.useMutation();
+  const { mutateAsync } =
+    api.institution.subGroup.addSubGroupAdmin.useMutation();
 
   const onSubmit = async (data: NewAdmin) => {
     const newAdmin = {

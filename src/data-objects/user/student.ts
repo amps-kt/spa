@@ -57,6 +57,8 @@ export class Student extends User {
     project: ProjectDTO;
     supervisor: SupervisorDTO;
     studentRanking: number;
+    rank: number;
+    allocationMethod: AllocationMethod;
   }> {
     return await this.db.studentProjectAllocation
       .findFirstOrThrow({
@@ -77,6 +79,8 @@ export class Student extends User {
         project: T.toProjectDTO(x.project),
         supervisor: T.toSupervisorDTO(x.project.supervisor),
         studentRanking: x.studentRanking,
+        rank: x.studentRanking,
+        allocationMethod: x.allocationMethod,
       }));
   }
 

@@ -8,7 +8,7 @@ import { PAGES } from "@/config/pages";
 
 import {
   useInstanceParams,
-  useInstancePath,
+  usePathInInstance,
 } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 
@@ -24,25 +24,27 @@ export function ProjectRemovalButton({
 }) {
   const params = useInstanceParams();
   const router = useRouter();
-  const instancePath = useInstancePath();
+  const { getInstancePath } = usePathInInstance();
 
-  const { mutateAsync: deleteAsync } = api.project.delete.useMutation();
+  const redirectPath = isAdmin
+    ? getInstancePath([PAGES.allProjects.href])
+    : getInstancePath([PAGES.myProposedProjects.href]);
+
+  const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
   function handleDelete() {
-    void toast.promise(
-      deleteAsync({ params: toPP3(params, projectId) }).then(() => {
-        const redirectPath = isAdmin
-          ? `${instancePath}/${PAGES.allProjects.href}`
-          : `${instancePath}/${PAGES.myProposedProjects.href}`;
-        router.push(redirectPath);
-        router.refresh();
-      }),
-      {
+    void toast
+      .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
+        // [#14532d] use title to reference project being deleted
         loading: "Deleting Project...",
         error: "Something went wrong",
         success: "Success",
-      },
-    );
+      })
+      .unwrap()
+      .then(() => {
+        router.push(redirectPath);
+        router.refresh();
+      });
   }
   return (
     <Button

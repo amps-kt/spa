@@ -15,15 +15,8 @@ import {
   linkProjectFlagIds,
   linkProjectTagIds,
 } from "@/db/transactions/project-flags";
-import {
-  Transformers as T,
-  ReadingPreferenceTransformers as RPT,
-} from "@/db/transformers";
-import {
-  extendedReaderPreferenceTypeSchema,
-  PreferenceType,
-  Stage,
-} from "@/db/types";
+import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
+import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -36,13 +29,15 @@ import {
 } from "@/lib/utils/permissions/stage-check";
 
 export const projectRouter = createTRPCRouter({
-  exists: procedure.project.user
+  exists: procedure.project.member
     .output(z.boolean())
     .query(async ({ ctx: { project } }) => await project.exists()),
 
   edit: procedure.project
-    .inStage(previousStages(Stage.STUDENT_BIDDING))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+      allowedStages: previousStages(Stage.STUDENT_BIDDING),
+    })
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
@@ -115,7 +110,7 @@ export const projectRouter = createTRPCRouter({
       },
     ),
 
-  getAllForUser: procedure.instance.user
+  getAllForUser: procedure.instance.member
     .output(
       z.array(
         z.object({
@@ -134,13 +129,16 @@ export const projectRouter = createTRPCRouter({
         const student = await user.toStudent(instance.params);
         const { flag: studentFlag } = await student.get();
 
+        console.log(studentFlag);
+
         // TODO: add pre-allocated project to top of list if such a project exists
         // otherwise, sort in alphabetical order
         return projectData
           .filter(
             (p) =>
-              p.project.flags.map((f) => f.id).includes(studentFlag.id) &&
-              (!p.allocatedStudent || p.allocatedStudent?.id === student.id),
+              (p.project.flags.map((f) => f.id).includes(studentFlag.id) &&
+                !p.allocatedStudent) ||
+              p.allocatedStudent?.id === student.id,
           )
           .map((p) => ({
             project: p.project,
@@ -160,8 +158,11 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { instance } }) => await instance.getLateProjects()),
 
   getAllPreAllocated: procedure.instance
-    .inStage(subsequentStages(Stage.PROJECT_SUBMISSION))
-    .subGroupAdmin.output(
+    .withAC({
+      allowedStages: subsequentStages(Stage.PROJECT_SUBMISSION),
+      allowedRoles: [Role.ADMIN],
+    })
+    .output(
       z.array(
         z.object({
           project: projectDtoSchema,
@@ -196,128 +197,36 @@ export const projectRouter = createTRPCRouter({
         }));
     }),
 
-  getById: procedure.project.user
+  // Pin -> this should be stricter than member, but we need a better withAC impl
+  getById: procedure.project.member
     .output(projectDtoSchema)
-    .query(async ({ ctx: { db, project } }) => {
-      // project.get
-      const data = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          supervisor: {
-            include: { userInInstance: { include: { user: true } } },
-          },
-          flagsOnProject: { include: { flag: true } },
-          tagsOnProject: { include: { tag: true } },
-        },
-      });
+    .query(async ({ ctx: { project } }) => await project.get()),
 
-      return T.toProjectDTO(data);
-    }),
-
-  getByIdWithSupervisor: procedure.project.user
+  getByIdWithSupervisor: procedure.project.member
     .output(
       z.object({ project: projectDtoSchema, supervisor: supervisorDtoSchema }),
     )
-    .query(async ({ ctx: { db, project } }) => {
-      // project.get
-      const data = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          supervisor: {
-            include: { userInInstance: { include: { user: true } } },
-          },
-          flagsOnProject: { include: { flag: true } },
-          tagsOnProject: { include: { tag: true } },
-        },
-      });
-
+    .query(async ({ ctx: { project } }) => {
       return {
-        project: T.toProjectDTO(data),
-        supervisor: T.toSupervisorDTO(data.supervisor),
+        project: await project.get(),
+        supervisor: await project.getSupervisor(),
       };
     }),
 
-  // TODO: rename maybe? getStudentPreferencesForId
-  getAllStudentPreferences: procedure.project.user
-    .output(
-      z.array(
-        z.object({
-          student: studentDtoSchema,
-          preference: z.object({
-            type: z.enum(PreferenceType).or(z.literal("SUBMITTED")),
-            rank: z.number().optional(),
-          }),
-        }),
-      ),
-    )
-    .query(async ({ ctx: { instance, project, db } }) => {
-      const projectId = project.params.projectId;
-      const studentPreferences = await instance.getStudentPreferenceDetails();
-
-      const studentPreferenceMap = studentPreferences.reduce(
-        (acc, val) => {
-          const draft = val.draftPreferences
-            .filter((x) => x.type === PreferenceType.PREFERENCE)
-            .map((x) => x.projectId);
-
-          return { ...acc, [val.student.id]: draft };
-        },
-        {} as Record<string, string[]>,
-      );
-
-      const hello = await db.project.findFirstOrThrow({
-        where: toPP2(project.params),
-        include: {
-          inStudentDraftPreferences: {
-            include: {
-              student: {
-                include: {
-                  studentFlag: true,
-                  userInInstance: { include: { user: true } },
-                },
-              },
-            },
-          },
-          inStudentSubmittedPreferences: {
-            include: {
-              student: {
-                include: {
-                  studentFlag: true,
-                  userInInstance: { include: { user: true } },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const submittedPreferences = hello.inStudentSubmittedPreferences.map(
-        (x) => ({
-          student: T.toStudentDTO(x.student),
-          preference: { type: "SUBMITTED" as const, rank: x.rank },
-        }),
-      );
-
-      const draftPreferences = hello.inStudentDraftPreferences.map((x) => {
-        const student = T.toStudentDTO(x.student);
-        return {
-          student,
-          preference: {
-            type: x.type,
-            rank:
-              x.type === PreferenceType.PREFERENCE
-                ? studentPreferenceMap[x.student.userId].indexOf(projectId) + 1
-                : undefined,
-          },
-        };
-      });
-
-      return [...submittedPreferences, ...draftPreferences];
-    }),
+  // Pin => AC check is not quite strict enough - should only be supervisor for *this* project
+  getStudentPreferencesForProject: procedure.project
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
+    .output(z.array(z.object({ student: studentDtoSchema, rank: z.number() })))
+    .query(
+      async ({ ctx: { project } }) =>
+        await project.getAllSubmittedPreferences(),
+    ),
 
   delete: procedure.project
-    .inStage(previousStages(Stage.PROJECT_ALLOCATION))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .output(permissionResultSchema)
     .mutation(async ({ ctx: { project, user, audit } }) => {
       audit("Delete project");
@@ -326,7 +235,7 @@ export const projectRouter = createTRPCRouter({
         return PermissionResult.OK;
       }
 
-      if ((await project.get()).supervisorId === user.id) {
+      if (await user.isProjectSupervisor(project.params.projectId)) {
         await project.delete();
         return PermissionResult.OK;
       }
@@ -334,9 +243,11 @@ export const projectRouter = createTRPCRouter({
       return PermissionResult.UNAUTHORISED;
     }),
 
-  deleteSelected: procedure.instance
-    .inStage(previousStages(Stage.PROJECT_ALLOCATION))
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+  deleteMany: procedure.instance
+    .withAC({
+      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .input(z.object({ projectIds: z.array(z.string()) }))
     .output(z.array(permissionResultSchema))
     .mutation(
@@ -364,8 +275,10 @@ export const projectRouter = createTRPCRouter({
     ),
 
   create: procedure.instance
-    .inStage([Stage.PROJECT_SUBMISSION, Stage.STUDENT_BIDDING])
-    .withRoles([Role.ADMIN, Role.SUPERVISOR])
+    .withAC({
+      allowedStages: [Stage.PROJECT_SUBMISSION, Stage.STUDENT_BIDDING],
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+    })
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
     .mutation(
@@ -415,7 +328,8 @@ export const projectRouter = createTRPCRouter({
       },
     ),
 
-  getFormInitialisationData: procedure.instance.user
+  getFormInitialisationData: procedure.instance
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
     .input(z.object({ projectId: z.string().optional() }))
     .output(
       z.object({
@@ -459,30 +373,19 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  getAllocation: procedure.project.user
+  // Pin -> technically AC should be stricter
+  getAllocation: procedure.project
+    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
     .output(
-      z.object({ student: studentDtoSchema, rank: z.number() }).optional(),
+      z
+        .object({
+          student: studentDtoSchema,
+          rank: z.number(),
+          isPreAllocated: z.boolean(),
+        })
+        .optional(),
     )
-    .query(async ({ ctx: { project, db } }) => {
-      const allocation = await db.studentProjectAllocation.findFirst({
-        where: { projectId: project.params.projectId },
-        include: {
-          student: {
-            include: {
-              userInInstance: { include: { user: true } },
-              studentFlag: true,
-            },
-          },
-        },
-      });
-
-      if (!allocation) return undefined;
-
-      return {
-        student: T.toStudentDTO(allocation.student),
-        rank: allocation.studentRanking,
-      };
-    }),
+    .query(async ({ ctx: { project } }) => await project.getAllocation()),
 
   supervisorSubmissionInfo: procedure.instance.subGroupAdmin
     .output(

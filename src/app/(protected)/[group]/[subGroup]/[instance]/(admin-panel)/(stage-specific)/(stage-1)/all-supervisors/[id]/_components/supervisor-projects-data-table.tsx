@@ -29,32 +29,31 @@ export function SupervisorProjectsDataTable({
   const params = useInstanceParams();
   const router = useRouter();
 
-  const { mutateAsync: deleteAsync } = api.project.delete.useMutation();
-  const { mutateAsync: deleteSelectedAsync } =
-    api.project.deleteSelected.useMutation();
+  const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
+  const { mutateAsync: api_deleteManyProjects } =
+    api.project.deleteMany.useMutation();
 
-  async function handleDelete(projectId: string) {
-    void toast.promise(
-      deleteAsync({ params: toPP3(params, projectId) }).then(() =>
-        router.refresh(),
-      ),
-      {
+  async function deleteProject(projectId: string) {
+    void toast
+      .promise(api_deleteProject({ params: toPP3(params, projectId) }), {
         loading: "Deleting Project...",
         error: "Something went wrong",
+        // [#14532d] use title instead of ID
         success: `Project ${projectId} deleted successfully`,
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
-  async function handleDeleteSelected(projectIds: string[]) {
-    void toast.promise(
-      deleteSelectedAsync({ params, projectIds }).then(() => router.refresh()),
-      {
+  async function deleteManyProjects(projectIds: string[]) {
+    void toast
+      .promise(api_deleteManyProjects({ params, projectIds }), {
         loading: `Deleting ${projectIds.length} Projects...`,
         error: "Something went wrong",
         success: `Successfully deleted ${projectIds.length} Projects`,
-      },
-    );
+      })
+      .unwrap()
+      .then(() => router.refresh());
   }
 
   const filters = [
@@ -92,8 +91,8 @@ export function SupervisorProjectsDataTable({
   ];
 
   const columns = useSupervisorProjectsColumns({
-    deleteProject: handleDelete,
-    deleteSelectedProjects: handleDeleteSelected,
+    deleteProject,
+    deleteManyProjects,
   });
 
   return (

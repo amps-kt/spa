@@ -9,7 +9,7 @@ import { type InstanceParams } from "@/lib/validations/params";
 import { StageControl } from "./_components/stage-control";
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const stage = await api.institution.instance.currentStage({ params });
+  const stage = await api.institution.instance.getCurrentStage({ params });
 
   return (
     <PanelWrapper>

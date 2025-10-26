@@ -18,21 +18,16 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Students({ params }: { params: InstanceParams }) {
-  const roles = await api.user.roles({ params });
   const data = await api.institution.instance.getStudentsWithAllocation({
     params,
   });
-  const projectDescriptors =
-    await api.institution.instance.getAllProjectDescriptors({ params });
+
+  const flags = await api.institution.instance.getFlags({ params });
 
   return (
     <PanelWrapper>
       <Heading>{PAGES.allStudents.title}</Heading>
-      <StudentsDataTable
-        roles={roles}
-        data={data}
-        projectDescriptors={projectDescriptors}
-      />
+      <StudentsDataTable data={data} flags={flags} />
     </PanelWrapper>
   );
 }

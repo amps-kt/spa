@@ -126,6 +126,6 @@ export const supervisorMatchingDetailsDtoSchema = z.object({
   actualTargetDifference: z.number(),
 });
 
-export type SupervisorMatchingDetailsDto = z.infer<
+export type SupervisorMatchingDetailsDTO = z.infer<
   typeof supervisorMatchingDetailsDtoSchema
 >;

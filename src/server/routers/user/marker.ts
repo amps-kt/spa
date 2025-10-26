@@ -29,6 +29,7 @@ import { subsequentStages } from "@/lib/utils/permissions/stage-check";
 
 export const markerRouter = createTRPCRouter({
   getUnitById: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.READER_BIDDING))
     .marker.input(z.object({ unitOfAssessmentId: z.string() }))
     .output(unitOfAssessmentDtoSchema)
@@ -42,6 +43,7 @@ export const markerRouter = createTRPCRouter({
     }),
 
   getProjectsToMark: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.READER_BIDDING))
     .marker.output(
       z.array(
@@ -57,6 +59,7 @@ export const markerRouter = createTRPCRouter({
     ),
 
   getCriteria: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.READER_BIDDING))
     .marker.input(z.object({ unitOfAssessmentId: z.string() }))
     .output(z.array(assessmentCriterionDtoSchema))
@@ -66,6 +69,7 @@ export const markerRouter = createTRPCRouter({
     ),
 
   getSubmission: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage(subsequentStages(Stage.READER_BIDDING))
     .marker.input(
       z.object({ unitOfAssessmentId: z.string(), studentId: z.string() }),
@@ -95,6 +99,7 @@ export const markerRouter = createTRPCRouter({
     ),
 
   resolveMarks: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
     .supervisor.input(
       z.object({
@@ -171,6 +176,7 @@ export const markerRouter = createTRPCRouter({
     ),
 
   submitMarks: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
     .marker.input(markingSubmissionDtoSchema)
     .mutation(
@@ -337,6 +343,7 @@ export const markerRouter = createTRPCRouter({
     ),
 
   saveMarks: procedure.instance
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
     .marker.input(partialMarkingSubmissionDtoSchema)
     .mutation(

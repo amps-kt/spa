@@ -11,14 +11,6 @@ import { allocationCsvDataSchema } from "@/lib/validations/allocation-csv-data";
 import { instanceParamsSchema } from "@/lib/validations/params";
 
 export const matchingRouter = createTRPCRouter({
-  select: procedure.instance.subGroupAdmin
-    .input(z.object({ algId: z.string() }))
-    .output(z.void())
-    .mutation(async ({ ctx: { instance, audit }, input: { algId } }) => {
-      audit("Set selected algorithm", { algId });
-      return await instance.selectAlg(algId);
-    }),
-
   clearSelection: procedure.instance.subGroupAdmin
     .input(z.object({ params: instanceParamsSchema }))
     .output(z.void())

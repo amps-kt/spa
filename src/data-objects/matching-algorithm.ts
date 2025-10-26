@@ -1,4 +1,6 @@
-import { type AlgorithmDTO, type InstanceDTO } from "@/dto";
+import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
+
+import { type UserDTO, type AlgorithmDTO, type InstanceDTO } from "@/dto";
 import { AlgorithmRunResult } from "@/dto/result/algorithm-run-result";
 
 import { Transformers as T } from "@/db/transformers";
@@ -14,6 +16,7 @@ import {
   type MatchingResultDTO,
   type MatchingDataDTO,
   blankResult,
+  type SupervisorMatchingDetailsDTO,
 } from "@/lib/validations/matching";
 import { type AlgorithmInstanceParams } from "@/lib/validations/params";
 
@@ -150,6 +153,65 @@ export class MatchingAlgorithm extends DataObject {
         matching: x.matching,
       }));
     return this._results!;
+  }
+
+  public async getSupervisorResults(
+    supervisorPreAllocationCounts: Record<string, number>,
+  ): Promise<
+    { supervisor: UserDTO; matchingDetails: SupervisorMatchingDetailsDTO }[]
+  > {
+    const algData = await this.get();
+    const { targetModifier, upperBoundModifier } = algData;
+
+    const supervisorData = await this.db.supervisorDetails.findMany({
+      where: expand(this.params),
+      include: {
+        userInInstance: { include: { user: true } },
+        _count: {
+          select: {
+            projects: {
+              where: {
+                matchingPairs: {
+                  some: {
+                    matchingResult: { algorithmId: this.params.algConfigId },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return supervisorData.map(
+      ({
+        projectAllocationTarget: target,
+        projectAllocationUpperBound: upperBound,
+        _count: { projects: algAllocationCount },
+        userInInstance: { user },
+      }) => {
+        const preAllocatedCount = supervisorPreAllocationCounts[user.id] ?? 0;
+
+        return {
+          supervisor: T.toUserDTO(user),
+          matchingDetails: {
+            actualTarget: target,
+            projectTarget: adjustTarget(target, targetModifier),
+
+            // the supervisor's upper quota that setup in the allocation instance
+            actualUpperQuota: upperBound,
+            // the supervisor's upper quota that was given to the algorithm
+            projectUpperQuota: adjustUpperBound(upperBound, upperBoundModifier),
+
+            allocationCount: algAllocationCount,
+            preAllocatedCount,
+            algorithmTargetDifference: target - algAllocationCount,
+            actualTargetDifference:
+              target - (algAllocationCount + preAllocatedCount),
+          },
+        };
+      },
+    );
   }
 
   public async getMatching(): Promise<MatchingResultDTO> {

@@ -13,6 +13,9 @@ import {
 
 import { Role, type Stage } from "@/db/types";
 
+import { type AccessCondition } from "@/components/access-control";
+import { checkAC } from "@/components/access-control/check-ac";
+
 import { type AuditFn } from "@/lib/logging/logger";
 import { HttpMatchingService } from "@/lib/services/matching";
 import {
@@ -264,6 +267,53 @@ const markerMiddleware = authedMiddleware.unstable_pipe(
   },
 );
 
+// * New!
+/**
+ * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
+ */
+const accessControlMiddleware = (condition: AccessCondition) =>
+  authedMiddleware.unstable_pipe(async ({ ctx: { user, db }, next, input }) => {
+    const { params } = z.object({ params: instanceParamsSchema }).parse(input);
+    const instance = new AllocationInstance(db, params);
+    const { stage } = await instance.get();
+
+    const roles = await user.getRolesInInstance(params);
+
+    const res = checkAC(
+      { userRoles: Array.from(roles), currentStage: stage },
+      condition,
+    );
+
+    if (res.status === "DENIED") {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "AC check failed", // Fill in with stuff if you like
+      });
+    }
+
+    return next();
+  });
+
+/**
+ * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
+ */
+const instanceMemberMiddleware = authedMiddleware.unstable_pipe(
+  async ({ ctx: { user }, next, input }) => {
+    const { params } = z.object({ params: instanceParamsSchema }).parse(input);
+
+    const isMember = await user.isMember(params);
+
+    if (!isMember) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not member of instance",
+      });
+    }
+
+    return next();
+  },
+);
+
 /**
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
  */
@@ -366,9 +416,20 @@ export const procedure = {
     supervisor: instanceProcedure.use(supervisorMiddleware),
     reader: instanceProcedure.use(readerMiddleware),
     marker: instanceProcedure.use(markerMiddleware),
+    member: instanceProcedure.use(instanceMemberMiddleware),
+    withAC: (condition: AccessCondition) =>
+      instanceProcedure.use(accessControlMiddleware(condition)),
+    // sort of makes these two irrelevant now,
+    // Maybe we should deprecate?
+
+    /**
+     * @deprecated
+     */
     withRoles: (allowedRoles: Role[]) =>
       instanceProcedure.use(mkRoleMiddleware(allowedRoles)),
-
+    /**
+     * @deprecated
+     */
     inStage: (allowedStages: Stage[]) => {
       const proc = institutionProcedure
         .input(z.object({ params: instanceParamsSchema }))
@@ -384,6 +445,8 @@ export const procedure = {
         student: proc.use(studentMiddleware),
         supervisor: proc.use(supervisorMiddleware),
         marker: proc.use(markerMiddleware),
+        member: proc.use(instanceMemberMiddleware),
+
         withRoles: (allowedRoles: Role[]) =>
           proc.use(mkRoleMiddleware(allowedRoles)),
       };
@@ -397,6 +460,10 @@ export const procedure = {
     subGroupAdmin: projectProcedure.use(SubGroupAdminMiddleware),
     supervisor: projectProcedure.use(supervisorMiddleware),
     marker: projectProcedure.use(markerMiddleware),
+    member: projectProcedure.use(instanceMemberMiddleware),
+    withAC: (condition: AccessCondition) =>
+      projectProcedure.use(accessControlMiddleware(condition)),
+
     withRoles: (allowedRoles: Role[]) =>
       projectProcedure.use(mkRoleMiddleware(allowedRoles)),
 
@@ -415,6 +482,8 @@ export const procedure = {
         subGroupAdmin: proc.use(SubGroupAdminMiddleware),
         supervisor: proc.use(supervisorMiddleware),
         marker: proc.use(markerMiddleware),
+        member: proc.use(instanceMemberMiddleware),
+
         withRoles: (allowedRoles: Role[]) =>
           proc.use(mkRoleMiddleware(allowedRoles)),
       };

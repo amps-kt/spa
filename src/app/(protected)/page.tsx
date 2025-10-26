@@ -1,8 +1,8 @@
+import { UserSpacesGrid } from "@/app/(protected)/_components/user-spaces-grid";
 import { type Metadata } from "next";
 
 import { app, metadataTitle } from "@/config/meta";
 
-import UserSpacesGrid from "@/components/pages/landing-page/user-spaces-grid";
 import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
