@@ -41,7 +41,7 @@ async function SupervisorHomeInner({ params }: { params: InstanceParams }) {
 
   if (
     stage === Stage.ALLOCATION_PUBLICATION &&
-    (await api.institution.instance.getSupervisorAllocationAccess({ params }))
+    (await api.institution.instance.get({ params })).supervisorAllocationAccess
   ) {
     return (
       <div className="mt-9 flex flex-col gap-4">

@@ -1,4 +1,4 @@
-import { GraduationCap, Users2Icon } from "lucide-react";
+import { GraduationCapIcon, Users2Icon } from "lucide-react";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -22,8 +22,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const supervisorAccess =
-    await api.institution.instance.getSupervisorAllocationAccess({ params });
+  const { supervisorAllocationAccess: supervisorAccess } =
+    await api.institution.instance.get({ params });
 
   const studentAccess =
     await api.institution.instance.getStudentAllocationAccess({ params });
@@ -46,7 +46,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
         </Card>
       </section>
       <section className="flex w-full flex-col gap-6">
-        <SectionHeading icon={GraduationCap} className="mb-2">
+        <SectionHeading icon={GraduationCapIcon} className="mb-2">
           Students access
         </SectionHeading>
         <Card className="w-full">

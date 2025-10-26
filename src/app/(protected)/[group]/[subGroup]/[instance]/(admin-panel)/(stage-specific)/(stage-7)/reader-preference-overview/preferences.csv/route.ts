@@ -19,7 +19,7 @@ export async function GET(
   { params }: { params: InstanceParams },
 ) {
   // We have to do our own AC here (since there is no layout to do it for us):
-  const isAdmin = await api.ac.adminInInstance({ params });
+  const isAdmin = await api.ac.isAdminInInstance({ params });
   if (!isAdmin) return redirect("unauthorised", undefined);
 
   // We then get the data we need:
