@@ -86,6 +86,7 @@ export function useManualAllocationColumns({
       accessorFn: (row) => row.flag.id,
       header: () => null,
       cell: () => null,
+      enableHiding: false,
       filterFn: (row, columnId, value) => {
         const selectedFilters = z.array(z.string()).parse(value);
         return selectedFilters.includes(row.getValue<string>(columnId));
@@ -93,6 +94,11 @@ export function useManualAllocationColumns({
     },
     {
       id: "project",
+      accessorFn: (row) =>
+        projects.find(
+          (project) =>
+            project.id === (row.selectedProjectId ?? row.originalProjectId),
+        )?.title ?? "",
       header: "Project",
       cell: ({ row }) => {
         const student = row.original;
@@ -109,6 +115,12 @@ export function useManualAllocationColumns({
     },
     {
       id: "supervisor",
+      accessorFn: (row) =>
+        supervisors.find(
+          (s) =>
+            s.id === (row.selectedSupervisorId ?? row.originalSupervisorId),
+        )?.name ?? "",
+
       header: "Supervisor",
       cell: ({ row }) => {
         const student = row.original;
@@ -127,7 +139,6 @@ export function useManualAllocationColumns({
     },
     {
       id: "actions",
-      header: "Actions",
       cell: ({ row: { original: student } }) => (
         <div>
           <div className="flex items-center gap-2">

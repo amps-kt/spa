@@ -1,3 +1,5 @@
+import { unparse } from "papaparse";
+
 import { INSTITUTION } from "@/config/institution";
 
 import { type FlagDTO } from "@/dto";
@@ -120,10 +122,15 @@ export function generateFailedRowsCSV(
 ): string {
   if (invalidRows.length === 0) return "";
 
-  return [
-    requiredHeaders.join(","),
-    ...invalidRows.map((row) => row.originalRowString),
-  ].join("\n");
+  const data = invalidRows.map((row) => {
+    const orderedData: Record<string, string | number> = {};
+    requiredHeaders.forEach((header) => {
+      orderedData[header] = row.data[header as keyof NewStudent] ?? "";
+    });
+    return orderedData;
+  });
+
+  return unparse(data, { columns: requiredHeaders, header: true });
 }
 
 export function generateErrorReport(result: ProcessingResult): string {

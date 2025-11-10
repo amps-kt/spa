@@ -11,7 +11,7 @@ export const baseNewStudentSchema = z.object({
   institutionId: institutionIdSchema,
   email: z
     .email("Please enter a valid email address")
-    .min(1, "Please enter a valid email address"),
+    .transform((x) => x.toLowerCase()),
   flagId: z
     .string("Please select a valid flag")
     .min(1, "Please select a valid flag"),

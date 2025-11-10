@@ -1,0 +1,29 @@
+[
+  {
+    "id": "test",
+    "execute-command": "/usr/bin/echo",
+    "pass-arguments-to-command": [
+      { "source": "string", "name": "'hello world'" }
+    ]
+  },
+  {
+    "id": "pull",
+    "execute-command": "/usr/local/bin/amps",
+    "pass-arguments-to-command": [{ "source": "string", "name": "pull" }],
+    "pass-environment-to-command": [
+      { "source": "string", "envname": "AMPS_LOC", "name": "/opt/spa" },
+      {
+        "source": "string",
+        "envname": "AMPS_DEPLOYMENT_MODE",
+        "name": "staging"
+      }
+    ],
+    "trigger-rule": {
+      "match": {
+        "type": "value",
+        "value": "SECRET",
+        "parameter": { "source": "payload", "name": "secret" }
+      }
+    }
+  }
+]

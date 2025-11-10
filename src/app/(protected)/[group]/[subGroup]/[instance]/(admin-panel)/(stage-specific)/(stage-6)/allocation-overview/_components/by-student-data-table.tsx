@@ -13,10 +13,7 @@ export function ByStudentDataTable({
 }) {
   return (
     <div className="w-full">
-      <DataTable
-        columns={byStudentColumns}
-        data={data}
-      />
+      <DataTable columns={byStudentColumns} data={data} />
     </div>
   );
 }

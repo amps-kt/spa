@@ -32,9 +32,7 @@ export const subGroupAdminDtoSchema = userDtoSchema.extend({
 export type SubGroupAdminDTO = z.infer<typeof subGroupAdminDtoSchema>;
 
 export const readerDtoSchema = instanceUserDtoSchema.extend({
-  allocationTarget: z.number(),
-  allocationLowerBound: z.number(),
-  allocationUpperBound: z.number(),
+  readingWorkloadQuota: z.number(),
 });
 
 export type ReaderDTO = z.infer<typeof readerDtoSchema>;

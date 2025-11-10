@@ -1,5 +1,6 @@
 import {
-  PreferenceType,
+  StudentPreferenceType as PreferenceType,
+  ReaderPreferenceType,
   type PrismaClient,
   Stage,
   AllocationMethod as DB_AllocationMethod,
@@ -31,9 +32,7 @@ export type {
   MatchingResult as DB_MatchingResult,
   Project as DB_Project,
   ReaderDetails as DB_ReaderDetails,
-  ReaderDraftPreference as DB_ReaderDraftPreference,
   ReaderProjectAllocation as DB_ReaderProjectAllocation,
-  ReaderSubmittedPreference as DB_ReaderSubmittedPreference,
   StudentDetails as DB_StudentDetails,
   StudentDraftPreference as DB_StudentDraftPreference,
   StudentProjectAllocation as DB_StudentProjectAllocation,
@@ -128,14 +127,33 @@ export const preferenceTypeSchema = z.enum([
   PreferenceType.PREFERENCE,
 ]);
 
+// I hate this name
 export const extendedPreferenceTypeSchema = z.enum([
   PreferenceType.SHORTLIST,
   PreferenceType.PREFERENCE,
   "SUBMITTED",
 ]);
 
+// I hate this name
 export type ExtendedPreferenceType = z.infer<
   typeof extendedPreferenceTypeSchema
+>;
+
+// I hate this name
+export const ExtendedReaderPreferenceType = {
+  ACCEPTABLE: "ACCEPTABLE",
+  [ReaderPreferenceType.PREFERRED]: ReaderPreferenceType.PREFERRED,
+  [ReaderPreferenceType.UNACCEPTABLE]: ReaderPreferenceType.UNACCEPTABLE,
+} as const;
+
+export const extendedReaderPreferenceTypeSchema = z.enum([
+  ExtendedReaderPreferenceType.PREFERRED,
+  ExtendedReaderPreferenceType.UNACCEPTABLE,
+  ExtendedReaderPreferenceType.ACCEPTABLE,
+]);
+
+export type ExtendedReaderPreferenceType = z.infer<
+  typeof extendedReaderPreferenceTypeSchema
 >;
 
 export const allocationMethodSchema = z.enum([
@@ -147,7 +165,8 @@ export const allocationMethodSchema = z.enum([
 
 export {
   AlgorithmFlag,
-  PreferenceType,
+  StudentPreferenceType as PreferenceType,
+  ReaderPreferenceType as DB_ReaderPreferenceType,
   Stage,
   MarkerType,
   AllocationMethod,

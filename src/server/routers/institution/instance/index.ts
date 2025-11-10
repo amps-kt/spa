@@ -1,3 +1,4 @@
+import { env } from "@/env";
 import { z } from "zod";
 
 import { PAGES } from "@/config/pages";
@@ -23,9 +24,12 @@ import {
   readerAssignmentResultSchema,
 } from "@/dto/result/reader-allocation-result";
 
+import { AllocationInstance } from "@/data-objects";
+
 import { Transformers as T } from "@/db/transformers";
 import {
   AllocationMethod,
+  extendedReaderPreferenceTypeSchema,
   allocationMethodSchema,
   PreferenceType,
   Role,
@@ -36,15 +40,22 @@ import { stageSchema } from "@/db/types";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
+import { HttpReaderAllocator } from "@/lib/services/reader-allocation/http-reader-allocator";
+import {
+  matchingOutputSchema,
+  matchingReaderSchema,
+} from "@/lib/services/reader-allocation/types";
+import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { expand } from "@/lib/utils/general/instance-params";
-import { previousStages } from "@/lib/utils/permissions/stage-check";
+import { previousStages, stageGte } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
+import { instanceParamsSchema } from "@/lib/validations/params";
 import {
   convertPreferenceType,
   studentPreferenceSchema,
 } from "@/lib/validations/student-preference";
-import { tabGroupSchema } from "@/lib/validations/tabs";
+import { tabGroupSchema, type TabType } from "@/lib/validations/tabs";
 
 import { algorithmRouter } from "./algorithm";
 import { matchingRouter } from "./matching";
@@ -309,7 +320,7 @@ export const instanceRouter = createTRPCRouter({
 
         await instance.linkUsers(newSupervisors);
 
-        await instance.linkSupervisors(newSupervisors);
+        await instance.linkManySupervisors(newSupervisors);
 
         const res = newSupervisors.map((s) => {
           if (existingSupervisorIds.includes(s.id)) {
@@ -418,7 +429,7 @@ export const instanceRouter = createTRPCRouter({
         if (!userExists) await institution.createUser(newStudent);
 
         await instance.linkUser(newStudent);
-        await instance.linkStudents([newStudent]);
+        await instance.linkManyStudents([newStudent]);
 
         if (!userExists) {
           audit("Added new student", {
@@ -458,7 +469,7 @@ export const instanceRouter = createTRPCRouter({
 
         await instance.linkUsers(newStudents);
 
-        await instance.linkStudents(newStudents);
+        await instance.linkManyStudents(newStudents);
 
         const res = newStudents.map((s) => {
           if (existingStudentIds.includes(s.id)) {
@@ -829,65 +840,262 @@ export const instanceRouter = createTRPCRouter({
         await instance.getSupervisorAllocationDetails(),
     ),
 
-  saveManualStudentAllocations: procedure.instance.subGroupAdmin
+  saveManualStudentAllocation: procedure.instance.subGroupAdmin
     .input(
       z.object({
-        allocations: z.array(
-          z.object({
-            studentId: z.string(),
-            projectId: z.string(),
-            supervisorId: z.string(),
-          }),
-        ),
+        studentId: z.string(),
+        projectId: z.string(),
+        supervisorId: z.string(),
       }),
     )
-    .output(z.array(z.object({ studentId: z.string(), success: z.boolean() })))
-    .mutation(async ({ ctx: { instance }, input: { allocations } }) => {
-      // TODO: Emit audit for this
-      const results = [];
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { instance, audit },
+        input: { studentId, projectId, supervisorId },
+      }) => {
+        const conflictStudent = await instance.getProjectAllocation(projectId);
+        const student = await instance.getStudent(studentId);
+        const studentData = await student.get();
 
-      for (const allocation of allocations) {
-        const { studentId, projectId, supervisorId } = allocation;
+        await instance.saveManualAllocationAtomic(
+          studentId,
+          projectId,
+          supervisorId,
+          studentData.flag.id,
+          conflictStudent?.id,
+        );
 
-        // todo: this whole thing should be in a transaction
-        try {
-          await instance.deleteStudentAllocation(studentId);
+        audit("Manual allocation successful", {
+          studentId,
+          projectId,
+          supervisorId,
+        });
+      },
+    ),
 
-          const conflictStudent =
-            await instance.getProjectAllocation(projectId);
+  getReaders: procedure.instance.subGroupAdmin
+    .output(z.array(readerDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getReaders()),
 
-          if (conflictStudent) {
-            await instance.deleteStudentAllocation(conflictStudent.id);
-          }
-
-          const project = instance.getProject(projectId);
-          await project.clearPreAllocation();
-
-          const projectData = await project.get();
-          if (projectData.supervisorId !== supervisorId) {
-            await project.transferSupervisor(supervisorId);
-          }
-
-          const student = await instance.getStudent(studentId);
-          const studentData = await student.get();
-          await project.addFlags([studentData.flag]);
-
-          await instance.createManualAllocation(studentId, projectId);
-
-          results.push({ studentId, success: true });
-        } catch (_err) {
-          results.push({ studentId, success: false });
+  addReader: procedure.instance.subGroupAdmin
+    .input(z.object({ newReader: readerDtoSchema }))
+    .output(LinkUserResultSchema)
+    .mutation(
+      async ({
+        ctx: { instance, institution, audit },
+        input: { newReader },
+      }) => {
+        if (await instance.isReader(newReader.id)) {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.PRE_EXISTING,
+          });
+          return LinkUserResult.PRE_EXISTING;
         }
-      }
 
-      return results;
+        const userExists = await institution.userExists(newReader.id);
+
+        if (!userExists) await institution.createUser(newReader);
+
+        await instance.linkUser(newReader);
+        await instance.linkManyReaders([newReader]);
+
+        if (!userExists) {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.CREATED_NEW,
+          });
+          return LinkUserResult.CREATED_NEW;
+        } else {
+          audit("Added reader", {
+            readerId: newReader.id,
+            result: LinkUserResult.OK,
+          });
+          return LinkUserResult.OK;
+        }
+      },
+    ),
+
+  addManyReaders: procedure.instance.subGroupAdmin
+    .input(z.object({ newReaders: z.array(readerDtoSchema) }))
+    .output(z.array(LinkUserResultSchema))
+    .mutation(
+      async ({
+        ctx: { instance, institution, audit },
+        input: { newReaders },
+      }) => {
+        const existingReaderIds = await instance
+          .getReaders()
+          .then((data) => data.map(({ id }) => id));
+
+        const existingUserIds = await institution
+          .getUsers()
+          .then((data) => data.map(({ id }) => id));
+
+        await institution.createUsers(
+          newReaders.map((s) => ({ id: s.id, name: s.name, email: s.email })),
+        );
+
+        await instance.linkUsers(newReaders);
+
+        await instance.linkManyReaders(newReaders);
+
+        const res = newReaders.map((s) => {
+          if (existingReaderIds.includes(s.id)) {
+            return LinkUserResult.PRE_EXISTING;
+          }
+          if (existingUserIds.includes(s.id)) {
+            return LinkUserResult.CREATED_NEW;
+          }
+          return LinkUserResult.OK;
+        });
+
+        audit("Added new readers", { data: res });
+
+        return res;
+      },
+    ),
+
+  deleteReader: procedure.instance
+    .inStage(previousStages(Stage.READER_BIDDING))
+    .subGroupAdmin.input(z.object({ readerId: z.string() }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { readerId } }) => {
+      audit("Deleted reader", { readerId });
+      return await instance.deleteReader(readerId);
     }),
 
-  getSupervisorAllocationAccess: procedure.instance.member
-    .output(z.boolean())
-    .query(async ({ ctx: { instance } }) => {
-      const { supervisorAllocationAccess } = await instance.get();
-      return supervisorAllocationAccess;
+  deleteManyReaders: procedure.instance
+    .inStage(previousStages(Stage.READER_BIDDING))
+    .subGroupAdmin.input(z.object({ readerIds: z.array(z.string()) }))
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { readerIds } }) => {
+      audit("Deleted readers", { readerIds });
+      return await instance.deleteManyReaders(readerIds);
+    }),
+
+  getReaderPreferences: procedure.instance.subGroupAdmin
+    .input(z.object({ readerId: z.string() }))
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          type: extendedReaderPreferenceTypeSchema,
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance }, input: { readerId } }) => {
+      const reader = await instance.getReader(readerId);
+      return await reader.getPreferences();
+    }),
+
+  updateReaderPreference: procedure.instance.subGroupAdmin
+    .input(
+      z.object({
+        readerId: z.string(),
+        projectId: z.string(),
+        readingPreference: extendedReaderPreferenceTypeSchema,
+      }),
+    )
+    .output(extendedReaderPreferenceTypeSchema)
+    .mutation(
+      async ({
+        ctx: { instance },
+        input: { readerId, projectId, readingPreference },
+      }) => {
+        const reader = await instance.getReader(readerId);
+        return await reader.updateReadingPreference(
+          projectId,
+          readingPreference,
+        );
+      },
+    ),
+
+  getReaderPreferenceData: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          reader: readerDtoSchema,
+          numPreferred: z.number(),
+          numVetoed: z.number(),
+        }),
+      ),
+    )
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderPreferenceData(),
+    ),
+
+  getReadingOverviewData: procedure.instance.subGroupAdmin
+    .output(
+      z.object({
+        totalRequired: z.number(),
+        totalAvailable: z.number(),
+        numRead: z.number(),
+      }),
+    )
+    .query(async ({ ctx: { instance } }) => ({
+      totalRequired: await instance.getTotalRequiredReaders(),
+      totalAvailable: await instance.getTotalReadingUnits(),
+      numRead: await instance.getTotalProjectsRead(),
+    })),
+
+  getReaderAllocation: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          student: studentDtoSchema,
+          reader: readerDtoSchema.optional(),
+          preferenceType: extendedReaderPreferenceTypeSchema.optional(),
+        }),
+      ),
+    )
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderAllocation(),
+    ),
+
+  getReaderAllocationStats: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({ reader: readerDtoSchema, numAllocations: z.number() }),
+      ),
+    )
+    .query(
+      async ({ ctx: { instance } }) =>
+        await instance.getReaderAllocationStats(),
+    ),
+
+  getHeaderTabs: procedure.user
+    .input(z.object({ params: instanceParamsSchema.partial() }))
+    .query(async ({ ctx, input }) => {
+      const result = instanceParamsSchema.safeParse(input.params);
+
+      // TODO consider moving this control flow to client
+      if (!result.success) return { headerTabs: [], instancePath: "" };
+
+      const instance = new AllocationInstance(ctx.db, result.data);
+
+      const instanceData = await instance.get();
+
+      const roles = await ctx.user.getRolesInInstance(instance.params);
+
+      const instancePath = formatParamsAsPath(instance.params);
+
+      if (!roles.has(Role.ADMIN)) {
+        return {
+          headerTabs: [PAGES.instanceHome, PAGES.allProjects],
+          instancePath,
+        };
+      }
+
+      const headerTabs =
+        instanceData.stage === Stage.SETUP
+          ? [PAGES.instanceHome]
+          : [PAGES.instanceHome, PAGES.allProjects];
+
+      return { headerTabs, instancePath };
     }),
 
   setSupervisorAllocationAccess: procedure.instance.subGroupAdmin
@@ -898,6 +1106,9 @@ export const instanceRouter = createTRPCRouter({
       return await instance.setSupervisorPublicationAccess(access);
     }),
 
+  /**
+   * @deprecated use instance.get instead
+   */
   getStudentAllocationAccess: procedure.instance.member
     .output(z.boolean())
     .query(async ({ ctx: { instance } }) => {
@@ -925,16 +1136,22 @@ export const instanceRouter = createTRPCRouter({
       const tabGroups = [];
 
       if (roles.has(Role.ADMIN)) {
-        tabGroups.push({
-          title: "General",
-          tabs: [
-            PAGES.stageControl,
-            PAGES.settings,
-            PAGES.allSupervisors,
-            PAGES.allStudents,
-            PAGES.allProjects,
-          ],
-        });
+        const generalTabs: TabType[] = [
+          PAGES.stageControl,
+          PAGES.settings,
+          PAGES.allSupervisors,
+          PAGES.allStudents,
+          PAGES.allProjects,
+        ];
+
+        if (
+          stageGte(stage, Stage.MARK_SUBMISSION) &&
+          (roles.has(Role.SUPERVISOR) || roles.has(Role.READER))
+        ) {
+          generalTabs.push(PAGES.myMarking);
+        }
+
+        tabGroups.push({ title: "General", tabs: generalTabs });
 
         tabGroups.push({
           title: "Stage-specific",
@@ -942,34 +1159,59 @@ export const instanceRouter = createTRPCRouter({
         });
       }
 
-      if (roles.has(Role.SUPERVISOR)) {
-        const isSecondRole = roles.size > 1;
-        const supervisorTabs = await instance.getSupervisorTabs();
-
-        if (!isSecondRole) {
+      if (!roles.has(Role.ADMIN)) {
+        if (
+          stageGte(stage, Stage.MARK_SUBMISSION) &&
+          (roles.has(Role.SUPERVISOR) || roles.has(Role.READER))
+        ) {
+          tabGroups.push({
+            title: "General",
+            tabs: [PAGES.allProjects, PAGES.myMarking],
+          });
+        } else {
           tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-          supervisorTabs.unshift(PAGES.instanceTasks);
-        } else if (stage !== Stage.SETUP) {
-          supervisorTabs.unshift(PAGES.nonAdminSupervisorTasks);
         }
+      }
 
+      if (roles.has(Role.SUPERVISOR)) {
+        const supervisorTabs = await instance.getSupervisorTabs();
         tabGroups.push({ title: "Supervisor", tabs: supervisorTabs });
       }
 
-      if (roles.has(Role.STUDENT)) {
-        const isSecondRole = roles.size > 1;
-        const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
+      if (roles.has(Role.READER)) {
+        const readerTabs = await instance.getReaderTabs();
+        tabGroups.push({ title: "Reader", tabs: readerTabs });
+      }
 
-        tabGroups.push({ title: "General", tabs: [PAGES.allProjects] });
-        tabGroups.push({
-          title: "Student",
-          tabs: isSecondRole
-            ? studentTabs
-            : [PAGES.instanceTasks, ...studentTabs],
-        });
+      if (roles.has(Role.STUDENT)) {
+        const studentTabs = await instance.getStudentTabs(!preAllocatedProject);
+        tabGroups.push({ title: "Student", tabs: studentTabs });
       }
 
       return tabGroups;
+    }),
+
+  getAllReaderPreferences: procedure.instance.subGroupAdmin
+    .output(z.array(matchingReaderSchema))
+    .query(
+      async ({ ctx: { instance } }) => await instance.getReaderPreferences(),
+    ),
+
+  runReaderAllocation: procedure.instance.subGroupAdmin
+    .output(matchingOutputSchema)
+    .mutation(async ({ ctx: { instance } }) => {
+      const allReaders = await instance.getReaderPreferences();
+      const allProjectData = await instance.getAllocatedProjectsWithoutReader();
+      const allProjects = allProjectData.map((p) => p.id);
+
+      const allocator = new HttpReaderAllocator(env.MATCHING_SERVER_URL);
+
+      const result = await allocator.allocate({ allProjects, allReaders });
+
+      // Writes to db; could separate this to a second proc.
+      // Thoughts @pkitazos?
+      await instance.setReaderAllocations(result.assignments);
+      return result;
     }),
 
   // pin -
@@ -1184,6 +1426,104 @@ export const instanceRouter = createTRPCRouter({
         units: f.unitsOfAssessment.map((x) => T.toUnitOfAssessmentDTO(x)),
       }));
     }),
+
+  getProjectsWithReadingAllocationStatus: procedure.instance.subGroupAdmin
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          supervisor: supervisorDtoSchema,
+          student: studentDtoSchema,
+          currentReaderId: z.string().optional(),
+        }),
+      ),
+    )
+    .query(async ({ ctx: { db, instance } }) => {
+      const projectData = await db.studentProjectAllocation.findMany({
+        where: expand(instance.params),
+        include: {
+          project: {
+            include: {
+              flagsOnProject: { include: { flag: true } },
+              tagsOnProject: { include: { tag: true } },
+              supervisor: {
+                include: { userInInstance: { include: { user: true } } },
+              },
+              readerAllocations: { include: { reader: true } },
+            },
+          },
+          student: {
+            include: {
+              studentFlag: true,
+              userInInstance: { include: { user: true } },
+            },
+          },
+        },
+      });
+
+      return projectData.map(({ project, student }) => ({
+        project: T.toProjectDTO(project),
+        supervisor: T.toSupervisorDTO(project.supervisor),
+        student: T.toStudentDTO(student),
+        currentReaderId: project.readerAllocations[0]?.readerId,
+      }));
+    }),
+
+  getReadersWithWorkload: procedure.instance.subGroupAdmin
+    .output(z.array(readerDtoSchema.extend({ currentAllocations: z.number() })))
+    .query(async ({ ctx: { db, instance } }) => {
+      const readerData = await db.readerDetails.findMany({
+        where: expand(instance.params),
+        include: {
+          userInInstance: { include: { user: true } },
+          projectAllocations: true,
+        },
+      });
+
+      return readerData.map((reader) => ({
+        ...T.toReaderDTO(reader),
+        currentAllocations: reader.projectAllocations.length,
+      }));
+    }),
+
+  saveManualReaderAllocation: procedure.instance.subGroupAdmin
+    .input(z.object({ projectId: z.string(), readerId: z.string() }))
+    .output(z.void())
+    .mutation(
+      async ({
+        ctx: { db, instance, audit },
+        input: { projectId, readerId },
+      }) => {
+        await db.readerProjectAllocation.upsert({
+          where: {
+            instanceReaderProjectAllocation: {
+              ...expand(instance.params),
+              projectId,
+            },
+          },
+          update: { readerId },
+          create: { ...expand(instance.params), projectId, readerId },
+        });
+        audit("Manual reader allocation saved", { projectId, readerId });
+      },
+    ),
+
+  removeReaderAllocation: procedure.instance.subGroupAdmin
+    .input(z.object({ projectId: z.string() }))
+    .output(z.void())
+    .mutation(
+      async ({ ctx: { db, instance, audit }, input: { projectId } }) => {
+        await db.readerProjectAllocation.delete({
+          where: {
+            instanceReaderProjectAllocation: {
+              ...expand(instance.params),
+              projectId,
+            },
+          },
+        });
+        audit("Reader allocation removed", { projectId });
+      },
+    ),
 
   setUnitOfAssessmentAccess: procedure.instance
     // eslint-disable-next-line @typescript-eslint/no-deprecated

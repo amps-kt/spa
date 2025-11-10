@@ -187,7 +187,7 @@ const SubGroupAdminMiddleware = authedMiddleware.unstable_pipe(
     if (!(await user.isSubGroupAdminOrBetter(params))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "User is not a group admin of group XXX",
+        message: "User is not a sub-group admin or better of sub-group XXX",
       });
     }
 
@@ -205,7 +205,7 @@ const studentMiddleware = authedMiddleware.unstable_pipe(
     if (!(await user.isStudent(params))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "User is not a group admin of group XXX",
+        message: "User is not a student in instance XXX",
       });
     }
 
@@ -223,11 +223,29 @@ const supervisorMiddleware = authedMiddleware.unstable_pipe(
     if (!(await user.isSupervisor(params))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "User is not a group admin of group XXX",
+        message: "User is not a supervisor in instance XXX",
       });
     }
 
     return next({ ctx: { user: await user.toSupervisor(params) } });
+  },
+);
+
+/**
+ * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
+ */
+const readerMiddleware = authedMiddleware.unstable_pipe(
+  async ({ ctx: { user }, next, input }) => {
+    const { params } = z.object({ params: instanceParamsSchema }).parse(input);
+
+    if (!(await user.isReader(params))) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not a reader in instance XXX",
+      });
+    }
+
+    return next({ ctx: { user: await user.toReader(params) } });
   },
 );
 
@@ -241,7 +259,7 @@ const markerMiddleware = authedMiddleware.unstable_pipe(
     if (!(await user.isMarker(params))) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
-        message: "User is not a marker of group XXX",
+        message: "User is not a marker in instance XXX",
       });
     }
 
@@ -396,6 +414,7 @@ export const procedure = {
     subGroupAdmin: instanceProcedure.use(SubGroupAdminMiddleware),
     student: instanceProcedure.use(studentMiddleware),
     supervisor: instanceProcedure.use(supervisorMiddleware),
+    reader: instanceProcedure.use(readerMiddleware),
     marker: instanceProcedure.use(markerMiddleware),
     member: instanceProcedure.use(instanceMemberMiddleware),
     withAC: (condition: AccessCondition) =>

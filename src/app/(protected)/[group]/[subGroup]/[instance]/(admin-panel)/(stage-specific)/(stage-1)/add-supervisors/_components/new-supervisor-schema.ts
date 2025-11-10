@@ -10,7 +10,7 @@ export const newSupervisorSchema = z
     institutionId: institutionIdSchema,
     email: z
       .email("Please enter a valid email address")
-      .min(1, "Please enter a valid email address"),
+      .transform((x) => x.toLowerCase()),
     projectTarget: z.coerce
       .number<number>({
         error: (issue) =>

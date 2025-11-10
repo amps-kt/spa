@@ -5,13 +5,15 @@ import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { ProjectAllocationStatus } from "@/dto";
+import { type FlagDTO, ProjectAllocationStatus } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
+import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
 
-import { ManualAllocationDataTable } from "./manual-allocation-data-table";
+import { useManualAllocationColumns } from "./manual-allocation-columns";
+import { ManualAllocationRow } from "./manual-allocation-row";
 import {
   type ManualAllocationProject,
   type ManualAllocationStudent,
@@ -25,12 +27,14 @@ interface ManualAllocationDataTableSectionProps {
   initialStudents: ManualAllocationStudent[];
   initialProjects: ManualAllocationProject[];
   initialSupervisors: ManualAllocationSupervisor[];
+  projectDescriptors: { flags: FlagDTO[] };
 }
 
 export function ManualAllocationDataTableSection({
   initialStudents,
   initialProjects,
   initialSupervisors,
+  projectDescriptors: { flags },
 }: ManualAllocationDataTableSectionProps) {
   const params = useInstanceParams();
   const router = useRouter();
@@ -49,7 +53,7 @@ export function ManualAllocationDataTableSection({
   }, [utils]);
 
   const { mutateAsync: api_saveAllocations } =
-    api.institution.instance.saveManualStudentAllocations.useMutation({});
+    api.institution.instance.saveManualStudentAllocation.useMutation({});
 
   const { mutateAsync: api_removeAllocations } =
     api.institution.instance.matching.removeAllocation.useMutation({});
@@ -240,8 +244,14 @@ export function ManualAllocationDataTableSection({
 
   const handleRemoveAllocation = useCallback(
     async (studentId: string) => {
-      toast.promise(
-        api_removeAllocations({ params, studentId }).then(async () => {
+      await toast
+        .promise(api_removeAllocations({ params, studentId }), {
+          loading: "Removing allocation...",
+          success: "Successfully removed allocation",
+          error: "Failed to remove allocation",
+        })
+        .unwrap()
+        .then(async () => {
           await refetchData();
           setStudents((prev) =>
             prev.map((s) => {
@@ -258,13 +268,7 @@ export function ManualAllocationDataTableSection({
               };
             }),
           );
-        }),
-        {
-          loading: "Removing allocation...",
-          success: "Successfully removed allocation",
-          error: "Failed to remove allocation",
-        },
-      );
+        });
     },
     [api_removeAllocations, params, refetchData],
   );
@@ -282,16 +286,22 @@ export function ManualAllocationDataTableSection({
         return;
       }
 
-      const allocations = [
-        {
-          studentId: student.id,
-          projectId: student.selectedProjectId,
-          supervisorId: student.selectedSupervisorId,
-        },
-      ];
-
-      toast.promise(
-        api_saveAllocations({ params, allocations }).then(async () => {
+      await toast
+        .promise(
+          api_saveAllocations({
+            params,
+            studentId: student.id,
+            projectId: student.selectedProjectId,
+            supervisorId: student.selectedSupervisorId,
+          }),
+          {
+            loading: `Saving allocation for student ${studentId}...`,
+            success: "Successfully saved allocation",
+            error: "Failed to save allocation",
+          },
+        )
+        .unwrap()
+        .then(async () => {
           router.refresh();
           await refetchData();
           setStudents((prev) =>
@@ -307,72 +317,12 @@ export function ManualAllocationDataTableSection({
               };
             }),
           );
-        }),
-        {
-          loading: `Saving allocation for student ${studentId}...`,
-          success: "Successfully saved allocation",
-          error: "Failed to save allocation",
-        },
-      );
+
+          // todo: after saving, remove this project from the list of available projects in all other dropdowns
+        });
     },
     [api_saveAllocations, params, refetchData, router, students],
   );
-
-  const handleSaveAll = useCallback(async () => {
-    const dirtyStudents = students.filter((s) => s.isDirty);
-
-    if (dirtyStudents.length === 0) {
-      toast.info("No allocations to save");
-      return;
-    }
-
-    const invalidStudents = dirtyStudents.filter(
-      (student) => !student.selectedProjectId || !student.selectedSupervisorId,
-    );
-
-    const allocations = dirtyStudents
-      .map((student) => {
-        if (student.selectedProjectId && student.selectedSupervisorId)
-          return {
-            studentId: student.id,
-            projectId: student.selectedProjectId,
-            supervisorId: student.selectedSupervisorId,
-          };
-      })
-      .filter(Boolean);
-
-    if (invalidStudents.length > 0) {
-      toast.error(
-        `${invalidStudents.length} student(s) have missing project or supervisor selections.`,
-      );
-    }
-
-    toast.promise(
-      api_saveAllocations({ params, allocations }).then(async () => {
-        router.refresh();
-        await refetchData();
-        setStudents((prev) =>
-          prev.map((s) => {
-            const dirtyStudent = dirtyStudents.find((ds) => ds.id === s.id);
-            if (!dirtyStudent) return s;
-
-            return {
-              ...s,
-              originalProjectId: s.selectedProjectId,
-              originalSupervisorId: s.selectedSupervisorId,
-              isDirty: false,
-              warnings: [],
-            };
-          }),
-        );
-      }),
-      {
-        loading: `Saving ${dirtyStudents.length} allocation(s)...`,
-        success: `Successfully saved ${dirtyStudents.length} allocation(s)`,
-        error: "Failed to save allocations",
-      },
-    );
-  }, [api_saveAllocations, params, refetchData, router, students]);
 
   const handleReset = useCallback((studentId: string) => {
     setStudents((prev) =>
@@ -390,16 +340,36 @@ export function ManualAllocationDataTableSection({
     );
   }, []);
 
+  const filters = useMemo(() => {
+    return [
+      {
+        title: "filter by Flags",
+        columnId: "Flags",
+        options: flags.map((flag) => ({
+          id: flag.id,
+          displayName: flag.displayName,
+        })),
+      },
+    ];
+  }, [flags]);
+
+  const columns = useManualAllocationColumns({
+    projects,
+    supervisors,
+    onUpdateAllocation: handleUpdateAllocation,
+    onRemoveAllocation: (x) => void handleRemoveAllocation(x),
+    onSave: handleSave,
+    onReset: handleReset,
+  });
+
   return (
-    <ManualAllocationDataTable
-      students={students}
-      projects={projects}
-      supervisors={supervisors}
-      onUpdateAllocation={handleUpdateAllocation}
-      onRemoveAllocation={handleRemoveAllocation}
-      onSave={handleSave}
-      onSaveAll={handleSaveAll}
-      onReset={handleReset}
-    />
+    <section>
+      <DataTable
+        columns={columns}
+        data={students}
+        filters={filters}
+        CustomRow={ManualAllocationRow}
+      />
+    </section>
   );
 }

@@ -13,14 +13,14 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
-    title: metadataTitle([PAGES.uploadReadings.title, displayName, app.name]),
+    title: metadataTitle([PAGES.addReaders.title, displayName, app.name]),
   };
 }
 
-export default async function Page() {
+export default function Page() {
   return (
-    <PanelWrapper className="gap-10">
-      <Heading className="mb-4">{PAGES.uploadReadings.title}</Heading>
+    <PanelWrapper>
+      <Heading>{PAGES.addReaders.title}</Heading>
       <AddReadersSection />
     </PanelWrapper>
   );

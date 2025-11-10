@@ -5,8 +5,8 @@ import { notFound } from "next/navigation";
 import { InstanceParamsProvider } from "@/components/params-context";
 import { SidebarInset } from "@/components/ui/sidebar";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { forbidden } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AppSidebar } from "./_components/app-sidebar";

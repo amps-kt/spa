@@ -12,7 +12,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
@@ -20,11 +19,10 @@ import { PAGES } from "@/config/pages";
 import { type UnitOfAssessmentDTO } from "@/dto";
 import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
 
-import { MarkerType } from "@/db/types";
-
 import { CopyButton } from "@/components/copy-button";
+import { RoleBadge } from "@/components/role-badge";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -35,6 +33,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { AppInstanceLink } from "@/lib/routing";
+import { cn } from "@/lib/utils";
 import { format } from "@/lib/utils/date/format";
 
 import { columns, type SubmissionTableRow } from "./columns";
@@ -77,9 +77,8 @@ export function SubmissionsTable({ data }: { data: SubmissionTableRow[] }) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[30px]"></TableHead>
+              {/* <TableHead className="w-[30px]"></TableHead> */}
               <TableHead>Submission Title</TableHead>
-              <TableHead>Due Date</TableHead>
               <TableHead>Flag</TableHead>
               <TableHead>Role</TableHead>
             </TableRow>
@@ -91,7 +90,7 @@ export function SubmissionsTable({ data }: { data: SubmissionTableRow[] }) {
                 .rows.map((row) => <ProjectRow key={row.id} row={row} />)
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={3} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
@@ -104,11 +103,11 @@ export function SubmissionsTable({ data }: { data: SubmissionTableRow[] }) {
 }
 
 function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
-  const isExpanded = row.getIsExpanded();
+  // const isExpanded = row.getIsExpanded();
   return (
     <>
       <TableRow className="cursor-pointer hover:bg-muted/50">
-        <TableCell>
+        {/* <TableCell>
           <Button
             variant="ghost"
             size="icon"
@@ -121,9 +120,19 @@ function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
               <ChevronRight className="h-4 w-4" />
             )}
           </Button>
-        </TableCell>
-        <TableCell colSpan={2}>
-          <div className="font-medium">{row.original.project.title}</div>
+        </TableCell> */}
+        <TableCell colSpan={1}>
+          <AppInstanceLink
+            className={cn(
+              buttonVariants({ variant: "link" }),
+              "inline-block h-max min-w-60 px-0 py-0 text-start",
+            )}
+            page="projectById"
+            linkArgs={{ projectId: row.original.project.id }}
+          >
+            {row.original.project.title}
+          </AppInstanceLink>
+
           <div className="text-sm text-muted-foreground">
             Student: {row.original.student.name} ({row.original.student.id}{" "}
             <CopyButton data={row.original.student.id} message="student ID" />)
@@ -134,23 +143,22 @@ function ProjectRow({ row }: { row: Row<SubmissionTableRow> }) {
             {row.original.student.flag.displayName}
           </Badge>
         </TableCell>
-        <TableCell colSpan={2}>
-          {row.original.markerType === MarkerType.SUPERVISOR
-            ? "Supervisor"
-            : "Reader"}
+        <TableCell colSpan={1}>
+          <RoleBadge role={row.original.markerType} />
         </TableCell>
       </TableRow>
-      {isExpanded &&
+      {/* {isExpanded &&
         row.original.unitsOfAssessment.map((data) => (
           <AssessmentUnitRow
             key={data.unit.id}
             data={data}
             studentId={row.original.student.id}
           />
-        ))}
+        ))} */}
     </>
   );
 }
+
 function AssessmentUnitRow({
   data,
   studentId,

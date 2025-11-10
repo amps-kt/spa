@@ -7,8 +7,8 @@ import { spacesLabels } from "@/config/spaces";
 import { Heading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
+import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { forbidden } from "@/lib/utils/redirect";
 import { type SubGroupParams } from "@/lib/validations/params";
 
 import { WizardSection } from "./_components/wizard-section";

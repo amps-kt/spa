@@ -18,9 +18,9 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { toPositional } from "@/lib/utils/general/to-positional";
-import { unauthorised } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {

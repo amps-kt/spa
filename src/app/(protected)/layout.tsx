@@ -1,10 +1,9 @@
 import { env } from "@/env";
-import { redirect } from "next/navigation";
 
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 import { auth, whitelisted } from "@/lib/auth";
-import { unauthorised } from "@/lib/utils/redirect";
+import { redirect, unauthorised } from "@/lib/routing";
 
 import { SiteHeader } from "./_components/site-header";
 
@@ -15,7 +14,7 @@ export default async function Layout({
 }) {
   const { real: user } = await auth();
 
-  if (!user) redirect("/");
+  if (!user) redirect("home", undefined);
 
   // Currently we're doing a platform-wide testing block
   // If the user is not whitelisted, redirect them to the test message page

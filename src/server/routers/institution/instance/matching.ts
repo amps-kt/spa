@@ -49,9 +49,6 @@ export const matchingRouter = createTRPCRouter({
 
   allocateRandomProjectsToAll: procedure.instance.subGroupAdmin.mutation(
     async ({ ctx: { instance, audit } }) => {
-      const { selectedAlgConfigId: selectedAlgName } = await instance.get();
-      if (!selectedAlgName) return;
-
       const unallocatedStudents = await instance.getUnallocatedStudents();
 
       const allocatedProjectIds = new Set<string>();

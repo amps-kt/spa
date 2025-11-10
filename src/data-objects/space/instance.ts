@@ -1,3 +1,5 @@
+import { ReaderPreferenceType } from "@prisma/client";
+
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -25,9 +27,14 @@ import {
   type New,
   AllocationMethod,
   type PreferenceType,
+  ExtendedReaderPreferenceType,
 } from "@/db/types";
 
 import { HttpMatchingService } from "@/lib/services/matching";
+import {
+  type MatchingReader,
+  type ReaderMatchingPair,
+} from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -39,7 +46,7 @@ import {
   StudentProjectAllocationData,
   type StudentProjectAllocationDTO,
 } from "../student-project-allocation-data";
-import { User, type Student, type Supervisor } from "../user";
+import { type Reader, User, type Student, type Supervisor } from "../user";
 
 import { Project } from "..";
 
@@ -432,7 +439,7 @@ export class AllocationInstance extends DataObject {
     });
   }
 
-  public async linkSupervisors(newSupervisors: SupervisorDTO[]) {
+  public async linkManySupervisors(newSupervisors: SupervisorDTO[]) {
     await this.db.supervisorDetails.createMany({
       data: newSupervisors.map((user) => ({
         ...expand(this.params),
@@ -446,7 +453,18 @@ export class AllocationInstance extends DataObject {
     });
   }
 
-  public async linkStudents(newStudents: StudentDTO[]) {
+  public async linkManyReaders(newReaders: ReaderDTO[]) {
+    await this.db.readerDetails.createMany({
+      data: newReaders.map((r) => ({
+        ...expand(this.params),
+        readingWorkloadQuota: r.readingWorkloadQuota,
+        userId: r.id,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  public async linkManyStudents(newStudents: StudentDTO[]) {
     await this.db.studentDetails.createMany({
       data: newStudents.map((s) => ({
         ...expand(this.params),
@@ -565,6 +583,27 @@ export class AllocationInstance extends DataObject {
     });
 
     return readers.map((x) => T.toReaderDTO(x));
+  }
+
+  public async getTotalRequiredReaders(): Promise<number> {
+    return await this.db.studentProjectAllocation.count({
+      where: expand(this.params),
+    });
+  }
+
+  public async getTotalReadingUnits(): Promise<number> {
+    const { _sum } = await this.db.readerDetails.aggregate({
+      _sum: { readingWorkloadQuota: true },
+      where: expand(this.params),
+    });
+
+    return _sum.readingWorkloadQuota ?? 0;
+  }
+
+  public async getTotalProjectsRead(): Promise<number> {
+    return await this.db.readerProjectAllocation.count({
+      where: expand(this.params),
+    });
   }
 
   // TODO: standardise return type
@@ -693,6 +732,102 @@ export class AllocationInstance extends DataObject {
         allocationMethod: AllocationMethod.MANUAL,
       },
     });
+  }
+
+  public async saveManualAllocation(
+    studentId: string,
+    projectId: string,
+  ): Promise<void> {
+    await this.db.studentProjectAllocation.upsert({
+      where: {
+        studentProjectAllocationId: {
+          ...expand(this.params),
+          userId: studentId,
+        },
+      },
+      create: {
+        ...expand(this.params),
+        userId: studentId,
+        projectId,
+        studentRanking: 1,
+        allocationMethod: AllocationMethod.MANUAL,
+      },
+      update: {
+        projectId,
+        studentRanking: 1,
+        allocationMethod: AllocationMethod.MANUAL,
+      },
+    });
+  }
+
+  public async saveManualAllocationAtomic(
+    studentId: string,
+    projectId: string,
+    supervisorId: string,
+    studentFlagId: string,
+    conflictStudentId?: string,
+  ): Promise<void> {
+    const operations = [];
+
+    operations.push(
+      this.db.studentProjectAllocation.deleteMany({
+        where: { ...expand(this.params), userId: studentId },
+      }),
+    );
+
+    if (conflictStudentId) {
+      operations.push(
+        this.db.studentProjectAllocation.deleteMany({
+          where: { ...expand(this.params), userId: conflictStudentId },
+        }),
+      );
+    }
+
+    operations.push(
+      this.db.project.update({
+        where: { id: projectId, ...expand(this.params) },
+        data: { preAllocatedStudentId: null },
+      }),
+    );
+
+    operations.push(
+      this.db.project.update({
+        where: { id: projectId, ...expand(this.params) },
+        data: { supervisorId },
+      }),
+    );
+
+    operations.push(
+      this.db.flagOnProject.createMany({
+        data: { projectId, flagId: studentFlagId, ...expand(this.params) },
+        skipDuplicates: true,
+      }),
+    );
+
+    operations.push(
+      this.db.studentProjectAllocation.upsert({
+        where: {
+          studentProjectAllocationId: {
+            ...expand(this.params),
+            userId: studentId,
+          },
+        },
+        create: {
+          ...expand(this.params),
+          userId: studentId,
+          projectId,
+          studentRanking: 1,
+          allocationMethod: AllocationMethod.MANUAL,
+        },
+        update: {
+          projectId,
+          studentRanking: 1,
+          allocationMethod: AllocationMethod.MANUAL,
+        },
+      }),
+    );
+
+    await this.db.$transaction(operations);
   }
 
   public async getSummaryResults() {
@@ -841,6 +976,7 @@ export class AllocationInstance extends DataObject {
     });
     return access;
   }
+
   public async isReader(id: string): Promise<boolean> {
     return await new User(this.db, id).isReader(this.params);
   }
@@ -851,6 +987,10 @@ export class AllocationInstance extends DataObject {
 
   public async getSupervisor(userId: string): Promise<Supervisor> {
     return new User(this.db, userId).toSupervisor(this.params);
+  }
+
+  public async getReader(readerId: string): Promise<Reader> {
+    return new User(this.db, readerId).toReader(this.params);
   }
 
   public async isStudent(userId: string): Promise<boolean> {
@@ -918,26 +1058,35 @@ export class AllocationInstance extends DataObject {
         PAGES.myProposedProjects,
         ...allocationsTab,
       ],
+      [Stage.READER_BIDDING]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.READER_ALLOCATION]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.MARK_SUBMISSION]: [PAGES.myProposedProjects, ...allocationsTab],
+      [Stage.GRADE_PUBLICATION]: [PAGES.myProposedProjects, ...allocationsTab],
+    };
+
+    return tabs[stage];
+  }
+
+  public async getReaderTabs(): Promise<TabType[]> {
+    const { stage } = await this.get();
+
+    const tabs = {
+      [Stage.SETUP]: [],
+      [Stage.PROJECT_SUBMISSION]: [],
+      [Stage.STUDENT_BIDDING]: [],
+      [Stage.PROJECT_ALLOCATION]: [],
+      [Stage.ALLOCATION_ADJUSTMENT]: [],
+      [Stage.ALLOCATION_PUBLICATION]: [],
       [Stage.READER_BIDDING]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
+        PAGES.allAvailableProjects,
+        PAGES.myReadingPreferences,
       ],
       [Stage.READER_ALLOCATION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
+        PAGES.allAvailableProjects,
+        PAGES.myReadingPreferences,
       ],
-      [Stage.MARK_SUBMISSION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
-      [Stage.GRADE_PUBLICATION]: [
-        PAGES.myProposedProjects,
-        ...allocationsTab,
-        PAGES.myMarking,
-      ],
+      [Stage.MARK_SUBMISSION]: [],
+      [Stage.GRADE_PUBLICATION]: [],
     };
 
     return tabs[stage];
@@ -1346,6 +1495,18 @@ export class AllocationInstance extends DataObject {
     });
   }
 
+  public async deleteReader(userId: string): Promise<void> {
+    await this.db.readerDetails.delete({
+      where: { readerDetailsId: { userId, ...expand(this.params) } },
+    });
+  }
+
+  public async deleteManyReaders(userIds: string[]): Promise<void> {
+    await this.db.readerDetails.deleteMany({
+      where: { userId: { in: userIds }, ...expand(this.params) },
+    });
+  }
+
   public async deleteStudentAllocation(userId: string): Promise<void> {
     await this.db.studentProjectAllocation.deleteMany({
       where: { ...expand(this.params), userId },
@@ -1361,6 +1522,188 @@ export class AllocationInstance extends DataObject {
   public async delete() {
     await this.db.allocationInstance.delete({
       where: { instanceId: toInstanceId(this.params) },
+    });
+  }
+
+  // new RPA stuff:
+  public async getAllocatedProjectsWithoutReader(): Promise<ProjectDTO[]> {
+    return await this.db.studentProjectAllocation
+      .findMany({
+        where: {
+          ...expand(this.params),
+          project: { readerAllocations: { none: {} } },
+        },
+        include: {
+          project: {
+            include: {
+              flagsOnProject: { include: { flag: true } },
+              tagsOnProject: { include: { tag: true } },
+            },
+          },
+        },
+      })
+      .then((data) => data.map((spa) => T.toProjectDTO(spa.project)));
+  }
+
+  public async getReaderPreferences(): Promise<MatchingReader[]> {
+    return await this.db.readerDetails
+      .findMany({
+        where: expand(this.params),
+        include: {
+          _count: { select: { projectAllocations: true } },
+          preferences: true,
+          userInInstance: {
+            include: { supervisorDetails: { include: { projects: true } } },
+          },
+        },
+      })
+      .then((data) =>
+        data.map(
+          (r) =>
+            ({
+              id: r.userId,
+              capacity: r.readingWorkloadQuota - r._count.projectAllocations,
+              preferable: r.preferences
+                .filter((p) => p.type === ReaderPreferenceType.PREFERRED)
+                .map((p) => p.projectId),
+
+              unacceptable: r.preferences
+                .filter((p) => p.type === ReaderPreferenceType.UNACCEPTABLE)
+                .map((p) => p.projectId),
+
+              conflict:
+                r.userInInstance.supervisorDetails?.projects.map((p) => p.id) ??
+                [],
+            }) satisfies MatchingReader,
+        ),
+      );
+  }
+
+  public async setReaderAllocations(data: ReaderMatchingPair[]) {
+    await this.db.readerProjectAllocation.createMany({
+      data: data.map(({ projectId, readerId }) => ({
+        ...expand(this.params),
+        projectId,
+        readerId,
+      })),
+    });
+    return;
+  }
+
+  public async getReaderAllocation(): Promise<
+    {
+      project: ProjectDTO;
+      supervisor: SupervisorDTO;
+      student: StudentDTO;
+      reader?: ReaderDTO;
+      preferenceType?: ExtendedReaderPreferenceType;
+    }[]
+  > {
+    const projects = await this.db.studentProjectAllocation.findMany({
+      where: { ...expand(this.params) },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+            studentAllocations: {
+              include: {
+                student: {
+                  include: {
+                    userInInstance: { include: { user: true } },
+                    studentFlag: true,
+                  },
+                },
+              },
+            },
+            supervisor: {
+              include: { userInInstance: { include: { user: true } } },
+            },
+            readerAllocations: {
+              include: {
+                reader: {
+                  include: { userInInstance: { include: { user: true } } },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const preferences = await this.db.readerPreference.findMany({
+      where: {
+        ...expand(this.params),
+
+        OR: projects
+          .filter(({ project }) => Boolean(project.readerAllocations.at(0)))
+          .map(({ project }) => ({
+            readerId: project.readerAllocations[0].readerId,
+            projectId: project.id,
+          })),
+      },
+    });
+
+    const prefMap = preferences.reduce((acc, val) => {
+      acc.set(val.readerId, val.type);
+      return acc;
+    }, new Map<string, ReaderPreferenceType>());
+
+    return projects.map(({ project }) => {
+      const rpa = project.readerAllocations.at(0);
+      return {
+        project: T.toProjectDTO(project),
+        supervisor: T.toSupervisorDTO(project.supervisor),
+        student: T.toStudentDTO(project.studentAllocations[0].student),
+        reader: rpa === undefined ? undefined : T.toReaderDTO(rpa.reader),
+        preferenceType:
+          rpa === undefined
+            ? undefined
+            : (prefMap.get(rpa.readerId) ??
+              ExtendedReaderPreferenceType.ACCEPTABLE),
+      };
+    });
+  }
+
+  public async getReaderAllocationStats(): Promise<
+    { reader: ReaderDTO; numAllocations: number }[]
+  > {
+    const data = await this.db.readerDetails.findMany({
+      where: expand(this.params),
+      include: {
+        _count: { select: { projectAllocations: true } },
+        userInInstance: { include: { user: true } },
+      },
+    });
+
+    return data.map((reader) => ({
+      reader: T.toReaderDTO(reader),
+      numAllocations: reader._count.projectAllocations,
+    }));
+  }
+
+  public async getReaderPreferenceData(): Promise<
+    { reader: ReaderDTO; numPreferred: number; numVetoed: number }[]
+  > {
+    const data = await this.db.readerDetails.findMany({
+      where: expand(this.params),
+
+      include: {
+        userInInstance: { include: { user: true } },
+        preferences: true,
+      },
+    });
+
+    return data.map((r) => {
+      const numPreferred = r.preferences.filter(
+        (p) => p.type === ReaderPreferenceType.PREFERRED,
+      ).length;
+
+      const numVetoed = r.preferences.filter(
+        (p) => p.type === ReaderPreferenceType.UNACCEPTABLE,
+      ).length;
+
+      return { reader: T.toReaderDTO(r), numPreferred, numVetoed };
     });
   }
 }

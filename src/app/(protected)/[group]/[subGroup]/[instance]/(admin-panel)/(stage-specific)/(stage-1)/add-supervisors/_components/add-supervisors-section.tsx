@@ -45,8 +45,11 @@ export function AddSupervisorsSection() {
     .keyof()
     .options.toSorted();
 
-  const { data, isLoading, refetch } =
-    api.institution.instance.getSupervisors.useQuery({ params });
+  const {
+    data,
+    isLoading,
+    refetch: refetchSupervisorData,
+  } = api.institution.instance.getSupervisors.useQuery({ params });
 
   const { mutateAsync: api_addSupervisor } =
     api.institution.instance.addSupervisor.useMutation();
@@ -75,7 +78,7 @@ export function AddSupervisorsSection() {
       .promise(api_addSupervisor({ params, newSupervisor }), {
         loading: "Adding supervisor...",
         success: `Successfully added supervisor ${newSupervisor.id} to ${spacesLabels.instance.short}`,
-        // todo: revisit error reporting method
+        // [#b91c1c] revisit error reporting method
         error: (err) =>
           err instanceof TRPCClientError
             ? err.message
@@ -84,7 +87,7 @@ export function AddSupervisorsSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchSupervisorData();
       });
   }
 
@@ -106,7 +109,7 @@ export function AddSupervisorsSection() {
       .unwrap()
       .then(async (results) => {
         router.refresh();
-        await refetch();
+        await refetchSupervisorData();
         return results;
       });
   }
@@ -121,7 +124,7 @@ export function AddSupervisorsSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchSupervisorData();
       });
   }
 
@@ -135,7 +138,7 @@ export function AddSupervisorsSection() {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchSupervisorData();
       });
   }
 

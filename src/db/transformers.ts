@@ -5,8 +5,6 @@ import {
   type MarkingSubmissionDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
-} from "@/dto";
-import {
   type AlgorithmDTO,
   type FlagDTO,
   type GroupDTO,
@@ -39,6 +37,8 @@ import {
   type DB_UserInInstance,
   type DB_CriterionScore,
   type DB_MarkingSubmission,
+  DB_ReaderPreferenceType,
+  ExtendedReaderPreferenceType,
 } from "./types";
 
 export class Transformers {
@@ -164,9 +164,7 @@ export class Transformers {
       name: data.userInInstance.user.name,
       email: data.userInInstance.user.email,
       joined: data.userInInstance.joined,
-      allocationLowerBound: data.projectAllocationLowerBound,
-      allocationTarget: data.projectAllocationTarget,
-      allocationUpperBound: data.projectAllocationUpperBound,
+      readingWorkloadQuota: data.readingWorkloadQuota,
     };
   }
 
@@ -285,5 +283,33 @@ export class Transformers {
       subGroup: subGroup.id,
       displayName: subGroup.displayName,
     };
+  }
+}
+
+export class ReadingPreferenceTransformers {
+  public static toExtended(
+    type: ExtendedReaderPreferenceType | undefined,
+  ): ExtendedReaderPreferenceType {
+    switch (type) {
+      case DB_ReaderPreferenceType.PREFERRED:
+        return ExtendedReaderPreferenceType.PREFERRED;
+      case DB_ReaderPreferenceType.UNACCEPTABLE:
+        return ExtendedReaderPreferenceType.UNACCEPTABLE;
+      default:
+        return ExtendedReaderPreferenceType.ACCEPTABLE;
+    }
+  }
+
+  public static fromExtended(
+    type: ExtendedReaderPreferenceType,
+  ): DB_ReaderPreferenceType | undefined {
+    switch (type) {
+      case ExtendedReaderPreferenceType.ACCEPTABLE:
+        return undefined;
+      case ExtendedReaderPreferenceType.PREFERRED:
+        return DB_ReaderPreferenceType.PREFERRED;
+      case ExtendedReaderPreferenceType.UNACCEPTABLE:
+        return DB_ReaderPreferenceType.UNACCEPTABLE;
+    }
   }
 }

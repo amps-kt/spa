@@ -45,8 +45,11 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
     .keyof()
     .options.toSorted();
 
-  const { data, isLoading, refetch } =
-    api.institution.instance.getStudents.useQuery({ params });
+  const {
+    data,
+    isLoading,
+    refetch: refetchStudentData,
+  } = api.institution.instance.getStudents.useQuery({ params });
 
   const { mutateAsync: api_addStudent } =
     api.institution.instance.addStudent.useMutation();
@@ -81,6 +84,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
         loading: "Adding student...",
         success: `Successfully added student ${newStudent.id} to ${spacesLabels.instance.short}`,
         error: (err) =>
+          // [#b91c1c] revisit error reporting method
           err instanceof TRPCClientError
             ? err.message
             : `Failed to add student to ${spacesLabels.instance.short}`,
@@ -88,7 +92,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchStudentData();
       });
   }
 
@@ -104,7 +108,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
       .unwrap()
       .then(async (results) => {
         router.refresh();
-        await refetch();
+        await refetchStudentData();
         return results;
       });
   }
@@ -119,7 +123,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchStudentData();
       });
   }
 
@@ -133,7 +137,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
       .unwrap()
       .then(async () => {
         router.refresh();
-        await refetch();
+        await refetchStudentData();
       });
   }
 

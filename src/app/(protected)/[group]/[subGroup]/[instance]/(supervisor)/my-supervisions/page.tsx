@@ -6,8 +6,8 @@ import { PAGES } from "@/config/pages";
 import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
+import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { unauthorised } from "@/lib/utils/redirect";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationCard } from "./_components/allocation-card";
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 
 export default async function Page({ params }: { params: InstanceParams }) {
   if (
-    !(await api.institution.instance.getSupervisorAllocationAccess({ params }))
+    !(await api.institution.instance.get({ params })).supervisorAllocationAccess
   ) {
     unauthorised({ params });
   }

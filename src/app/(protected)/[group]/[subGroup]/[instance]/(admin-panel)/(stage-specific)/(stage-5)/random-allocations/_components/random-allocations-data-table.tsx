@@ -93,12 +93,6 @@ export function RandomAllocationsDataTable({
     [params, refetchData, removeAllocAsync, router],
   );
 
-  const columns = useRandomAllocationColumns({
-    getRandomAllocation,
-    getRandomAllocationForAll,
-    removeAllocation,
-  });
-
   const filters = [
     {
       title: "filter by Flag",
@@ -110,5 +104,11 @@ export function RandomAllocationsDataTable({
     },
   ];
 
-  return <DataTable columns={columns} filters={filters} data={studentData} />;
+  const columns = useRandomAllocationColumns({
+    getRandomAllocation,
+    getRandomAllocationForAll,
+    removeAllocation,
+  });
+
+  return <DataTable columns={columns} data={studentData} filters={filters} />;
 }

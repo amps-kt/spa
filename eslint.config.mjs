@@ -3,6 +3,60 @@ import tseslint from "typescript-eslint";
 
 const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
+// import disallows:
+const disallowNextBuiltins = {
+  group: ["next/navigation", "next/router", "next/link"],
+  allowImportNames: ["notFound"],
+  message:
+    "Do not call next builtins directly; instead use the new routing tools from @/lib/routing",
+};
+
+const disallowPrisma = {
+  group: ["@prisma/client"],
+  message: "Please import via `@/db` as appropriate",
+};
+
+const disallowRadix = {
+  group: ["@radix-ui/*"],
+  allowImportNames: ["Slot"],
+  message:
+    "Imports directly from radix-ui are generally incorrect; please check and ignore this if necessary",
+};
+
+const disallowLucide = {
+  group: ["lucide-react"],
+  allowImportNamePattern: "Icon$",
+  message: "Lucide Icon imports must always use the `<Name>Icon` variant.",
+};
+
+const disallowedEmail = { group: ["@react-email/*"] };
+
+const disallowDayPicker = {
+  group: ["react-day-picker"],
+  importNames: ["Button"],
+};
+
+const disallowAppImports = {
+  group: ["@/app/*"],
+  message: "App imports should be relative, or refactored to components",
+};
+
+/**
+ * utility function for adding import disallow exceptions
+ * @param  {...("nextBuiltins" | "prisma" | "radix" | "emails" | "app" | "none")} from
+ * @returns
+ */
+function AllowImportsFrom(...from) {
+  const patterns = [disallowLucide, disallowDayPicker, disallowAppImports];
+
+  if (!from.includes("nextBuiltins")) patterns.push(disallowNextBuiltins);
+  if (!from.includes("prisma")) patterns.push(disallowPrisma);
+  if (!from.includes("radix")) patterns.push(disallowRadix);
+  if (!from.includes("emails")) patterns.push(disallowedEmail);
+
+  return { "no-restricted-imports": ["warn", { patterns }] };
+}
+
 export default tseslint.config(
   { ignores: [".next/", ".react-email/", "dist/"] },
   ...compat.extends("next/core-web-vitals"),
@@ -38,6 +92,7 @@ export default tseslint.config(
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
+      ...AllowImportsFrom("none"),
     },
   },
   {
@@ -45,36 +100,19 @@ export default tseslint.config(
     languageOptions: { parserOptions: { projectService: true } },
   },
   {
-    ignores: ["src/db/**/*.ts", "src/db/**/*.tsx"],
-    rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          paths: [
-            {
-              name: "@prisma/client",
-              message: "Please import via `@/db` as appropriate",
-            },
-          ],
-        },
-      ],
-    },
+    files: ["src/db/**/*.ts", "src/db/**/*.tsx"],
+    rules: AllowImportsFrom("prisma"),
   },
   {
-    ignores: ["src/components/ui/**/*.ts", "src/components/ui/**/*.tsx"],
-    rules: {
-      "no-restricted-imports": [
-        "warn",
-        {
-          patterns: [
-            {
-              group: ["@radix-ui/*"],
-              message:
-                "Imports directly from radix-ui are generally incorrect; please check and ignore this if necessary",
-            },
-          ],
-        },
-      ],
-    },
+    files: ["src/components/ui/**/*.ts", "src/components/ui/**/*.tsx"],
+    rules: AllowImportsFrom("radix"),
+  },
+  {
+    files: ["src/lib/routing/*.ts", "src/lib/routing/*.tsx"],
+    rules: AllowImportsFrom("nextBuiltins"),
+  },
+  {
+    files: ["src/emails/**/*.ts", "src/emails/**/*.tsx"],
+    rules: AllowImportsFrom("emails"),
   },
 );

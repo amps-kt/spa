@@ -15,7 +15,8 @@ import {
   linkProjectFlagIds,
   linkProjectTagIds,
 } from "@/db/transactions/project-flags";
-import { Stage } from "@/db/types";
+import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
+import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
@@ -171,6 +172,39 @@ export const projectRouter = createTRPCRouter({
       ),
     )
     .query(async ({ ctx: { instance } }) => await instance.getPreAllocations()),
+
+  // move to reader router
+  getAllAvailableForReadingForUser: procedure.instance.reader
+    .output(
+      z.array(
+        z.object({
+          project: projectDtoSchema,
+          student: studentDtoSchema,
+          readingPreference: extendedReaderPreferenceTypeSchema,
+        }),
+      ),
+    )
+    .query(async ({ ctx: { instance, user } }) => {
+      const allProjects = await instance.getProjectAllocations();
+      const rpas = await instance.getReaderAllocation();
+
+      const rpaDict = rpas.reduce(
+        (acc, val) => ({ ...acc, [val.project.id]: val.reader?.id }),
+        {} as Record<string, string | undefined>,
+      );
+
+      const readingPreferences = await user.getPreferencesMap();
+
+      return allProjects
+        .filter((x) => rpaDict[x.project.id] === undefined)
+        .filter((x) => x.project.supervisorId !== user.id)
+        .sort((a, b) => a.project.title.localeCompare(b.project.title))
+        .map(({ project, student }) => ({
+          project,
+          student,
+          readingPreference: RPT.toExtended(readingPreferences.get(project.id)),
+        }));
+    }),
 
   // Pin -> this should be stricter than member, but we need a better withAC impl
   getById: procedure.project.member

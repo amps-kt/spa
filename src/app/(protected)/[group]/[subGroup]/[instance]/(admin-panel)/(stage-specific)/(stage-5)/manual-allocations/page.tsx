@@ -42,6 +42,9 @@ export default async function Page({ params }: { params: InstanceParams }) {
   const supervisorData =
     await api.institution.instance.getSupervisorsWithAllocations({ params });
 
+  const projectDescriptors =
+    await api.institution.instance.getAllProjectDescriptors({ params });
+
   const allStudents = [...unallocatedStudentData, ...allocatedStudents];
   const students = allStudents.map(({ student, project }) => ({
     ...student,
@@ -75,6 +78,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
         initialStudents={students}
         initialProjects={projects}
         initialSupervisors={supervisors}
+        projectDescriptors={projectDescriptors}
       />
     </PanelWrapper>
   );
