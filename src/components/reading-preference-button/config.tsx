@@ -27,11 +27,11 @@ export const preferenceConfigs: Record<
     ),
   },
   [ExtendedReaderPreferenceType.UNACCEPTABLE]: {
-    label: "Unacceptable",
+    label: "Not Preferred",
     tip: (
       <p>
         Project is currently considered{" "}
-        <span className="font-semibold">Unacceptable</span>, click to change
+        <span className="font-semibold">Not Preferred</span>, click to change
         status to <span className="font-semibold">Neutral</span>
       </p>
     ),
