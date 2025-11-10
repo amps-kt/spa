@@ -186,10 +186,17 @@ export const projectRouter = createTRPCRouter({
     )
     .query(async ({ ctx: { instance, user } }) => {
       const allProjects = await instance.getProjectAllocations();
+      const rpas = await instance.getReaderAllocation();
+
+      const rpaDict = rpas.reduce(
+        (acc, val) => ({ ...acc, [val.project.id]: val.reader?.id }),
+        {} as Record<string, string | undefined>,
+      );
 
       const readingPreferences = await user.getPreferencesMap();
 
       return allProjects
+        .filter((x) => rpaDict[x.project.id] === undefined)
         .filter((x) => x.project.supervisorId !== user.id)
         .sort((a, b) => a.project.title.localeCompare(b.project.title))
         .map(({ project, student }) => ({
