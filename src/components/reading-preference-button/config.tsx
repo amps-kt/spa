@@ -7,7 +7,7 @@ export const preferenceConfigs: Record<
   { label: string; tip: ReactNode }
 > = {
   [ExtendedReaderPreferenceType.ACCEPTABLE]: {
-    label: "Neural",
+    label: "Neutral",
     tip: (
       <p>
         Project is currently considered{" "}
