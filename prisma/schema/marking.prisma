@@ -54,24 +54,25 @@ model MarkingComponentSubmission {
 }
 
 model UnitOfAssessment {
-  id                        String                       @id @default(uuid())
-  flagId                    String                       @map("flag_id")
-  title                     String
-  open                      Boolean                      @default(false)
-  studentSubmissionDeadline DateTime                     @map("student_submission_deadline")
-  markerSubmissionDeadline  DateTime                     @map("marker_submission_deadline")
-  weight                    Int
-  allowedMarkerTypes        MarkerType[]
+  id                               String                       @id @default(uuid())
+  flagId                           String                       @map("flag_id")
+  title                            String
+  open                             Boolean                      @default(false)
+  defaultStudentSubmissionDeadline DateTime                     @map("default_student_submission_deadline")
+  // Days to mark
+  markerSubmissionDeadline         DateTime                     @map("marker_submission_deadline")
+  defaultWeight                    Int                          @map("default_weight")
+  allowedMarkerTypes               MarkerType[]
   // ---
-  allocationGroupId         String                       @map("allocation_group_id")
-  allocationSubGroupId      String                       @map("allocation_sub_group_id")
-  allocationInstanceId      String                       @map("allocation_instance_id")
+  allocationGroupId                String                       @map("allocation_group_id")
+  allocationSubGroupId             String                       @map("allocation_sub_group_id")
+  allocationInstanceId             String                       @map("allocation_instance_id")
   // ---
-  flag                      Flag                         @relation(fields: [flagId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [id, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "unit_flag")
-  allocationInstance        AllocationInstance           @relation(fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade, map: "uoa_instance")
-  markingComponents         MarkingComponent[]
-  markerSubmissions         UnitOfAssessmentSubmission[]
-  grades                    UnitOfAssessmentGrade[]
+  flag                             Flag                         @relation(fields: [flagId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [id, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "unit_flag")
+  allocationInstance               AllocationInstance           @relation(fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade, map: "uoa_instance")
+  markingComponents                MarkingComponent[]
+  markerSubmissions                UnitOfAssessmentSubmission[]
+  grades                           UnitOfAssessmentGrade[]
 
   @@map("unit_of_assessment")
 }
@@ -101,6 +102,10 @@ model UnitOfAssessmentGrade {
   comment            String
   status             MarkingStatus
   method             MarkingMethod
+  // 
+  submitted          Boolean
+  customDueDate      DateTime?        @map("custom_due_date")
+  customWeight       Int?             @map("custom_weight")
 
   @@id([studentId, unitOfAssessmentId], name: "uoaGradeId")
   @@map("unit_of_assessment_grade")
