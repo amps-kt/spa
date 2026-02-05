@@ -626,6 +626,16 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
+  studentSubmissions: {
+    title: "Student Submissions",
+    href: "student-submissions",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/student-submissions`,
+    icon: "calendar-clock",
+    level: 4,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
   myReadingPreferences: {
     title: "My Reading Preferences",
     href: "my-reading-preferences",
