@@ -100,10 +100,10 @@ model UnitOfAssessmentGrade {
   // ---
   grade              Int
   comment            String
-  status             MarkingStatus
-  method             MarkingMethod
+  status             MarkingStatus    @default(PENDING)
+  method             MarkingMethod    @default(AUTO)
   // 
-  submitted          Boolean
+  submitted          Boolean          @default(false)
   customDueDate      DateTime?        @map("custom_due_date")
   customWeight       Int?             @map("custom_weight")
 
