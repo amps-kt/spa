@@ -28,6 +28,9 @@ export const ProjectAllocationStatus = {
 export type ProjectAllocationStatus =
   (typeof ProjectAllocationStatus)[keyof typeof ProjectAllocationStatus];
 
+// Consider simplifying as below:
+// export type ProjectAllocationStatus2 = keyof typeof ProjectAllocationStatus;
+
 export const projectAllocationStatusSchema = z.enum([
   ProjectAllocationStatus.UNALLOCATED,
   ProjectAllocationStatus.RANDOM,
