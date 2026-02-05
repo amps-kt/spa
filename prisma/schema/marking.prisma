@@ -46,11 +46,11 @@ model MarkingComponentSubmission {
   // ---
   markingComponentId String                     @map("marking_component_id")
   // ---
-  markingComponent   MarkingComponent           @relation(fields: [markingComponentId], references: [id], onDelete: Cascade, map: "marking_submission_marking_submission")
-  submission         UnitOfAssessmentSubmission @relation(fields: [markerId, studentId, unitOfAssessmentId], references: [markerId, studentId, unitOfAssessmentId], onDelete: Cascade, map: "marking_submission_uoa_submission")
+  markingComponent   MarkingComponent           @relation(fields: [markingComponentId], references: [id], onDelete: Cascade, map: "marking_component_submission_marking_component")
+  submission         UnitOfAssessmentSubmission @relation(fields: [markerId, studentId, unitOfAssessmentId], references: [markerId, studentId, unitOfAssessmentId], onDelete: Cascade, map: "marking_component_submission_uoa_submission")
 
   @@id([markerId, studentId, markingComponentId], name: "markingComponentSubmission")
-  @@map("criterion_score")
+  @@map("marking_component_submission")
 }
 
 model UnitOfAssessment {
@@ -115,8 +115,8 @@ model FinalGrade {
   id                       String                   @id @default(uuid())
   studentId                String                   @map("student_id")
   grade                    Int
-  comment                  String
-  method                   FinalGradeMethod
+  comment                  String                   @default("")
+  method                   FinalGradeMethod         @default(AUTO)
   // ---
   allocationGroupId        String                   @map("allocation_group_id")
   allocationSubGroupId     String                   @map("allocation_sub_group_id")
