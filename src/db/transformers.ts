@@ -23,7 +23,6 @@ import {
   type DB_AllocationGroup,
   type DB_AllocationInstance,
   type DB_AllocationSubGroup,
-  type DB_AssessmentCriterion,
   type DB_Flag,
   type DB_FlagOnProject,
   type DB_UnitOfAssessment,
@@ -35,10 +34,11 @@ import {
   type DB_TagOnProject,
   type DB_User,
   type DB_UserInInstance,
-  type DB_CriterionScore,
-  type DB_MarkingSubmission,
   DB_ReaderPreferenceType,
   ExtendedReaderPreferenceType,
+  type DB_MarkingComponent,
+  type DB_UnitOfAssessmentSubmission,
+  type DB_MarkingComponentSubmission,
 } from "./types";
 
 export class Transformers {
@@ -56,7 +56,9 @@ export class Transformers {
 
   public static toMarkingSubmissionDTO(
     this: void,
-    data: DB_MarkingSubmission & { criterionScores?: DB_CriterionScore[] },
+    data: DB_UnitOfAssessmentSubmission & {
+      criterionScores?: DB_MarkingComponentSubmission[];
+    },
   ): MarkingSubmissionDTO {
     return {
       markerId: data.markerId,
@@ -66,7 +68,7 @@ export class Transformers {
       marks: (data.criterionScores ?? []).reduce(
         (acc, val) => ({
           ...acc,
-          [val.assessmentCriterionId]: Transformers.toScoreDTO(val),
+          [val.markingComponentId]: Transformers.toScoreDTO(val),
         }),
         {},
       ),
@@ -75,7 +77,9 @@ export class Transformers {
       draft: data.draft,
     };
   }
-  public static toScoreDTO(data: DB_CriterionScore): CriterionScoreDTO {
+  public static toScoreDTO(
+    data: DB_MarkingComponentSubmission,
+  ): CriterionScoreDTO {
     return { mark: data.grade, justification: data.justification };
   }
 
@@ -236,7 +240,7 @@ export class Transformers {
 
   public static toAssessmentCriterionDTO(
     this: void,
-    data: DB_AssessmentCriterion,
+    data: DB_MarkingComponent,
   ): AssessmentCriterionDTO {
     return {
       id: data.id,
@@ -252,19 +256,19 @@ export class Transformers {
     this: void,
     data: DB_UnitOfAssessment & {
       flag: DB_Flag;
-      assessmentCriteria: DB_AssessmentCriterion[];
+      markingComponents: DB_MarkingComponent[];
     },
   ): UnitOfAssessmentDTO {
     return {
       id: data.id,
       title: data.title,
       flag: Transformers.toFlagDTO(data.flag),
-      components: data.assessmentCriteria.map((x) =>
+      components: data.markingComponents.map((x) =>
         Transformers.toAssessmentCriterionDTO(x),
       ),
-      studentSubmissionDeadline: data.studentSubmissionDeadline,
-      markerSubmissionDeadline: data.markerSubmissionDeadline,
-      weight: data.weight,
+      studentSubmissionDeadline: data.defaultStudentSubmissionDeadline,
+      markerSubmissionDeadline: data.defaultStudentSubmissionDeadline,
+      weight: data.defaultWeight,
       isOpen: data.open,
       allowedMarkerTypes: data.allowedMarkerTypes,
     };

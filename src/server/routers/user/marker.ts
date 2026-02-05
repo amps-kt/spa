@@ -36,7 +36,7 @@ export const markerRouter = createTRPCRouter({
     .query(async ({ ctx: { db }, input: { unitOfAssessmentId } }) => {
       const res = await db.unitOfAssessment.findFirstOrThrow({
         where: { id: unitOfAssessmentId },
-        include: { flag: true, assessmentCriteria: true },
+        include: { flag: true, markingComponents: true },
       });
 
       return T.toUnitOfAssessmentDTO(res);
@@ -145,7 +145,7 @@ export const markerRouter = createTRPCRouter({
           const deadline = addWeeks(new Date(), 1);
 
           // otherwise, if this is a doubly-marked submission, and now both are submitted then:
-          const data = await db.markingSubmission.findMany({
+          const data = await db.unitOfAssessmentSubmission.findMany({
             where: { studentId, unitOfAssessmentId },
             include: { criterionScores: true },
           });
@@ -240,7 +240,7 @@ export const markerRouter = createTRPCRouter({
           return;
         }
 
-        const numSubmissions = await db.markingSubmission.count({
+        const numSubmissions = await db.unitOfAssessmentSubmission.count({
           where: { studentId, unitOfAssessmentId, draft: false },
         });
 
@@ -253,7 +253,7 @@ export const markerRouter = createTRPCRouter({
         }
 
         // otherwise, if this is a doubly-marked submission, and now both are submitted then:
-        const data = await db.markingSubmission.findMany({
+        const data = await db.unitOfAssessmentSubmission.findMany({
           where: { studentId, unitOfAssessmentId, draft: false },
           include: { criterionScores: true },
         });

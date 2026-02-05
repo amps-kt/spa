@@ -34,7 +34,7 @@ model MarkingComponent {
   scores             MarkingComponentSubmission[]
 
   @@unique([title, unitOfAssessmentId])
-  @@map("assessment_criterion")
+  @@map("marking_component")
 }
 
 model MarkingComponentSubmission {

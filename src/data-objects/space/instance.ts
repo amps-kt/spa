@@ -65,7 +65,7 @@ export class AllocationInstance extends DataObject {
     return await this.db.unitOfAssessment
       .findFirstOrThrow({
         where: { id: unitOfAssessmentId },
-        include: { flag: true, assessmentCriteria: true },
+        include: { flag: true, markingComponents: true },
       })
       .then((x) => T.toUnitOfAssessmentDTO(x));
   }
@@ -73,7 +73,7 @@ export class AllocationInstance extends DataObject {
   public async getCriteria(
     unitOfAssessmentId: string,
   ): Promise<AssessmentCriterionDTO[]> {
-    const data = await this.db.assessmentCriterion.findMany({
+    const data = await this.db.markingComponent.findMany({
       where: { unitOfAssessmentId },
       orderBy: { layoutIndex: "asc" },
     });
@@ -87,9 +87,7 @@ export class AllocationInstance extends DataObject {
     const flagData = await this.db.flag.findMany({
       where: expand(this.params),
       include: {
-        unitsOfAssessment: {
-          include: { flag: true, assessmentCriteria: true },
-        },
+        unitsOfAssessment: { include: { flag: true, markingComponents: true } },
       },
     });
 

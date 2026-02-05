@@ -56,7 +56,7 @@ export class Reader extends Marker {
                     studentFlag: {
                       include: {
                         unitsOfAssessment: {
-                          include: { assessmentCriteria: true, flag: true },
+                          include: { markingComponents: true, flag: true },
                         },
                       },
                     },
