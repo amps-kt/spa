@@ -107,7 +107,9 @@ function SummarySection({
         <Table>
           <TableBody>
             <TableRow className="flex items-center justify-between">
-              <TableCell className="text-base font-medium">Required</TableCell>
+              <TableCell className="text-base font-medium">
+                Projects to be read:
+              </TableCell>
               <TableCell>
                 <Badge
                   className="min-w-10 rounded-full text-center"
@@ -118,7 +120,9 @@ function SummarySection({
               </TableCell>
             </TableRow>
             <TableRow className="flex items-center justify-between">
-              <TableCell className="text-base font-medium">Available</TableCell>
+              <TableCell className="text-base font-medium">
+                Total reader capacity:
+              </TableCell>
               <TableCell>
                 <Badge
                   className="min-w-10 rounded-full text-center"
@@ -130,7 +134,7 @@ function SummarySection({
             </TableRow>
             <TableRow className="flex items-center justify-between">
               <TableCell className="text-base font-medium">
-                Read Projects:
+                Projects allocated to a reader:
               </TableCell>
               <TableCell>
                 <Badge
