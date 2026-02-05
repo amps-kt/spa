@@ -10,18 +10,18 @@
     "scope": "javascript,typescript",
     "prefix": "depr",
     "body": ["/**", "* @deprecated $0", "*/"],
-    "description": "Log output to console",
+    "description": "Mark a feature as deprecated",
   },
 
   "Page": {
-		"prefix": "pasy",
-		"body": [
-			"export default async function Page() {",
-			"  return (<>${0}</>);",
-			"}"
-		],
-		"description": "Creates a page server component with no params",
-	},
+    "prefix": "pasy",
+    "body": [
+      "export default async function Page() {",
+      "  return (<>${0}</>);",
+      "}",
+    ],
+    "description": "Creates a page server component with no params",
+  },
 
   "Instance Page": {
     "prefix": "inpag",
@@ -65,6 +65,17 @@
       "} satisfies Props;",
       "",
       "export default ${0};",
+    ],
+  },
+
+  "Enum": {
+    "prefix": "enm",
+    "body": [
+      "export const $1 = {",
+      "\t$2",
+      "} as const;",
+      "",
+      "export type $1 = keyof typeof $1;",
     ],
   },
 }
