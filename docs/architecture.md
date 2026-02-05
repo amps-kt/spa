@@ -4,7 +4,7 @@ The SPA system is comprised of two main repositories:
 
 The first is the matching service
 
-This is a flask (python) app which simply serves out a series of pre-defined algorithms.
+This is a FastAPI (python) app which simply serves out a series of pre-defined algorithms.
 All of the difficult logic being handled by libraries like networkx or matchingproblems.
 As the name implies, it is used to handle matching problems, and only needs to be updated if there are new matching algorithms to add.
 
@@ -26,7 +26,7 @@ The main components within this are:
 - the backend,
 
   - We use [tRPC](https://trpc.io/)
-  - contained in `/stc/router...`
+  - contained in `/src/router...`
   - Most of the logic in the procedures in reality lives in data objects ([see below](#data-objects))
 
 - the frontend,
@@ -94,7 +94,9 @@ It makes moving around different parts of the application much easier, since the
 ## Deployment
 
 The matching service and the allocation app are each packaged into a docker image.
-We use docker compose to orchestrate them, along with
-Some extra details need to be provided via environment variables.
+We use docker compose to orchestrate them, along with a few chron jobs for tasks that need to run regularly.
+At some point in the future, we might move this into it's own container.
 
-See \that\file for details of which ones are needed and what they should be.
+Some extra details need to be provided via environment variables.
+Details of which ones are needed and what they should be can be found in `\src\env.ts`. Any variable with `.optional()` or `.default(_)` can be omitted.
+`.env.example` contains an example env file.
