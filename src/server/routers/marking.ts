@@ -82,19 +82,19 @@ export const markingRouter = createTRPCRouter({
       const units = await db.unitOfAssessment
         .findMany({
           where: expand(instance.params),
-          include: { flag: true, assessmentCriteria: true },
+          include: { flag: true, markingComponents: true },
         })
         .then((data) => data.map((x) => T.toUnitOfAssessmentDTO(x)));
 
-      const submissions = await db.markingSubmission.findMany({
+      const submissions = await db.unitOfAssessmentSubmission.findMany({
         where: {
           unitOfAssessmentId: { in: units.map((e) => e.id) },
           draft: false,
         },
         include: {
           criterionScores: {
-            include: { criterion: true },
-            orderBy: { criterion: { layoutIndex: "asc" } },
+            include: { markingComponent: true },
+            orderBy: { markingComponent: { layoutIndex: "asc" } },
           },
         },
       });
@@ -113,7 +113,8 @@ export const markingRouter = createTRPCRouter({
 
             const comment =
               comments.reduce((acc, val) => {
-                const rest = val.criterion.title + "\t" + val.justification;
+                const rest =
+                  val.markingComponent.title + "\t" + val.justification;
                 return acc + "\t\t" + rest;
               }, "") +
               "\t\tFinal Comment:\t" +
@@ -144,7 +145,7 @@ export const markingRouter = createTRPCRouter({
           >,
         );
 
-      const unitFinalMarks = await db.finalUnitOfAssessmentGrade.findMany({
+      const unitFinalMarks = await db.unitOfAssessmentGrade.findMany({
         where: { unitOfAssessmentId: { in: units.map((e) => e.id) } },
       });
 
@@ -261,6 +262,8 @@ export const markingRouter = createTRPCRouter({
                 grade: finalMark,
                 ...expand(instance.params),
                 studentId: student.id,
+                comment: "",
+                method: "AUTO",
               },
             });
           }

@@ -92,3 +92,53 @@ function QueryManager({ initialData }: { initialData: TData }) {
   return <div>{data}</div>;
 }
 ```
+
+## Enums
+
+When declaring an enum type, don't use magic strings or
+
+Instead, use the following pattern:
+
+```ts
+export const MyEnum = {
+  OPTION_A: "OPTION_A",
+  OPTION_B: "OPTION_B",
+  OPTION_C: "OPTION_C",
+  // ... etc
+} as const;
+
+export type MyEnum = keyof typeof MyEnum;
+```
+
+- The dictionary and type names should both be in PascalCase and must match
+- Enum values should be in `SCREAMING_SNAKE_CASE`
+- The key and the value in the defining dict should match exactly.
+- Export the inferred type on an additional line
+
+There's a snippet in the repository for setting this up - the prefix is `enm`.
+
+When referring to an enum value, use the dictionary
+
+> Good:
+>
+> ```ts
+> fun(MyEnum.OPTION_A);
+> ```
+
+> Bad:
+>
+> ```ts
+> fun("OPTION_A");
+> ```
+
+When necessary, you should generate the related zod schema like so:
+
+```ts
+export const myEnumSchema = z.enum([
+  MyEnum.OPTION_A,
+  MyEnum.OPTION_B,
+  MyEnum.OPTION_C,
+]);
+```
+
+- The name of the schema should be the name of the enum in camelCase with `Schema` appended to the end.

@@ -1414,7 +1414,7 @@ export const instanceRouter = createTRPCRouter({
         where: expand(instance.params),
         include: {
           unitsOfAssessment: {
-            include: { flag: true, assessmentCriteria: true },
+            include: { flag: true, markingComponents: true },
             orderBy: [{ markerSubmissionDeadline: "asc" }],
           },
         },

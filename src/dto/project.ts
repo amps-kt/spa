@@ -25,8 +25,7 @@ export const ProjectAllocationStatus = {
   UNALLOCATED: "UNALLOCATED",
 } as const;
 
-export type ProjectAllocationStatus =
-  (typeof ProjectAllocationStatus)[keyof typeof ProjectAllocationStatus];
+export type ProjectAllocationStatus = keyof typeof ProjectAllocationStatus;
 
 export const projectAllocationStatusSchema = z.enum([
   ProjectAllocationStatus.UNALLOCATED,

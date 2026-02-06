@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
 import {
   type MarkingSubmissionDTO,
   type ProjectDTO,
@@ -47,7 +45,7 @@ export class Marker extends User {
     unitOfAssessmentId: string,
     studentId: string,
   ): Promise<MarkingSubmissionDTO> {
-    const result = await this.db.markingSubmission.findFirst({
+    const result = await this.db.unitOfAssessmentSubmission.findFirst({
       where: { markerId: this.id, studentId, unitOfAssessmentId },
       include: { criterionScores: true },
     });
@@ -99,7 +97,7 @@ export class Marker extends User {
                   unitsOfAssessment: {
                     where: { allowedMarkerTypes: { has: "SUPERVISOR" } },
                     include: {
-                      assessmentCriteria: true,
+                      markingComponents: true,
                       flag: true,
                       markerSubmissions: { where: { markerId } },
                     },
@@ -159,7 +157,11 @@ export class Marker extends User {
                       studentFlag: {
                         include: {
                           unitsOfAssessment: {
-                            include: { markerSubmissions: true },
+                            include: {
+                              markerSubmissions: true,
+                              flag: true,
+                              markingComponents: true,
+                            },
                           },
                         },
                       },
@@ -235,10 +237,8 @@ export class Marker extends User {
   }: Omit<PartialMarkingSubmissionDTO, "markerId">) {
     const markerId = this.id;
     await this.db.$transaction([
-      this.db.markingSubmission.upsert({
-        where: {
-          studentMarkerSubmission: { markerId, studentId, unitOfAssessmentId },
-        },
+      this.db.unitOfAssessmentSubmission.upsert({
+        where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
         create: {
           markerId,
           studentId,
@@ -256,19 +256,19 @@ export class Marker extends User {
         },
       }),
 
-      ...Object.entries(marks).map(([assessmentCriterionId, m]) =>
-        this.db.criterionScore.upsert({
+      ...Object.entries(marks).map(([markingComponentId, m]) =>
+        this.db.markingComponentSubmission.upsert({
           where: {
-            markingCriterionSubmission: {
+            markingComponentSubmission: {
               markerId,
               studentId,
-              assessmentCriterionId,
+              markingComponentId,
             },
           },
           create: {
             markerId,
             studentId,
-            assessmentCriterionId,
+            markingComponentId,
             unitOfAssessmentId,
             grade: m.mark ?? -1,
             justification: m.justification ?? "",
@@ -290,9 +290,17 @@ export class Marker extends User {
     grade: number;
     comment: string;
   }) {
-    await this.db.finalUnitOfAssessmentGrade.upsert({
-      where: { studentAssessmentGrade: { studentId, unitOfAssessmentId } },
-      create: { studentId, unitOfAssessmentId, comment, grade },
+    await this.db.unitOfAssessmentGrade.upsert({
+      where: { uoaGradeId: { studentId, unitOfAssessmentId } },
+      create: {
+        studentId,
+        unitOfAssessmentId,
+        comment,
+        grade,
+        status: "DONE",
+        method: "AUTO",
+        submitted: true,
+      },
       update: { studentId, unitOfAssessmentId, comment, grade },
     });
   }
