@@ -46,9 +46,9 @@ model MarkingComponentSubmission {
   justification        String
   // ---
   markingComponentId   String                     @map("marking_component_id")
-  allocationGroupId    String                     @default("socs") @map("allocation_group_id")
-  allocationSubGroupId String                     @default("lvl-4-and-lvl-5-honours") @map("allocation_sub_group_id")
-  allocationInstanceId String                     @default("2024-2025") @map("allocation_instance_id")
+  allocationGroupId    String                     @map("allocation_group_id")
+  allocationSubGroupId String                     @map("allocation_sub_group_id")
+  allocationInstanceId String                     @map("allocation_instance_id")
   // ---
   student              StudentDetails             @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], map: "component_submission_student")
   markingComponent     MarkingComponent           @relation(fields: [markingComponentId], references: [id], onDelete: Cascade, map: "marking_component_submission_marking_component")
@@ -91,9 +91,9 @@ model UnitOfAssessmentSubmission {
   studentId            String                       @map("student_id")
   unitOfAssessmentId   String                       @map("unit_of_assessment_id")
   // ---
-  allocationGroupId    String                       @default("socs") @map("allocation_group_id")
-  allocationSubGroupId String                       @default("lvl-4-and-lvl-5-honours") @map("allocation_sub_group_id")
-  allocationInstanceId String                       @default("2024-2025") @map("allocation_instance_id")
+  allocationGroupId    String                       @map("allocation_group_id")
+  allocationSubGroupId String                       @map("allocation_sub_group_id")
+  allocationInstanceId String                       @map("allocation_instance_id")
   // ---
   unitOfAssessment     UnitOfAssessment             @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "uoa_submission_uoa")
   criterionScores      MarkingComponentSubmission[]
@@ -113,9 +113,9 @@ model UnitOfAssessmentGrade {
   status               MarkingStatus    @default(PENDING)
   method               MarkingMethod    @default(AUTO)
   // ---
-  allocationGroupId    String           @default("socs") @map("allocation_group_id")
-  allocationSubGroupId String           @default("lvl-4-and-lvl-5-honours") @map("allocation_sub_group_id")
-  allocationInstanceId String           @default("2024-2025") @map("allocation_instance_id")
+  allocationGroupId    String           @map("allocation_group_id")
+  allocationSubGroupId String           @map("allocation_sub_group_id")
+  allocationInstanceId String           @map("allocation_instance_id")
   // ---
   submitted            Boolean          @default(false)
   customDueDate        DateTime?        @map("custom_due_date")
