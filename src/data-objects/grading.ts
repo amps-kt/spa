@@ -1,14 +1,21 @@
+import { Grade } from "@/config/grades";
+
 import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
 import {
   type MarkingSubmissionDTO,
   type UnitGradeDTO,
   UnitGradingLifecycleState,
 } from "@/dto/marking";
+import {
+  MarkSubmissionEvent,
+  type MarkSubmittedResult,
+  type ModerationCheckResult,
+} from "@/dto/result/grading-result";
 
 import { ConsensusStage, ConsensusMethod } from "@/db/types";
 
 export class Grading {
-  static getUnitStatus(
+  public static getUnitStatus(
     unit: UnitOfAssessmentDTO,
     grade: UnitGradeDTO | undefined,
     submissions: MarkingSubmissionDTO[],
@@ -50,5 +57,25 @@ export class Grading {
 
     // At least 1 submission; not done -> need 2nd mark
     return UnitGradingLifecycleState.PENDING_2ND_MARKER;
+  }
+
+  public static markSubmitted(
+    unit: UnitOfAssessmentDTO,
+    submissions: UnitGradeDTO[],
+  ): MarkSubmittedResult {
+    if (unit.allowedMarkerTypes.length === 1) {
+      return { status: MarkSubmissionEvent.SINGLE_MARKED } as const;
+    }
+
+    // assert(unit.allowedMarkerTypes.length === 2);
+    if (submissions.length < 2) {
+      return { status: MarkSubmissionEvent.FIRST_OF_TWO } as const;
+    }
+
+    return Grade.autoResolve(a, b);
+  }
+
+  public static negotiationSubmitted(g): ModerationCheckResult {
+    return Grade.checkExtremes(g);
   }
 }

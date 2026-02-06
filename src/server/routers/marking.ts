@@ -250,7 +250,7 @@ export const markingRouter = createTRPCRouter({
             finalMark === undefined &&
             unitData.every((u) => u.status.status === "MARKED")
           ) {
-            finalMark = Grade.computeFromScores(
+            finalMark = Grade.weightedAverage(
               unitData.map((e) => ({
                 score: e.status.grade!,
                 weight: e.unit.weight,

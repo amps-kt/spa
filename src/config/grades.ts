@@ -1,4 +1,8 @@
-import { GradingResult } from "@/dto/result/grading-result";
+import {
+  type AutoResolveResult,
+  GradingResult,
+  type ModerationCheckResult,
+} from "@/dto/result/grading-result";
 
 export const GRADES = [
   { label: "A1", value: 22 },
@@ -27,21 +31,26 @@ export const GRADES = [
 ];
 
 export class Grade {
-  public static computeFromScores(scores: { score: number; weight: number }[]) {
+  // POLICY how should we round non-integer grades?
+  public static round(mark: number): number {
+    return Math.round(mark);
+  }
+
+  public static average(grade1: number, grade2: number): number {
+    return this.round((grade1 + grade2) / 2);
+  }
+
+  public static weightedAverage(
+    scores: { score: number; weight: number }[],
+  ): number {
     const totalWeight = scores.reduce((acc, val) => acc + val.weight, 0);
     const totalWeightedScore = scores.reduce(
       (acc, val) => acc + val.weight * val.score,
       0,
     );
 
-    // POLICY how should we round non-integer grades?
     const mark = this.round(totalWeightedScore / totalWeight);
     return mark;
-  }
-
-  // POLICY how should we round non-integer grades?
-  public static round(mark: number): number {
-    return Math.round(mark);
   }
 
   public static toLetter(mark: number): string {
@@ -50,79 +59,55 @@ export class Grade {
     }
     const grade = GRADES.find((g) => g.value === mark);
     if (!grade) {
-      console.error(`!!Invalid Grade! ${mark}`);
+      console.error(`Invalid numerical grade: ${mark}`);
       return `invalid ${mark}`;
     }
-    // throw new Error(`Computed mark not valid: ${mark}`);
     return grade.label;
   }
 
   public static toInt(grade: string): number {
     const gradeObj = GRADES.find((g) => g.label === grade);
     if (!gradeObj) {
-      console.error(`!!Invalid Grade! ${grade}`);
+      console.error(`Invalid letter grade: ${grade}`);
       return -1;
     }
-    // throw new Error(`Grade not valid: ${grade}`);
+
     return gradeObj.value;
   }
 
-  public static getBand(grade: string): string {
-    if (!GRADES.map((g) => g.label).includes(grade)) {
-      throw new Error(`Grade not valid: ${grade}`);
-    }
-    return grade[0];
+  public static getMajorBand(numericalGrade: number): string {
+    const letterGrade = this.toLetter(numericalGrade);
+    return letterGrade[0];
   }
 
   public static haveMajorBandDifference(
-    grade1: string,
-    grade2: string,
+    grade1: number,
+    grade2: number,
   ): boolean {
-    return this.getBand(grade1) === this.getBand(grade2);
+    return this.getMajorBand(grade1) === this.getMajorBand(grade2);
   }
 
-  // leaving in for future use
-  public static isOnBoundary(grade: string): boolean {
-    return ["A1", "H"].includes(grade);
+  public static isFailing(grade: number): boolean {
+    return grade < Grade.toInt("D3");
   }
 
-  // POLICY how should we round non-integer grades for between-marker averaging?
-  public static average(grade1: string, grade2: string): string {
-    const grade1Value = this.toInt(grade1);
-    const grade2Value = this.toInt(grade2);
-    const average = Math.round((grade1Value + grade2Value) / 2);
-    return this.toLetter(average);
+  public static isExtreme(grade: number): boolean {
+    return grade === this.toInt("A1") || this.isFailing(grade);
   }
 
-  // if grade is A1 or Fail (below D3) then go to negotiate2
-  public static boundaryCheck(grade: string) {
-    if (this.isOnBoundary(grade)) {
-      return { status: GradingResult.NEGOTIATE2 };
-    } else {
-      return { status: GradingResult.AUTO_RESOLVED, grade };
-    }
-  }
-
-  public static isFailing(grade: string) {
-    return Grade.toInt(grade) < Grade.toInt("D3");
-  }
-
-  public static checkExtremes(grade: string) {
-    if (grade === "A1" || this.isFailing(grade)) {
+  public static checkExtremes(grade: number): ModerationCheckResult {
+    if (this.isExtreme(grade)) {
       return { status: GradingResult.MODERATE } as const;
     } else {
       return { status: GradingResult.AUTO_RESOLVED, grade } as const;
     }
   }
 
-  public static autoResolve(supervisorGrade?: string, readerGrade?: string) {
-    if (!supervisorGrade || !readerGrade) {
-      return { status: GradingResult.INSUFFICIENT };
-    }
-
-    const supervisorValue = Grade.toInt(supervisorGrade);
-    const readerValue = Grade.toInt(readerGrade);
-    const diff = Math.abs(supervisorValue - readerValue);
+  public static autoResolve(
+    supervisorGrade: number,
+    readerGrade: number,
+  ): AutoResolveResult {
+    const diff = Math.abs(supervisorGrade - readerGrade);
 
     if (diff <= 1) {
       return this.checkExtremes(supervisorGrade);
