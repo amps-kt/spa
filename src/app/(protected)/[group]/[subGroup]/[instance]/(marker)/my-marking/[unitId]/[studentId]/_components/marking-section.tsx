@@ -122,7 +122,7 @@ export function MarkingSection({
       (c) => ({ weight: c.weight, score: marks[c.id].mark }),
     );
 
-    const grade = Grade.computeFromScores(scores);
+    const grade = Grade.weightedAverage(scores);
 
     form.setValue("grade", grade, { shouldValidate: true });
   }, [form, markingCriteria]);

@@ -83,6 +83,9 @@ export const markingSubmissionDtoSchema = z.object({
 
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
+/**
+ * @deprecated
+ */
 export const partialMarkingSubmissionDtoSchema = markingSubmissionDtoSchema
   .partial({ finalComment: true, recommendation: true })
   .extend({
