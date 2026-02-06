@@ -28,6 +28,9 @@ model StudentDetails {
   matchingPairs            MatchingPair[]
   preAllocatedProjects     Project[]
   enrolled                 Boolean                      @default(true)
+  componentSubmissions     MarkingComponentSubmission[]
+  unitSubmissions          UnitOfAssessmentSubmission[]
+  unitGrades               UnitOfAssessmentGrade[]
 
   @@id([userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "studentDetailsId", map: "student_details_id")
   @@map("student_details")
