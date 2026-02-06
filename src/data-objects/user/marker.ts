@@ -3,7 +3,6 @@ import {
   type ProjectDTO,
   type StudentDTO,
   type UnitOfAssessmentDTO,
-  type PartialMarkingSubmissionDTO,
 } from "@/dto";
 import {
   markingStatusMin,
@@ -354,12 +353,23 @@ export class Marker extends User {
   public async writeMarks({
     unitOfAssessmentId,
     studentId,
+    draft,
     marks = {},
     finalComment = "",
     recommendation,
-    draft,
-    grade,
-  }: Omit<PartialMarkingSubmissionDTO, "markerId">) {
+    grade = -1,
+  }: Omit<
+    {
+      unitOfAssessmentId: string;
+      studentId: string;
+      draft: boolean;
+      marks: Record<string, { mark?: number; justification?: string }>;
+      finalComment?: string;
+      recommendation?: boolean;
+      grade?: number;
+    },
+    "markerId"
+  >) {
     const markerId = this.id;
     await this.db.$transaction([
       this.db.unitOfAssessmentSubmission.upsert({
