@@ -170,6 +170,8 @@ export {
   Stage,
   MarkerType,
   AllocationMethod,
+  MarkingStatus as DB_unitMarkingStatus,
+  MarkingMethod,
 } from "@prisma/client";
 
 export type New<T> = Omit<T, "id">;
