@@ -1,4 +1,9 @@
 import {
+  type UnitOfAssessmentGrade,
+  type UnitOfAssessmentSubmission,
+} from "@prisma/client";
+
+import {
   type MarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
@@ -8,17 +13,27 @@ import {
 import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
 
 import { Transformers as T } from "@/db/transformers";
-import { MarkerType } from "@/db/types";
-import { type DB } from "@/db/types";
+import { MarkerType, type DB } from "@/db/types";
+
+import {
+  markingStatusMin,
+  type UnitMarkingStatus,
+  unitToOverall,
+  type OverallMarkingStatus,
+} from "@/components/+marking/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
+import { Grading } from "../grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
 
 export class Marker extends User {
+  /**
+   * @deprecated
+   */
   public static computeStatus(
     u: UnitOfAssessmentDTO,
     submission: MarkingSubmissionDTO | undefined,
@@ -39,6 +54,104 @@ export class Marker extends User {
   constructor(db: DB, id: string, params: InstanceParams) {
     super(db, id);
     this.instance = new AllocationInstance(db, params);
+  }
+
+  async getAssignedMarking(
+    asAdmin = false,
+  ): Promise<
+    {
+      project: ProjectDTO;
+      student: StudentDTO;
+      role: MarkerType;
+      status: OverallMarkingStatus;
+      units: { unit: UnitOfAssessmentDTO; status: UnitMarkingStatus }[];
+    }[]
+  > {
+    const supervisedProjects = await this.db.project.findMany({
+      where: {
+        ...expand(this.instance.params),
+        OR: [
+          { supervisorId: this.id }, // is supervisor
+          { readerAllocations: { some: { readerId: this.id } } }, // is reader
+        ],
+      },
+      include: {
+        flagsOnProject: { include: { flag: true } },
+        tagsOnProject: { include: { tag: true } },
+        studentAllocations: {
+          include: {
+            finalGrade: true,
+            student: {
+              include: {
+                unitSubmissions: true,
+                unitGrades: true,
+                userInInstance: { include: { user: true } },
+                studentFlag: {
+                  include: {
+                    unitsOfAssessment: {
+                      include: {
+                        grades: true,
+                        markingComponents: true,
+                        markerSubmissions: { where: {} },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const user = await this.toDTO();
+
+    return supervisedProjects.map((p) => {
+      const student = p.studentAllocations[0].student;
+      const flag = student.studentFlag;
+
+      const unitGrades: Record<string, UnitOfAssessmentGrade> =
+        student.unitGrades.reduce(
+          (acc, val) => ({ ...acc, [val.unitOfAssessmentId]: val }),
+          {},
+        );
+
+      const unitSubmissions: Record<string, UnitOfAssessmentSubmission[]> =
+        student.unitSubmissions.reduce(
+          (acc, val) => {
+            const list = acc[val.unitOfAssessmentId] ?? [];
+            return { ...acc, [val.unitOfAssessmentId]: [...list, val] };
+          },
+          {} as Record<string, UnitOfAssessmentSubmission[]>,
+        );
+
+      const units = flag.unitsOfAssessment.map((x) => {
+        const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
+        const status = Grading.getUnitStatus(
+          unit,
+          unitGrades[unit.id],
+          unitSubmissions[unit.id],
+          asAdmin ? undefined : user,
+        );
+
+        return { unit, status };
+      });
+
+      const status = markingStatusMin(
+        units.map((x) => unitToOverall(x.status)),
+      );
+
+      const role =
+        p.supervisorId == this.id ? MarkerType.SUPERVISOR : MarkerType.READER;
+
+      return {
+        project: T.toProjectDTO(p),
+        student: T.toStudentDTO(student),
+        role,
+        status,
+        units,
+      };
+    });
   }
 
   async getMarkingSubmission(
