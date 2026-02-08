@@ -16,7 +16,7 @@ import {
   unitMarkingStatusSchema,
 } from "@/components/+marking/types";
 
-export const markerRouter = createTRPCRouter({
+export const newMarkerRouter = createTRPCRouter({
   getAssignedMarking: procedure.instance.marker
     .output(
       z

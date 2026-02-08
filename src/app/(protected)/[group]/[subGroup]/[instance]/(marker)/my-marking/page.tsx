@@ -7,7 +7,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { SubmissionsTable } from "./_components/submissions-table";
+import { MarkingTodoTable } from "./_components/new/marking-todo-table";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
@@ -18,12 +18,12 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const data = await api.user.marker.getProjectsToMark({ params });
+  const data = await api.user.newMarker.getAssignedMarking({ params });
 
   return (
     <PanelWrapper className="gap-10">
       <Heading>{PAGES.myMarking.title}</Heading>
-      <SubmissionsTable data={data} />
+      <MarkingTodoTable params={params} initialData={data} />
     </PanelWrapper>
   );
 }
