@@ -666,6 +666,21 @@ export const PAGES = {
     allowedRoles: [Role.SUPERVISOR, Role.READER],
     hasSubRoute: false,
   },
+  marksheet: {
+    title: "My Marking",
+    href: "my-marking",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      studentId,
+    }: InInstance<{ studentId: string }>) =>
+      `/${group}/${subGroup}/${instance}/marksheet/${studentId}`,
+    icon: "file-check-2",
+    level: 4,
+    allowedRoles: [Role.SUPERVISOR, Role.READER],
+    hasSubRoute: false,
+  },
 } satisfies Record<string, PageConfig>;
 
 export type PageName = keyof typeof PAGES;
