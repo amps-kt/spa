@@ -34,7 +34,5 @@ export const newMarkerRouter = createTRPCRouter({
         })
         .array(),
     )
-    .query(async ({ ctx: { user } }) => {
-      return await user.getAssignedMarking();
-    }),
+    .query(async ({ ctx: { user } }) => await user.getAssignedMarking()),
 });

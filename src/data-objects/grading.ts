@@ -43,7 +43,7 @@ export class Grading {
     // #submissions > 0
 
     if (perspectiveUser) {
-      const selfSubmitted = !!submissions.find(
+      const selfSubmitted = submissions.some(
         (x) => perspectiveUser.id === x.markerId,
       );
       if (!selfSubmitted) return UnitMarkingStatus.REQUIRES_MARKING;
