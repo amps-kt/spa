@@ -67,64 +67,67 @@ export class Marker extends User {
       units: { unit: UnitOfAssessmentDTO; status: UnitMarkingStatus }[];
     }[]
   > {
-    const supervisedProjectAllocations =
-      await this.db.studentProjectAllocation.findMany({
-        where: {
-          ...expand(this.instance.params),
-          project: {
-            OR: [
-              { supervisorId: this.id }, // is supervisor
-              { readerAllocations: { some: { readerId: this.id } } }, // is reader
-            ],
+    const projectsToMark = await this.db.studentProjectAllocation.findMany({
+      where: {
+        ...expand(this.instance.params),
+        project: {
+          OR: [
+            { supervisorId: this.id }, // is supervisor
+            { readerAllocations: { some: { readerId: this.id } } }, // is reader
+          ],
+        },
+      },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
           },
         },
-        include: {
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-            },
-          },
-          student: {
-            include: {
-              unitSubmissions: true,
-              unitGrades: true,
-              userInInstance: { include: { user: true } },
-              studentFlag: {
-                include: {
-                  unitsOfAssessment: {
-                    include: {
-                      grades: true,
-                      markingComponents: true,
-                      markerSubmissions: { where: {} },
-                    },
+        student: {
+          include: {
+            unitSubmissions: true,
+            unitGrades: true,
+            userInInstance: { include: { user: true } },
+            studentFlag: {
+              include: {
+                unitsOfAssessment: {
+                  include: {
+                    grades: true,
+                    markingComponents: true,
+                    markerSubmissions: { where: {} },
                   },
                 },
               },
             },
           },
         },
-      });
+      },
+    });
 
     const user = await this.toDTO();
 
-    return supervisedProjectAllocations.map(({ student, project }) => {
+    return projectsToMark.map(({ student, project }) => {
       const flag = student.studentFlag;
 
-      const unitGrades: Record<string, UnitOfAssessmentGrade> =
+      type UnitOfAssessmentID = string;
+
+      const unitGrades: Record<UnitOfAssessmentID, UnitOfAssessmentGrade> =
         student.unitGrades.reduce(
           (acc, val) => ({ ...acc, [val.unitOfAssessmentId]: val }),
           {},
         );
 
-      const unitSubmissions: Record<string, UnitOfAssessmentSubmission[]> =
-        student.unitSubmissions.reduce(
-          (acc, val) => {
-            const list = acc[val.unitOfAssessmentId] ?? [];
-            return { ...acc, [val.unitOfAssessmentId]: [...list, val] };
-          },
-          {} as Record<string, UnitOfAssessmentSubmission[]>,
-        );
+      const unitSubmissions: Record<
+        UnitOfAssessmentID,
+        UnitOfAssessmentSubmission[]
+      > = student.unitSubmissions.reduce(
+        (acc, val) => {
+          const list = acc[val.unitOfAssessmentId] ?? [];
+          return { ...acc, [val.unitOfAssessmentId]: [...list, val] };
+        },
+        {} as Record<string, UnitOfAssessmentSubmission[]>,
+      );
 
       const units = flag.unitsOfAssessment.map((x) => {
         const unit = T.toUnitOfAssessmentDTO({ ...x, flag });

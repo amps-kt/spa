@@ -37,7 +37,6 @@ model MarkingComponent {
   @@map("marking_component")
 }
 
-// Need to link onto student
 model MarkingComponentSubmission {
   markerId             String                     @map("marker_id") // marker type?
   studentId            String                     @map("student_id")

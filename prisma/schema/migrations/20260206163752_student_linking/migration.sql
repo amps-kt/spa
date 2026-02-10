@@ -1,10 +1,5 @@
 -- Clean data
 
--- @pkit
--- Pretty scary stuff 
--- I think this is *probably safe*
--- but lets talk about it.
-
 DELETE
 FROM marking_component_submission AS mcs
 WHERE NOT EXISTS (
