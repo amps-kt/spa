@@ -125,7 +125,7 @@ export class Marker extends User {
           const list = acc[val.unitOfAssessmentId] ?? [];
           return { ...acc, [val.unitOfAssessmentId]: [...list, val] };
         },
-        {} as Record<string, UnitOfAssessmentSubmission[]>,
+        {} as Record<UnitOfAssessmentID, UnitOfAssessmentSubmission[]>,
       );
 
       const units = flag.unitsOfAssessment.map((x) => {
