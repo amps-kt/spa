@@ -1,9 +1,9 @@
 import { cva } from "class-variance-authority";
 
+import { OverallMarkingStatus } from "@/dto/marking";
+
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
-
-import { OverallMarkingStatus } from "./types";
 
 export const statusIndicatorVariants = cva("", {
   variants: {

@@ -1,8 +1,9 @@
+import { unitToOverall, type UnitMarkingStatus } from "@/dto/marking";
+
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
 
 import { statusIndicatorVariants } from "./overall-status-indicator";
-import { unitToOverall, type UnitMarkingStatus } from "./types";
 
 const markingStatusData: Record<
   UnitMarkingStatus,

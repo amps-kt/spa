@@ -4,10 +4,9 @@ import {
 } from "@prisma/client";
 
 import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
+import { UnitMarkingStatus } from "@/dto/marking";
 
 import { DB_unitMarkingStatus, MarkingMethod } from "@/db/types";
-
-import { UnitMarkingStatus } from "@/components/+marking/types";
 
 export class Grading {
   static getUnitStatus(
