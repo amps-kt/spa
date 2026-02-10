@@ -1,26 +1,31 @@
+import { cva } from "class-variance-authority";
+
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
 
-import { type OverallMarkingStatus } from "./types";
+import { OverallMarkingStatus } from "./types";
+
+export const statusIndicatorVariants = cva("", {
+  variants: {
+    variant: {
+      [OverallMarkingStatus.CLOSED]: "bg-muted-foreground",
+      [OverallMarkingStatus.NOT_SUBMITTED]: "bg-gray-700",
+      [OverallMarkingStatus.DONE]: "bg-green-600",
+      [OverallMarkingStatus.PENDING]: "bg-sky-500",
+      [OverallMarkingStatus.ACTION_REQUIRED]: "bg-destructive",
+    },
+  },
+});
 
 const markingStatusData: Record<
   OverallMarkingStatus,
-  { label: string; tip: string; badgeStyle: string }
+  { label: string; tip: string }
 > = {
-  CLOSED: { label: "Closed", tip: "--", badgeStyle: "bg-gray-400" },
-
-  DONE: {
-    label: "Done",
-    tip: "This unit has been marked",
-    badgeStyle: "bg-green-400",
-  },
-  NOT_SUBMITTED: { label: "Not Submitted", tip: "", badgeStyle: "bg-gray-700" },
-  PENDING: { label: "Pending", tip: "", badgeStyle: "bg-sky-400" },
-  ACTION_REQUIRED: {
-    label: "Action Required",
-    tip: "",
-    badgeStyle: "bg-red-500", // help colours hard
-  },
+  CLOSED: { label: "Closed", tip: "" },
+  DONE: { label: "Done", tip: "" },
+  NOT_SUBMITTED: { label: "Not Submitted", tip: "" },
+  PENDING: { label: "Pending", tip: "" },
+  ACTION_REQUIRED: { label: "Action Required", tip: "" },
 };
 
 export function OverallStatusIndicator({
@@ -28,11 +33,13 @@ export function OverallStatusIndicator({
 }: {
   status: OverallMarkingStatus;
 }) {
-  const { label, badgeStyle, tip } = markingStatusData[status];
+  const { label, tip } = markingStatusData[status];
   return (
     <WithTooltip tip={tip}>
       <div>
-        <Badge className={badgeStyle}>{label}</Badge>
+        <Badge className={statusIndicatorVariants({ variant: status })}>
+          {label}
+        </Badge>
       </div>
     </WithTooltip>
   );

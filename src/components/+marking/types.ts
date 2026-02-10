@@ -10,6 +10,7 @@ export type UserRole = keyof typeof UserRole;
 
 export const UnitMarkingStatus = {
   CLOSED: "CLOSED",
+  NOT_SUBMITTED: "NOT_SUBMITTED",
   REQUIRES_MARKING: "REQUIRES_MARKING",
   IN_NEGOTIATION: "IN_NEGOTIATION",
   IN_MODERATION: "IN_MODERATION",
@@ -24,6 +25,7 @@ export type UnitMarkingStatus = keyof typeof UnitMarkingStatus;
 
 export const unitMarkingStatusSchema = z.enum([
   UnitMarkingStatus.CLOSED,
+  UnitMarkingStatus.NOT_SUBMITTED,
   UnitMarkingStatus.REQUIRES_MARKING,
   UnitMarkingStatus.IN_NEGOTIATION,
   UnitMarkingStatus.IN_MODERATION,
@@ -55,6 +57,7 @@ export const overallMarkingStatusSchema = z.enum([
 export function unitToOverall(stat: UnitMarkingStatus): OverallMarkingStatus {
   const rec: Record<UnitMarkingStatus, OverallMarkingStatus> = {
     [UnitMarkingStatus.CLOSED]: OverallMarkingStatus.CLOSED,
+    [UnitMarkingStatus.NOT_SUBMITTED]: OverallMarkingStatus.NOT_SUBMITTED,
     [UnitMarkingStatus.REQUIRES_MARKING]: OverallMarkingStatus.ACTION_REQUIRED,
     [UnitMarkingStatus.IN_NEGOTIATION]: OverallMarkingStatus.ACTION_REQUIRED,
     [UnitMarkingStatus.IN_MODERATION]: OverallMarkingStatus.PENDING,

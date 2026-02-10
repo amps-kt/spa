@@ -2,7 +2,6 @@
 
 import { Fragment } from "react";
 
-import { type MarkerType } from "@prisma/client";
 import { type ColumnDef } from "@tanstack/react-table";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 
@@ -12,16 +11,19 @@ import {
   type UnitOfAssessmentDTO,
 } from "@/dto";
 
-import { MarkerTypeBade } from "@/components/+marking/marker-type-bade";
+import { type MarkerType } from "@/db/types";
+
 import { OverallStatusIndicator } from "@/components/+marking/overall-status-indicator";
 import {
   type OverallMarkingStatus,
   type UnitMarkingStatus,
 } from "@/components/+marking/types";
 import { UoaStatusIndicator } from "@/components/+marking/uoa-status-indicator";
+import { RoleBadge } from "@/components/role-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { ExpandingCell } from "@/components/ui/data-table/cells/expanding-cell";
+import { FlagCell } from "@/components/ui/data-table/cells/flag-cell";
 import { StudentCell } from "@/components/ui/data-table/cells/student-cell";
 import DataTable, {
   type CustomRowType,
@@ -59,6 +61,7 @@ const columns: ColumnDef<TRow>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Flag" />
     ),
+    cell: ({ row }) => <FlagCell flag={row.original.student.flag} />,
   },
   {
     id: "role",
@@ -66,7 +69,7 @@ const columns: ColumnDef<TRow>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Acting as" />
     ),
-    cell: ({ row }) => <MarkerTypeBade markerType={row.original.role} />,
+    cell: ({ row }) => <RoleBadge role={row.original.role} />,
   },
   {
     id: "status",

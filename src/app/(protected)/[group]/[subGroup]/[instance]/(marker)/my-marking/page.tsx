@@ -7,7 +7,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { MarkingTodoTable } from "./_components/new/marking-todo-table";
+import { MarkingTodoTable } from "./_components/marking-todo-table";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
