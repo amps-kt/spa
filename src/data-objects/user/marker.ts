@@ -10,17 +10,16 @@ import {
   type UnitOfAssessmentDTO,
   type PartialMarkingSubmissionDTO,
 } from "@/dto";
-import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
-
-import { Transformers as T } from "@/db/transformers";
-import { MarkerType, type DB } from "@/db/types";
-
 import {
   markingStatusMin,
   type UnitMarkingStatus,
   unitToOverall,
   type OverallMarkingStatus,
-} from "@/components/+marking/types";
+} from "@/dto/marking";
+import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
+
+import { Transformers as T } from "@/db/transformers";
+import { MarkerType, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -357,8 +356,12 @@ export class Marker extends User {
     const markerId = this.id;
     await this.db.$transaction([
       this.db.unitOfAssessmentSubmission.upsert({
-        where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
+        where: {
+          ...expand(this.instance.params),
+          uoaSubmissionId: { markerId, studentId, unitOfAssessmentId },
+        },
         create: {
+          ...expand(this.instance.params),
           markerId,
           studentId,
           unitOfAssessmentId,
@@ -379,12 +382,14 @@ export class Marker extends User {
         this.db.markingComponentSubmission.upsert({
           where: {
             markingComponentSubmission: {
+              ...expand(this.instance.params),
               markerId,
               studentId,
               markingComponentId,
             },
           },
           create: {
+            ...expand(this.instance.params),
             markerId,
             studentId,
             markingComponentId,
@@ -410,8 +415,12 @@ export class Marker extends User {
     comment: string;
   }) {
     await this.db.unitOfAssessmentGrade.upsert({
-      where: { uoaGradeId: { studentId, unitOfAssessmentId } },
+      where: {
+        ...expand(this.instance.params),
+        uoaGradeId: { studentId, unitOfAssessmentId },
+      },
       create: {
+        ...expand(this.instance.params),
         studentId,
         unitOfAssessmentId,
         comment,

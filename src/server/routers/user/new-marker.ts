@@ -5,16 +5,15 @@ import {
   studentDtoSchema,
   unitOfAssessmentDtoSchema,
 } from "@/dto";
+import {
+  overallMarkingStatusSchema,
+  unitMarkingStatusSchema,
+} from "@/dto/marking";
 
 import { markerTypeSchema } from "@/db/types";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
-
-import {
-  overallMarkingStatusSchema,
-  unitMarkingStatusSchema,
-} from "@/components/+marking/types";
 
 export const newMarkerRouter = createTRPCRouter({
   getAssignedMarking: procedure.instance.marker

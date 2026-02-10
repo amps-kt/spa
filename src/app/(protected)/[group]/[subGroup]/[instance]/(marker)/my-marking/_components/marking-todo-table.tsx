@@ -10,15 +10,15 @@ import {
   type StudentDTO,
   type UnitOfAssessmentDTO,
 } from "@/dto";
-
-import { type MarkerType } from "@/db/types";
-
-import { OverallStatusIndicator } from "@/components/+marking/overall-status-indicator";
 import {
   type OverallMarkingStatus,
   type UnitMarkingStatus,
-} from "@/components/+marking/types";
-import { UoaStatusIndicator } from "@/components/+marking/uoa-status-indicator";
+} from "@/dto/marking";
+
+import { type MarkerType } from "@/db/types";
+
+import { OverallStatusIndicator } from "@/components/marking/overall-status-indicator";
+import { UoaStatusIndicator } from "@/components/marking/uoa-status-indicator";
 import { RoleBadge } from "@/components/role-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
