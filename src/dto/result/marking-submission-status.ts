@@ -1,8 +1,5 @@
 import { z } from "zod";
 
-/**
- * @deprecated
- */
 export const MarkingSubmissionStatus = {
   /** Unit of assessment not yet open */
   CLOSED: "CLOSED",
@@ -14,9 +11,6 @@ export const MarkingSubmissionStatus = {
   SUBMITTED: "SUBMITTED",
 } as const;
 
-/**
- * @deprecated
- */
 export const markingSubmissionStatusSchema = z.enum([
   MarkingSubmissionStatus.CLOSED,
   MarkingSubmissionStatus.OPEN,
@@ -24,9 +18,6 @@ export const markingSubmissionStatusSchema = z.enum([
   MarkingSubmissionStatus.SUBMITTED,
 ]);
 
-/**
- * @deprecated
- */
 export type MarkingSubmissionStatus = z.infer<
   typeof markingSubmissionStatusSchema
 >;
