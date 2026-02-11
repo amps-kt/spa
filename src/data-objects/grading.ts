@@ -1,27 +1,26 @@
-import {
-  type UnitOfAssessmentSubmission,
-  type UnitOfAssessmentGrade,
-} from "@prisma/client";
-
 import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
-import { UnitMarkingStatus } from "@/dto/marking";
+import {
+  type MarkingSubmissionDTO,
+  type UnitGradeDTO,
+  UnitMarkingStatus,
+} from "@/dto/marking";
 
-import { DB_unitMarkingStatus, MarkingMethod } from "@/db/types";
+import { RawUnitMarkingStatus, MarkingMethod } from "@/db/types";
 
 export class Grading {
   static getUnitStatus(
     unit: UnitOfAssessmentDTO,
-    grade: UnitOfAssessmentGrade | undefined,
-    submissions: UnitOfAssessmentSubmission[],
+    grade: UnitGradeDTO | undefined,
+    submissions: MarkingSubmissionDTO[],
     perspectiveUser?: UserDTO,
   ): UnitMarkingStatus {
     if (!unit.isOpen) {
       return UnitMarkingStatus.CLOSED;
-    } else if (grade?.status === DB_unitMarkingStatus.MODERATE) {
+    } else if (grade?.status === RawUnitMarkingStatus.MODERATE) {
       return UnitMarkingStatus.IN_MODERATION;
-    } else if (grade?.status === DB_unitMarkingStatus.NEGOTIATE) {
+    } else if (grade?.status === RawUnitMarkingStatus.NEGOTIATE) {
       return UnitMarkingStatus.IN_NEGOTIATION;
-    } else if (grade?.status === DB_unitMarkingStatus.DONE) {
+    } else if (grade?.status === RawUnitMarkingStatus.DONE) {
       if (grade.method === MarkingMethod.AUTO) {
         return UnitMarkingStatus.AUTO_RESOLVED;
       } else if (grade.method === MarkingMethod.MODERATED) {

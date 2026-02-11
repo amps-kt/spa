@@ -23,7 +23,7 @@ import { Grade } from "@/config/grades";
 
 import {
   type AssessmentCriterionDTO,
-  type CriterionScoreDTO,
+  type ComponentScoreDTO,
   type MarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
@@ -46,7 +46,7 @@ interface Props {
   criteria: AssessmentCriterionDTO[];
   supervisorSubmission: MarkingSubmissionDTO;
   readerSubmission: MarkingSubmissionDTO;
-  negotiationResult?: CriterionScoreDTO;
+  negotiationResult?: ComponentScoreDTO;
 }
 
 export function CoordinatorModeration({

@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { MarkerType } from "@/db/types";
+import {
+  MarkerType,
+  markingMethodSchema,
+  rawUnitMarkingStatusSchema,
+} from "@/db/types";
 
 import { flagDtoSchema } from "./flag-tag";
 
@@ -56,25 +60,25 @@ export type NewUnitOfAssessmentDTO = z.infer<typeof newUnitOfAssessmentSchema>;
 
 // --- mark submission/grade stuff
 
-export const criterionScoreDtoSchema = z.object({
+export const componentScoreDtoSchema = z.object({
   mark: z.number().int().nonnegative(),
   justification: z.string().min(1),
 });
 
-export type CriterionScoreDTO = z.infer<typeof criterionScoreDtoSchema>;
+export type ComponentScoreDTO = z.infer<typeof componentScoreDtoSchema>;
 
 export const markingSubmissionDtoSchema = z.object({
-  unitOfAssessmentId: z.string(),
   grade: z.number().int().nonnegative(),
-  studentId: z.string(),
-  markerId: z.string(),
-  marks: z.record(
-    z.string(), // assessmentCriterionId
-    criterionScoreDtoSchema,
-  ),
   finalComment: z.string(),
   recommendation: z.boolean(),
   draft: z.boolean(),
+  markerId: z.string(),
+  studentId: z.string(),
+  unitOfAssessmentId: z.string(),
+  marks: z.record(
+    z.string(), // assessmentCriterionId
+    componentScoreDtoSchema,
+  ),
 });
 
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
@@ -97,6 +101,17 @@ export type PartialMarkingSubmissionDTO = z.infer<
   typeof partialMarkingSubmissionDtoSchema
 >;
 
+export const unitGradeDtoSchema = z.object({
+  grade: z.number(),
+  comment: z.string(),
+  status: rawUnitMarkingStatusSchema,
+  method: markingMethodSchema,
+  studentSubmitted: z.boolean(),
+  customDueDate: z.date().optional(),
+  customWeight: z.number().optional(),
+});
+
+export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 // --- new:
 
 export const UnitMarkingStatus = {
