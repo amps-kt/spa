@@ -5,35 +5,42 @@ on:
     types: [review_requested]
 
 jobs:
-  notify_jacob:
-    name: Notify Jake
-    if: github.event.requested_reviewer.login == 'JakeTrevor'
+  notify:
+    name: Notify Reviewer
     runs-on: ubuntu-latest
+    if: github.event.requested_reviewer.login != null
     steps:
-      - name: Send Discord Notification to Jake
-        run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d "{
-            \"content\": \"Hey <@${{ secrets.DEV_DISCORD_ID__JAKE }}>! A review has been requested from you.\",
-            \"embeds\": [{
-              \"title\": \"New Review Request: ${{ github.event.pull_request.title }}\",
-              \"url\": \"${{ github.event.pull_request.html_url }}\",
-              \"description\": \"Repository: \`${{ github.event.repository.full_name }}\`\\nRequested by: \`${{ github.event.sender.login }}\`\",
-              \"color\": 15258703
-            }]
-          }" \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  notify_me:
-    name: Notify Petros
-    if: github.event.requested_reviewer.login == 'pkitazos'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Discord Notification to Petros
+      - name: Get Discord User ID
+        id: discord_id
+        env:
+          DEV_DISCORD_ID__PETROS: ${{ secrets.DEV_DISCORD_ID__PETROS }}
+          DEV_DISCORD_ID__JAKE: ${{ secrets.DEV_DISCORD_ID__JAKE }}
+        run: |
+          GITHUB_USER="${{ github.event.requested_reviewer.login }}"
+          SUFFIX=$(jq -r --arg user "$GITHUB_USER" '.[$user] // empty' .github/discord-users.json)
+
+          if [ -n "$SUFFIX" ]; then
+            VAR_NAME="DEV_DISCORD_ID__${SUFFIX}"
+            DISCORD_ID="${!VAR_NAME}"
+            if [ -n "$DISCORD_ID" ]; then
+              echo "user_id=$DISCORD_ID" >> $GITHUB_OUTPUT
+              echo "found=true" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Discord Notification
+        if: steps.discord_id.outputs.found == 'true'
         run: |
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"content\": \"Hey <@${{ secrets.DEV_DISCORD_ID__PETROS }}>! A review has been requested from you.\",
+            \"content\": \"Hey <@${{ steps.discord_id.outputs.user_id }}>! A review has been requested from you.\",
             \"embeds\": [{
               \"title\": \"New Review Request: ${{ github.event.pull_request.title }}\",
               \"url\": \"${{ github.event.pull_request.html_url }}\",

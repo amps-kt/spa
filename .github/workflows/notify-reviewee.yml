@@ -1,44 +1,62 @@
-name: "Notify Reviewer on Discord"
+name: "Notify PR Author on Discord"
 
 on:
   pull_request_review:
     types: [submitted]
 
 jobs:
-  notify_jacob:
-    name: Notify Jake
-    if: github.event.review.user.login == 'pkitazos'
+  notify:
+    name: Notify PR Author
     runs-on: ubuntu-latest
+    if: >-
+      github.event.review.state == 'approved' ||
+      github.event.review.state == 'changes_requested'
     steps:
-      - name: Send Discord Notification to Jake
-        run: |
-          curl -X POST -H "Content-Type: application/json" \
-          -d "{
-            \"content\": \"Hey <@${{ secrets.DEV_DISCORD_ID__JAKE }}>! A review has been submitted.\",
-            \"embeds\": [{
-              \"title\": \"Pull request review: ${{ github.event.pull_request.title }}\",
-              \"url\": \"${{ github.event.pull_request.html_url }}\",
-              \"description\": \"Repository: \`${{ github.event.repository.full_name }}\`\\nRequested by: \`${{ github.event.sender.login }}\`\",
-              \"color\": 15258703
-            }]
-          }" \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  notify_me:
-    name: Notify Petros
-    if: github.event.review.user.login == 'JakeTrevor'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Send Discord Notification to Petros
+      - name: Get Discord User ID
+        id: discord_id
+        env:
+          DEV_DISCORD_ID__PETROS: ${{ secrets.DEV_DISCORD_ID__PETROS }}
+          DEV_DISCORD_ID__JAKE: ${{ secrets.DEV_DISCORD_ID__JAKE }}
         run: |
+          GITHUB_USER="${{ github.event.pull_request.user.login }}"
+          SUFFIX=$(jq -r --arg user "$GITHUB_USER" '.[$user] // empty' .github/discord-users.json)
+
+          if [ -n "$SUFFIX" ]; then
+            VAR_NAME="DEV_DISCORD_ID__${SUFFIX}"
+            DISCORD_ID="${!VAR_NAME}"
+            if [ -n "$DISCORD_ID" ]; then
+              echo "user_id=$DISCORD_ID" >> $GITHUB_OUTPUT
+              echo "found=true" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Discord Notification
+        if: steps.discord_id.outputs.found == 'true'
+        run: |
+          STATE="${{ github.event.review.state }}"
+          if [ "$STATE" = "approved" ]; then
+            COLOR=5763719
+            STATE_LABEL="Approved"
+          else
+            COLOR=15548997
+            STATE_LABEL="Changes Requested"
+          fi
+
           curl -X POST -H "Content-Type: application/json" \
           -d "{
-            \"content\": \"Hey <@${{ secrets.DEV_DISCORD_ID__PETROS }}>! A review has been submitted.\",
+            \"content\": \"Hey <@${{ steps.discord_id.outputs.user_id }}>! Your pull request has been ${STATE_LABEL,,}.\",
             \"embeds\": [{
-              \"title\": \"Pull request review: ${{ github.event.pull_request.title }}\",
+              \"title\": \"${STATE_LABEL}: ${{ github.event.pull_request.title }}\",
               \"url\": \"${{ github.event.pull_request.html_url }}\",
-              \"description\": \"Repository: \`${{ github.event.repository.full_name }}\`\\nRequested by: \`${{ github.event.sender.login }}\`\",
-              \"color\": 15258703
+              \"description\": \"Repository: \`${{ github.event.repository.full_name }}\`\\nReviewed by: \`${{ github.event.review.user.login }}\`\",
+              \"color\": ${COLOR}
             }]
           }" \
           ${{ secrets.DISCORD_WEBHOOK_URL }}
