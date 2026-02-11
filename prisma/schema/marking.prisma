@@ -38,16 +38,20 @@ model MarkingComponent {
 }
 
 model MarkingComponentSubmission {
-  markerId           String                     @map("marker_id") // marker type?
-  studentId          String                     @map("student_id")
-  unitOfAssessmentId String                     @map("unit_of_assessment_id")
-  grade              Int
-  justification      String
+  markerId             String                     @map("marker_id") // marker type?
+  studentId            String                     @map("student_id")
+  unitOfAssessmentId   String                     @map("unit_of_assessment_id")
+  grade                Int
+  justification        String
   // ---
-  markingComponentId String                     @map("marking_component_id")
+  markingComponentId   String                     @map("marking_component_id")
+  allocationGroupId    String                     @map("allocation_group_id")
+  allocationSubGroupId String                     @map("allocation_sub_group_id")
+  allocationInstanceId String                     @map("allocation_instance_id")
   // ---
-  markingComponent   MarkingComponent           @relation(fields: [markingComponentId], references: [id], onDelete: Cascade, map: "marking_component_submission_marking_component")
-  submission         UnitOfAssessmentSubmission @relation(fields: [markerId, studentId, unitOfAssessmentId], references: [markerId, studentId, unitOfAssessmentId], onDelete: Cascade, map: "marking_component_submission_uoa_submission")
+  student              StudentDetails             @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], map: "component_submission_student")
+  markingComponent     MarkingComponent           @relation(fields: [markingComponentId], references: [id], onDelete: Cascade, map: "marking_component_submission_marking_component")
+  submission           UnitOfAssessmentSubmission @relation(fields: [markerId, studentId, unitOfAssessmentId], references: [markerId, studentId, unitOfAssessmentId], onDelete: Cascade, map: "marking_component_submission_uoa_submission")
 
   @@id([markerId, studentId, markingComponentId], name: "markingComponentSubmission")
   @@map("marking_component_submission")
@@ -78,34 +82,44 @@ model UnitOfAssessment {
 }
 
 model UnitOfAssessmentSubmission {
-  summary             String
-  grade               Int
-  recommendedForPrize Boolean                      @default(false) @map("recommended_for_prize")
-  draft               Boolean
-  markerId            String                       @map("marker_id")
-  studentId           String                       @map("student_id")
-  unitOfAssessmentId  String                       @map("unit_of_assessment_id")
+  grade                Int
+  summary              String
+  recommendedForPrize  Boolean                      @default(false) @map("recommended_for_prize")
+  draft                Boolean
+  markerId             String                       @map("marker_id")
+  studentId            String                       @map("student_id")
+  unitOfAssessmentId   String                       @map("unit_of_assessment_id")
   // ---
-  unitOfAssessment    UnitOfAssessment             @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "uoa_submission_uoa")
-  criterionScores     MarkingComponentSubmission[]
+  allocationGroupId    String                       @map("allocation_group_id")
+  allocationSubGroupId String                       @map("allocation_sub_group_id")
+  allocationInstanceId String                       @map("allocation_instance_id")
+  // ---
+  unitOfAssessment     UnitOfAssessment             @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "uoa_submission_uoa")
+  criterionScores      MarkingComponentSubmission[]
+  student              StudentDetails               @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], map: "component_submission_student")
 
   @@id([markerId, studentId, unitOfAssessmentId], name: "uoaSubmissionId")
   @@map("unit_of_assessment_submission")
 }
 
 model UnitOfAssessmentGrade {
-  unitOfAssessmentId String           @map("unit_of_assessment_id")
-  unitOfAssessment   UnitOfAssessment @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "final_unit_grade_unit")
-  studentId          String           @map("student_id")
+  unitOfAssessmentId   String           @map("unit_of_assessment_id")
+  unitOfAssessment     UnitOfAssessment @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "final_unit_grade_unit")
+  studentId            String           @map("student_id")
   // ---
-  grade              Int
-  comment            String
-  status             MarkingStatus    @default(PENDING)
-  method             MarkingMethod    @default(AUTO)
-  // 
-  submitted          Boolean          @default(false)
-  customDueDate      DateTime?        @map("custom_due_date")
-  customWeight       Int?             @map("custom_weight")
+  grade                Int
+  comment              String
+  status               MarkingStatus    @default(PENDING)
+  method               MarkingMethod    @default(AUTO)
+  // ---
+  allocationGroupId    String           @map("allocation_group_id")
+  allocationSubGroupId String           @map("allocation_sub_group_id")
+  allocationInstanceId String           @map("allocation_instance_id")
+  // ---
+  submitted            Boolean          @default(false)
+  customDueDate        DateTime?        @map("custom_due_date")
+  customWeight         Int?             @map("custom_weight")
+  student              StudentDetails   @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], map: "component_submission_student")
 
   @@id([studentId, unitOfAssessmentId], name: "uoaGradeId")
   @@map("unit_of_assessment_grade")
