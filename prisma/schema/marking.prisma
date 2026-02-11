@@ -82,8 +82,8 @@ model UnitOfAssessment {
 }
 
 model UnitOfAssessmentSubmission {
-  summary              String
   grade                Int
+  summary              String
   recommendedForPrize  Boolean                      @default(false) @map("recommended_for_prize")
   draft                Boolean
   markerId             String                       @map("marker_id")

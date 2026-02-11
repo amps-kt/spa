@@ -1,9 +1,4 @@
 import {
-  type UnitOfAssessmentGrade,
-  type UnitOfAssessmentSubmission,
-} from "@prisma/client";
-
-import {
   type MarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
@@ -15,6 +10,7 @@ import {
   type UnitMarkingStatus,
   unitToOverall,
   type OverallMarkingStatus,
+  type UnitGradeDTO,
 } from "@/dto/marking";
 import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
 
@@ -111,21 +107,27 @@ export class Marker extends User {
 
       type UnitOfAssessmentID = string;
 
-      const unitGrades: Record<UnitOfAssessmentID, UnitOfAssessmentGrade> =
+      const unitGrades: Record<UnitOfAssessmentID, UnitGradeDTO> =
         student.unitGrades.reduce(
-          (acc, val) => ({ ...acc, [val.unitOfAssessmentId]: val }),
+          (acc, val) => ({
+            ...acc,
+            [val.unitOfAssessmentId]: T.toUnitGradeDTO(val),
+          }),
           {},
         );
 
       const unitSubmissions: Record<
         UnitOfAssessmentID,
-        UnitOfAssessmentSubmission[]
+        MarkingSubmissionDTO[]
       > = student.unitSubmissions.reduce(
         (acc, val) => {
           const list = acc[val.unitOfAssessmentId] ?? [];
-          return { ...acc, [val.unitOfAssessmentId]: [...list, val] };
+          return {
+            ...acc,
+            [val.unitOfAssessmentId]: [...list, T.toMarkingSubmissionDTO(val)],
+          };
         },
-        {} as Record<UnitOfAssessmentID, UnitOfAssessmentSubmission[]>,
+        {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
       );
 
       const units = flag.unitsOfAssessment.map((x) => {

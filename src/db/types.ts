@@ -4,6 +4,8 @@ import {
   type PrismaClient,
   Stage,
   AllocationMethod as DB_AllocationMethod,
+  MarkingStatus,
+  MarkingMethod,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -31,6 +33,7 @@ export type {
   MatchingPair as DB_MatchingPair,
   MatchingResult as DB_MatchingResult,
   Project as DB_Project,
+  UnitOfAssessmentGrade as DB_UnitOfAssessmentGrade,
   ReaderDetails as DB_ReaderDetails,
   ReaderProjectAllocation as DB_ReaderProjectAllocation,
   StudentDetails as DB_StudentDetails,
@@ -163,6 +166,21 @@ export const allocationMethodSchema = z.enum([
   DB_AllocationMethod.RANDOM,
 ]);
 
+// Taking applications for literally any other name
+export const rawUnitMarkingStatusSchema = z.enum([
+  MarkingStatus.DONE,
+  MarkingStatus.PENDING,
+  MarkingStatus.MODERATE,
+  MarkingStatus.NEGOTIATE,
+]);
+
+export const markingMethodSchema = z.enum([
+  MarkingMethod.AUTO,
+  MarkingMethod.OVERRIDE,
+  MarkingMethod.NEGOTIATED,
+  MarkingMethod.MODERATED,
+]);
+
 export {
   AlgorithmFlag,
   StudentPreferenceType as PreferenceType,
@@ -170,7 +188,7 @@ export {
   Stage,
   MarkerType,
   AllocationMethod,
-  MarkingStatus as DB_unitMarkingStatus,
+  MarkingStatus as RawUnitMarkingStatus,
   MarkingMethod,
 } from "@prisma/client";
 

@@ -4,7 +4,7 @@ import { PAUL_EMAIL, tag_coordinator } from "@/config/emails";
 
 import {
   type AssessmentCriterionDTO,
-  type CriterionScoreDTO,
+  type ComponentScoreDTO,
   type MarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
@@ -336,7 +336,7 @@ export class Mailer {
     criteria: AssessmentCriterionDTO[];
     supervisorSubmission: MarkingSubmissionDTO;
     readerSubmission: MarkingSubmissionDTO;
-    negotiationResult?: CriterionScoreDTO;
+    negotiationResult?: ComponentScoreDTO;
   }) {
     const subject = "Grading Negotiation Required";
     await Promise.all([

@@ -1,7 +1,5 @@
-// MOVE these to some other file
 import {
   type AssessmentCriterionDTO,
-  type CriterionScoreDTO,
   type MarkingSubmissionDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
@@ -16,6 +14,8 @@ import {
   type SubGroupDTO,
   type SupervisorDTO,
   type TagDTO,
+  type ComponentScoreDTO,
+  type UnitGradeDTO,
 } from "@/dto";
 
 import {
@@ -39,6 +39,7 @@ import {
   type DB_MarkingComponent,
   type DB_UnitOfAssessmentSubmission,
   type DB_MarkingComponentSubmission,
+  type DB_UnitOfAssessmentGrade,
 } from "./types";
 
 export class Transformers {
@@ -79,7 +80,7 @@ export class Transformers {
   }
   public static toScoreDTO(
     data: DB_MarkingComponentSubmission,
-  ): CriterionScoreDTO {
+  ): ComponentScoreDTO {
     return { mark: data.grade, justification: data.justification };
   }
 
@@ -271,6 +272,19 @@ export class Transformers {
       weight: data.defaultWeight,
       isOpen: data.open,
       allowedMarkerTypes: data.allowedMarkerTypes,
+    };
+  }
+
+  public static toUnitGradeDTO(
+    this: void,
+    data: DB_UnitOfAssessmentGrade,
+  ): UnitGradeDTO {
+    return {
+      grade: data.grade,
+      comment: data.comment,
+      status: data.status,
+      method: data.method,
+      studentSubmitted: data.submitted,
     };
   }
 
