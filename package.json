@@ -8,6 +8,7 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:debug": "next dev 2>&1 | grep --line-buffered '\\[DEBUG\\]'",
     "dev:db": "docker compose --env-file=./.env -f ./docker/docker-compose.dev-db.yml up -d",
     "dev:db+match": "docker compose --env-file=./.env -f ./docker/docker-compose.dev.yml up -d",
     "pull:db+match": "docker compose --env-file=./.env -f ./docker/docker-compose.dev.yml pull",
@@ -28,6 +29,7 @@
     "db:studio": "prisma studio",
     "db:push": "eval $(grep '^DATABASE_URL' .env) && prisma db push",
     "db:drop": "eval $(grep '^DATABASE_URL' .env) && prisma migrate reset",
+    "check": "pnpm lint:errs && pnpm tc",
     "clearLogs": "rm *.log"
   },
   "dependencies": {
