@@ -3,10 +3,14 @@ import {
   type ProjectDTO,
   type SupervisorDTO,
   type ReaderDTO,
+  type UnitOfAssessmentDTO,
+  type UnitGradeDTO,
+  type MarkingSubmissionDTO,
+  type UnitMarkingStatus,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { AllocationMethod, PreferenceType } from "@/db/types";
+import { AllocationMethod, type MarkerType, PreferenceType } from "@/db/types";
 import { type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
@@ -14,11 +18,25 @@ import { sortPreferenceType } from "@/lib/utils/sorting/by-preference-type";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 import { type InstanceParams } from "@/lib/validations/params";
 
+import { Grading } from "../grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
 
 export class Student extends User {
+  public async unitConsensus({
+    unitId,
+  }: {
+    unitId: string;
+  }): Promise<UnitGradeDTO> {
+    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
+      where: { uoaGradeId: { studentId: this.id, unitOfAssessmentId: unitId } },
+    });
+
+    // if (grade === null) return undefined;
+    return T.toUnitGradeDTO(grade);
+  }
+
   instance: AllocationInstance;
 
   constructor(db: DB, id: string, params: InstanceParams) {
@@ -423,5 +441,102 @@ export class Student extends User {
     });
 
     return T.toReaderDTO(data);
+  }
+
+  public async getSupervisor(): Promise<SupervisorDTO> {
+    const data = await this.db.supervisorDetails.findFirstOrThrow({
+      where: {
+        projects: {
+          some: {
+            studentAllocations: { some: { student: { userId: this.id } } },
+          },
+        },
+      },
+      include: { userInInstance: { include: { user: true } } },
+    });
+
+    return T.toSupervisorDTO(data);
+  }
+
+  public async getMarkingData(
+    markerType?: MarkerType,
+  ): Promise<
+    {
+      unit: UnitOfAssessmentDTO;
+      grade?: UnitGradeDTO;
+      status: UnitMarkingStatus;
+    }[]
+  > {
+    const data = await this.db.studentDetails.findFirstOrThrow({
+      where: { ...expand(this.instance.params), userId: this.id },
+      include: {
+        unitGrades: true,
+        unitSubmissions: true,
+        studentFlag: {
+          include: {
+            unitsOfAssessment: {
+              include: { flag: true, markingComponents: true },
+              where: markerType && { allowedMarkerTypes: { has: markerType } },
+            },
+          },
+        },
+      },
+    });
+
+    type UnitId = string;
+
+    const gradesDict: Record<UnitId, UnitGradeDTO> = data.unitGrades.reduce(
+      (acc, val) => ({
+        ...acc,
+        [val.unitOfAssessmentId]: T.toUnitGradeDTO(val),
+      }),
+      {},
+    );
+
+    const submissionsDict: Record<UnitId, MarkingSubmissionDTO[]> =
+      data.unitSubmissions.reduce(
+        (acc, val) => {
+          const old = acc[val.unitOfAssessmentId] ?? [];
+
+          return {
+            ...acc,
+            [val.unitOfAssessmentId]: [...old, T.toMarkingSubmissionDTO(val)],
+          };
+        },
+        {} as Record<UnitId, MarkingSubmissionDTO[]>,
+      );
+
+    return data.studentFlag.unitsOfAssessment.map((data) => {
+      const unit = T.toUnitOfAssessmentDTO(data);
+      const grade = gradesDict[data.id];
+      const submissions = submissionsDict[data.id] ?? [];
+
+      const status = Grading.getUnitStatus(unit, grade, submissions);
+
+      return { unit, grade, status };
+    });
+  }
+
+  public async getMarkerMarksByUnitId({
+    markerId,
+    unitId,
+  }: {
+    markerId: string;
+    unitId: string;
+  }): Promise<MarkingSubmissionDTO | undefined> {
+    const data = await this.db.unitOfAssessmentSubmission.findUnique({
+      where: {
+        uoaSubmissionId: {
+          markerId,
+          studentId: this.id,
+          unitOfAssessmentId: unitId,
+        },
+      },
+      include: { criterionScores: true },
+    });
+
+    if (!data) return undefined;
+
+    return T.toMarkingSubmissionDTO(data);
   }
 }
