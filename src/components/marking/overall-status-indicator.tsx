@@ -17,6 +17,7 @@ export const statusIndicatorVariants = cva("", {
   },
 });
 
+// TODO add tip:
 const markingStatusData: Record<
   StudentGradingLifecycleState,
   { label: string; tip: string }
