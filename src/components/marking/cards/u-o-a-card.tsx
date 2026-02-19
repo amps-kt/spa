@@ -107,9 +107,7 @@ function SingleMarkerUnit({
   status: UnitMarkingStatus;
   markerType: MarkerType;
 }) {
-  // const realStatus = unitToOverall(status);
-  const realStatus =
-    OverallMarkingStatus.ACTION_REQUIRED as OverallMarkingStatus;
+  const realStatus = unitToOverall(status);
 
   if (realStatus === OverallMarkingStatus.PENDING) {
     // Singly marked units cannot be pending
