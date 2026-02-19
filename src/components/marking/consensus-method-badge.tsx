@@ -1,0 +1,46 @@
+import { cva } from "class-variance-authority";
+
+import { MarkingMethod } from "@/db/types";
+
+import { Badge } from "../ui/badge";
+import { WithTooltip } from "../ui/tooltip-wrapper";
+
+export const consensusMethodBadgeVariants = cva("", {
+  variants: {
+    method: {
+      [MarkingMethod.AUTO]: "",
+      [MarkingMethod.MODERATED]: "",
+      [MarkingMethod.NEGOTIATED]: "",
+      [MarkingMethod.OVERRIDE]: "",
+    },
+  },
+});
+
+const consensusMethodData: Record<
+  MarkingMethod,
+  { label: string; tip: string }
+> = {
+  [MarkingMethod.AUTO]: {
+    label: "Auto-resolved",
+    tip: "The marks for this unit were close enough to resolve automatically.",
+  },
+  [MarkingMethod.MODERATED]: { label: "Moderated", tip: "This uni" },
+  [MarkingMethod.NEGOTIATED]: { label: "Negotiated", tip: "" },
+  [MarkingMethod.OVERRIDE]: {
+    label: "Overridden",
+    tip: "The admin overwrote the grade for this unit",
+  },
+};
+
+export function ConsensusMethodBadge({ method }: { method: MarkingMethod }) {
+  return (
+    <WithTooltip tip={consensusMethodData[method].tip}>
+      <div>
+        <Badge className={consensusMethodBadgeVariants({ method })}>
+          {consensusMethodData[method].label}
+        </Badge>
+        ;
+      </div>
+    </WithTooltip>
+  );
+}

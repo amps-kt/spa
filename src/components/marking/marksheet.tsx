@@ -1,27 +1,55 @@
-import { type UnitOfAssessmentDTO, type StudentDTO } from "@/dto";
+import {
+  type UnitOfAssessmentDTO,
+  type StudentDTO,
+  type UnitGradeDTO,
+  type SupervisorDTO,
+  type ReaderDTO,
+  type UnitMarkingStatus,
+} from "@/dto";
+
+import { type InstanceParams } from "@/lib/validations/params";
 
 import { Heading } from "../heading";
 import { Accordion } from "../ui/accordion";
 
-import { UOACard } from "./u-o-a-card";
+import { UOACard } from "./cards/u-o-a-card";
 
-export function Marksheet({
+import { MarksheetContextProvider } from "./marksheet-context";
+
+export async function Marksheet({
+  params,
   student,
   units,
+  supervisor,
+  reader,
 }: {
+  params: InstanceParams;
   student: StudentDTO;
-  units: UnitOfAssessmentDTO[];
+  units: {
+    unit: UnitOfAssessmentDTO;
+    grade?: UnitGradeDTO;
+    status: UnitMarkingStatus;
+  }[];
+  supervisor: SupervisorDTO;
+  reader: ReaderDTO;
 }) {
   return (
     <div>
       <Heading className="mb-10">
         Marksheet for {student.name} ({student.id})
       </Heading>
-      <Accordion type="multiple">
-        {units.map((u) => (
-          <UOACard key={u.id} unit={u} status={"CLOSED"} />
-        ))}
-      </Accordion>
+      <MarksheetContextProvider
+        reader={reader}
+        supervisor={supervisor}
+        params={params}
+        studentId={student.id}
+      >
+        <Accordion type="multiple" className="space-y-5">
+          {units.map((data) => (
+            <UOACard key={data.unit.id} {...data} />
+          ))}
+        </Accordion>
+      </MarksheetContextProvider>
     </div>
   );
 }
