@@ -12,7 +12,7 @@ import { Grade, GRADES } from "@/config/grades";
 
 import { type UnitOfAssessmentDTO } from "@/dto";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -152,44 +152,60 @@ export function UoaMarkingForm({
           />
         ))}
 
-        <div className="my-4 px-4 flex flex-row justify-between">
+        <div className="my-4 px-4 flex flex-col justify-between gap-4">
           <div>
-            <h3>overall mark:</h3>
-            <p className="font-semibold text-secondary text-3xl">
+            <h1 className="text-lg font-semibold my-4">Overall:</h1>
+
+            <p
+              className={cn(
+                "font-semibold text-secondary text-3xl",
+                grade === undefined && "text-muted-foreground",
+              )}
+            >
               {formatGrade(grade)}
             </p>
-            {components.length > 1 ? (
-              <FormField
-                control={form.control}
-                name="finalComment"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Summary</FormLabel>
-                    <FormDescription>
-                      A short summary of your evaluation or additional comments
-                    </FormDescription>
-                    <FormControl>
-                      <Textarea {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            ) : (
-              <Fragment />
-            )}
           </div>
 
-          <div>
-            <h1 className="text-lg font-semibold my-4">Save or Submit</h1>
-
+          {components.length > 1 ? (
+            <FormField
+              control={form.control}
+              name="finalComment"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Summary</FormLabel>
+                  <FormDescription>
+                    A short summary of your evaluation or additional comments
+                  </FormDescription>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          ) : (
+            <Fragment />
+          )}
+          <div className="flex flex-row gap-2 items-center">
+            <p className="text-muted-foreground w-3/4 mr-auto">
+              Saving as draft allows you to continue editing later. Submitting
+              marks finalizes your evaluation.
+            </p>
             <FormField
               control={form.control}
               name="draft"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Draft:</FormLabel>
+                <FormItem
+                  className={cn(
+                    buttonVariants({ variant: "outline" }),
+                    "hover:bg-white flex flex-row items-center gap-2 ",
+                  )}
+                >
+                  <FormLabel className="mt-2">
+                    {draft ? "Draft" : "Submit"}
+                  </FormLabel>
                   <FormControl>
                     <Switch
+                      className="mb-0"
                       checked={field.value}
                       onCheckedChange={(v) => field.onChange(v)}
                     />
@@ -198,24 +214,22 @@ export function UoaMarkingForm({
               )}
             />
 
-            <div>
-              {draft ? (
-                <Button type="submit">Save</Button>
-              ) : (
-                <YesNoAction
-                  disabled={!form.formState.isValid}
-                  action={handleSubmit}
-                  trigger={<Button>Submit</Button>}
-                  title={<div>You are about to submit your marks</div>}
-                  description={
-                    <p>
-                      Marks cannot be edited after submission. Would you like to
-                      proceed?
-                    </p>
-                  }
-                />
-              )}
-            </div>
+            {draft ? (
+              <Button type="submit">Save</Button>
+            ) : (
+              <YesNoAction
+                disabled={!form.formState.isValid}
+                action={handleSubmit}
+                trigger={<Button>Save</Button>}
+                title={<div>You are about to submit your marks</div>}
+                description={
+                  <>
+                    Marks cannot be edited after submission. Would you like to
+                    proceed?
+                  </>
+                }
+              />
+            )}
           </div>
         </div>
       </form>
@@ -243,8 +257,8 @@ function ComponentMarkInput({
           control={control}
           name={`marks.${id}.mark`}
           render={({ field }) => (
-            <FormItem className="space-y-2 mt-2 mb-4">
-              <FormLabel>Grade:</FormLabel>
+            <FormItem className="space-2 mt-2 mb-4">
+              <FormLabel className="mr-2">Grade:</FormLabel>
               <FormControl>
                 <GradeInput
                   value={field.value}
