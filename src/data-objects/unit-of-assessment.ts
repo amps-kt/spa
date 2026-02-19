@@ -74,8 +74,4 @@ export class UnitOfAssessment extends DataObject {
 
     return { unit: T.toUnitOfAssessmentDTO(data), grade, marks };
   }
-
-  public async saveMarks() {
-    this.db.markingComponentSubmission;
-  }
 }

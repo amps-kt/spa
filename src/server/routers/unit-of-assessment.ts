@@ -1,8 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 
-import { Grading } from "@/data-objects/grading";
-
 import { procedure } from "../middleware";
 import { createTRPCRouter } from "../trpc";
 
@@ -106,7 +104,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           marks,
         });
 
-        Grading.decideWhatsNext();
+        // Grading.decideWhatsNext();
         // dispatch
       },
     ),
@@ -121,7 +119,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
 
   resetMarks: procedure.unitOfAssessment.subGroupAdmin.mutation(
     async ({ ctx: { unit } }) => {
-      unit.reset();
+      // unit.reset();
     },
   ),
 });
