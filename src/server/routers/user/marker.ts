@@ -124,7 +124,7 @@ export const markerRouter = createTRPCRouter({
         const student = await studentDO.get();
         const unit = await instance.getUnitOfAssessment(unitOfAssessmentId);
 
-        const res = Grade.checkExtremes(Grade.toLetter(grade));
+        const res = Grade.checkExtremes(grade);
         if (res.status === GradingResult.AUTO_RESOLVED) {
           await user.writeFinalMark({
             studentId,
@@ -273,17 +273,17 @@ export const markerRouter = createTRPCRouter({
 
         // run the auto-resolve function on the grades.
         const resolution = Grade.autoResolve(
-          Grade.toLetter(supervisorSubmission.grade),
-          Grade.toLetter(readerSubmission.grade),
+          supervisorSubmission.grade,
+          readerSubmission.grade,
         );
 
-        if (resolution.status === GradingResult.INSUFFICIENT) {
-          console.error("unreachable: auto-resolve insufficient");
-          return;
-        }
+        // if (resolution.status === GradingResult.INSUFFICIENT) {
+        //   console.error("unreachable: auto-resolve insufficient");
+        //   return;
+        // }
 
         if (resolution.status === GradingResult.AUTO_RESOLVED) {
-          const grade = Grade.toInt(resolution.grade);
+          const grade = resolution.grade;
 
           await user.writeFinalMark({
             studentId,
@@ -298,7 +298,7 @@ export const markerRouter = createTRPCRouter({
             reader,
             project,
             unit,
-            resolution.grade,
+            Grade.toLetter(resolution.grade),
           );
 
           return;

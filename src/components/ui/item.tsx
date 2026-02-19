@@ -57,6 +57,7 @@ function Item({
   VariantProps<typeof itemVariants> & { asChild?: boolean }) {
   const Comp = asChild ? Slot : "div";
   return (
+    // @ts-expect-error Shad says its OK
     <Comp
       data-slot="item"
       data-variant={variant}
