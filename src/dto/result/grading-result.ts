@@ -21,11 +21,17 @@ export const GradingResultSchema = z.enum([
 export type GradingResult = z.infer<typeof GradingResultSchema>;
 
 export const MarkSubmissionEvent = {
+  /** This is a double marked unit, and the second marker has not yet submitted their marks. */
   FIRST_OF_TWO: "FIRST_OF_TWO",
+  /** This is a single marked unit - this is now done. */
   SINGLE_MARKED: "SINGLE_MARKED",
+  /** Marks for this unit were close enough to resolve automatically */
   AUTO_RESOLVED: "AUTO_RESOLVED",
+  /** Marking delta of 2; nearly in agreement but cannot auto-resolve*/
   NEGOTIATE1: "NEGOTIATE1",
+  /** Large marking delta; cannot auto-resolve */
   NEGOTIATE2: "NEGOTIATE2",
+  /** Marking process requires moderator intervention */
   MODERATE: "MODERATE",
 } as const;
 

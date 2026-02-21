@@ -5,7 +5,7 @@ import { type Control, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type MarkingComponent } from "@prisma/client";
-import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, SaveIcon } from "lucide-react";
 import z from "zod";
 
 import { Grade, GRADES } from "@/config/grades";
@@ -200,14 +200,15 @@ export function UoaMarkingForm({
                     "hover:bg-white flex flex-row items-center gap-2 ",
                   )}
                 >
-                  <FormLabel className="mt-2">
-                    {draft ? "Draft" : "Submit"}
+                  <FormLabel className="mt-2 w-28">
+                    {draft ? "Draft" : "Final"}
                   </FormLabel>
                   <FormControl>
                     <Switch
                       className="mb-0"
-                      checked={field.value}
-                      onCheckedChange={(v) => field.onChange(v)}
+                      // Inverted here since 'on' needs to indicate 'final', rather than draft
+                      checked={!field.value}
+                      onCheckedChange={(v) => field.onChange(!v)}
                     />
                   </FormControl>
                 </FormItem>
@@ -215,12 +216,18 @@ export function UoaMarkingForm({
             />
 
             {draft ? (
-              <Button type="submit">Save</Button>
+              <Button type="submit">
+                Save <SaveIcon className="size-4 ml-2" />
+              </Button>
             ) : (
               <YesNoAction
                 disabled={!form.formState.isValid}
                 action={handleSubmit}
-                trigger={<Button>Save</Button>}
+                trigger={
+                  <Button>
+                    Save <SaveIcon className="size-4 ml-2" />
+                  </Button>
+                }
                 title={<div>You are about to submit your marks</div>}
                 description={
                   <>
@@ -325,7 +332,7 @@ function GradeInput({
           <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="w-[100px] p-0">
         <Command>
           <CommandInput placeholder="Search grade..." />
           <CommandList>
