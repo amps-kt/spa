@@ -36,16 +36,14 @@ import { NonSubmissionCard } from "./non-submission-card";
 import { UoaMarkingForm } from "./uoa-marking-form";
 
 function getDueDate(unit: UnitOfAssessmentDTO, grade?: UnitGradeDTO): Date {
-  if (grade?.customDueDate) {
-    const delta = differenceInDays(
-      unit.markerSubmissionDeadline,
-      unit.studentSubmissionDeadline,
-    );
+  if (!grade?.customDueDate) return unit.markerSubmissionDeadline;
 
-    return addDays(grade.customDueDate, delta);
-  }
+  const delta = differenceInDays(
+    unit.markerSubmissionDeadline,
+    unit.studentSubmissionDeadline,
+  );
 
-  return unit.markerSubmissionDeadline;
+  return addDays(grade.customDueDate, delta);
 }
 
 export function UOACard({
