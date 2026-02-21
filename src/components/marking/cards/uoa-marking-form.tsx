@@ -188,7 +188,7 @@ export function UoaMarkingForm({
           <div className="flex flex-row gap-2 items-center">
             <p className="text-muted-foreground w-3/4 mr-auto">
               Saving as draft allows you to continue editing later. Submitting
-              marks finalizes your evaluation.
+              marks finalises your evaluation.
             </p>
             <FormField
               control={form.control}

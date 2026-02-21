@@ -88,7 +88,7 @@ export class Grade {
   }
 
   public static isFailing(grade: number): boolean {
-    return grade < Grade.toInt("D3");
+    return grade < this.toInt("D3");
   }
 
   public static isExtreme(grade: number): boolean {
@@ -115,9 +115,9 @@ export class Grade {
 
     if (
       diff === 2 &&
-      !Grade.haveMajorBandDifference(supervisorGrade, readerGrade)
+      !this.haveMajorBandDifference(supervisorGrade, readerGrade)
     ) {
-      return this.checkExtremes(Grade.average(supervisorGrade, readerGrade));
+      return this.checkExtremes(this.average(supervisorGrade, readerGrade));
     }
 
     if (diff === 2) {
