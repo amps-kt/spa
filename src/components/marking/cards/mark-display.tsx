@@ -43,7 +43,7 @@ export function SingleMarkDisplay({
   unit: UnitOfAssessmentDTO;
 }) {
   const { reader, supervisor, params, studentId } = useMarksheetContext();
-  const marker = markerType === "READER" ? reader : supervisor;
+  const marker = markerType === MarkerType.READER ? reader : supervisor;
 
   const { data, status } =
     api.user.newMarker.getStudentMarkerMarksByUnitId.useQuery({
