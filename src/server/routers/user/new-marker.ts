@@ -40,7 +40,7 @@ export const newMarkerRouter = createTRPCRouter({
         .array(),
     )
     .query(async ({ ctx: { user } }) => await user.getAssignedMarking()),
-
+// [#22d3ee] - revisit middleware
   // Help name
   getStudentMarkingData: procedure.instance.user
     .input(z.object({ studentId: z.string() }))
@@ -78,6 +78,7 @@ export const newMarkerRouter = createTRPCRouter({
       return { student: studentData, units };
     }),
 
+// [#22d3ee] - revisit middleware
   getStudentMarkers: procedure.instance.user
     .input(z.object({ studentId: z.string() }))
     .output(

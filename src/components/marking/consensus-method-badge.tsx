@@ -45,7 +45,6 @@ export function ConsensusMethodBadge({ method }: { method: MarkingMethod }) {
         <Badge className={consensusMethodBadgeVariants({ method })}>
           {consensusMethodData[method].label}
         </Badge>
-        ;
       </div>
     </WithTooltip>
   );
