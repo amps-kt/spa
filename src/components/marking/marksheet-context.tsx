@@ -36,7 +36,9 @@ export function MarksheetContextProvider({
 export function useMarksheetContext(): MarksheetContextType {
   const data = useContext(marksheetContext);
   if (!data) {
-    throw new Error("Cannot use hook outside of context");
+    throw new Error(
+      "Cannot use useMarksheetContext outside of marksheetContext",
+    );
   }
 
   return data;

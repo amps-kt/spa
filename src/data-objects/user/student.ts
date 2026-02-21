@@ -24,19 +24,6 @@ import { AllocationInstance } from "../space/instance";
 import { User } from ".";
 
 export class Student extends User {
-  public async unitConsensus({
-    unitId,
-  }: {
-    unitId: string;
-  }): Promise<UnitGradeDTO> {
-    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
-      where: { uoaGradeId: { studentId: this.id, unitOfAssessmentId: unitId } },
-    });
-
-    // if (grade === null) return undefined;
-    return T.toUnitGradeDTO(grade);
-  }
-
   instance: AllocationInstance;
 
   constructor(db: DB, id: string, params: InstanceParams) {
@@ -538,5 +525,18 @@ export class Student extends User {
     if (!data) return undefined;
 
     return T.toMarkingSubmissionDTO(data);
+  }
+
+  public async unitConsensus({
+    unitId,
+  }: {
+    unitId: string;
+  }): Promise<UnitGradeDTO> {
+    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
+      where: { uoaGradeId: { studentId: this.id, unitOfAssessmentId: unitId } },
+    });
+
+    // if (grade === null) return undefined;
+    return T.toUnitGradeDTO(grade);
   }
 }
