@@ -9,9 +9,9 @@ import { Grade } from "@/config/grades";
 import {
   type UnitOfAssessmentDTO,
   type UnitGradeDTO,
-  UnitMarkingStatus,
   unitToOverall,
-  OverallMarkingStatus,
+  UnitGradingLifecycleState,
+  StudentGradingLifecycleState,
 } from "@/dto";
 
 import { MarkerType } from "@/db/types";
@@ -54,7 +54,7 @@ export function UOACard({
 }: {
   unit: UnitOfAssessmentDTO;
   grade?: UnitGradeDTO;
-  status: UnitMarkingStatus;
+  status: UnitGradingLifecycleState;
 }) {
   const dueDate = getDueDate(unit, grade);
   return (
@@ -68,7 +68,7 @@ export function UOACard({
             <CardTitle className="text-xl mr-auto group-hover:underline">
               {unit.title}
             </CardTitle>
-            {unitToOverall(status) !== OverallMarkingStatus.DONE && (
+            {unitToOverall(status) !== StudentGradingLifecycleState.DONE && (
               <div className="mr-3">
                 Marking Due on{" "}
                 <strong className="font-bold">
@@ -103,19 +103,19 @@ function SingleMarkerUnit({
   markerType,
 }: {
   unit: UnitOfAssessmentDTO;
-  status: UnitMarkingStatus;
+  status: UnitGradingLifecycleState;
   markerType: MarkerType;
 }) {
   const realStatus = unitToOverall(status);
 
   // Pin [#e11d48] Rework with match utility?
 
-  if (realStatus === OverallMarkingStatus.PENDING) {
+  if (realStatus === StudentGradingLifecycleState.PENDING) {
     // Singly marked units cannot be pending
     throw new Error("cannot be pending");
   }
 
-  if (realStatus === OverallMarkingStatus.DONE) {
+  if (realStatus === StudentGradingLifecycleState.DONE) {
     return (
       <ConsensusWrapper unit={unit}>
         <SingleMarkDisplay markerType={markerType} unit={unit} />
@@ -123,15 +123,15 @@ function SingleMarkerUnit({
     );
   }
 
-  if (realStatus === OverallMarkingStatus.NOT_SUBMITTED) {
+  if (realStatus === StudentGradingLifecycleState.NOT_SUBMITTED) {
     return <NonSubmissionCard />;
   }
 
-  if (realStatus === OverallMarkingStatus.CLOSED) {
+  if (realStatus === StudentGradingLifecycleState.CLOSED) {
     return <ClosedCard />;
   }
 
-  if (realStatus === OverallMarkingStatus.ACTION_REQUIRED) {
+  if (realStatus === StudentGradingLifecycleState.ACTION_REQUIRED) {
     return <UoaMarkingForm unit={unit} />;
   }
 }
@@ -181,16 +181,16 @@ function DoubleMarkUnit({
   status,
 }: {
   unit: UnitOfAssessmentDTO;
-  status: UnitMarkingStatus;
+  status: UnitGradingLifecycleState;
 }) {
   const markerType = "READER";
 
   // Pin [#e11d48] Rework with match utility?
   if (
-    status === UnitMarkingStatus.DONE ||
-    status === UnitMarkingStatus.AUTO_RESOLVED ||
-    status === UnitMarkingStatus.MODERATED ||
-    status === UnitMarkingStatus.NEGOTIATED
+    status === UnitGradingLifecycleState.DONE ||
+    status === UnitGradingLifecycleState.AUTO_RESOLVED ||
+    status === UnitGradingLifecycleState.RESOLVED_BY_MODERATION ||
+    status === UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION
   ) {
     return (
       <ConsensusWrapper unit={unit}>
@@ -199,15 +199,15 @@ function DoubleMarkUnit({
     );
   }
 
-  if (status === UnitMarkingStatus.NOT_SUBMITTED) {
+  if (status === UnitGradingLifecycleState.NOT_SUBMITTED) {
     return <NonSubmissionCard />;
   }
 
-  if (status === UnitMarkingStatus.CLOSED) {
+  if (status === UnitGradingLifecycleState.CLOSED) {
     return <ClosedCard />;
   }
 
-  if (status === UnitMarkingStatus.IN_NEGOTIATION) {
+  if (status === UnitGradingLifecycleState.IN_NEGOTIATION) {
     return (
       <NegotiationWrapper markerType={markerType}>
         <DoubleMarkDisplay unit={unit} />
@@ -215,7 +215,7 @@ function DoubleMarkUnit({
     );
   }
 
-  if (status === UnitMarkingStatus.IN_MODERATION) {
+  if (status === UnitGradingLifecycleState.IN_MODERATION) {
     return (
       <MarkerModerationWrapper>
         <DoubleMarkDisplay unit={unit} />
@@ -223,7 +223,7 @@ function DoubleMarkUnit({
     );
   }
 
-  if (status === UnitMarkingStatus.PENDING_2ND_MARKER) {
+  if (status === UnitGradingLifecycleState.PENDING_2ND_MARKER) {
     return (
       <PendingWrapper>
         <DoubleMarkDisplay unit={unit} />
@@ -231,7 +231,7 @@ function DoubleMarkUnit({
     );
   }
 
-  if (status === UnitMarkingStatus.REQUIRES_MARKING) {
+  if (status === UnitGradingLifecycleState.REQUIRES_MARKING) {
     return <UoaMarkingForm unit={unit} />;
   }
 }

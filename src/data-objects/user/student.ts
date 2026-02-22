@@ -6,7 +6,7 @@ import {
   type UnitOfAssessmentDTO,
   type UnitGradeDTO,
   type MarkingSubmissionDTO,
-  type UnitMarkingStatus,
+  type UnitGradingLifecycleState,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -451,7 +451,7 @@ export class Student extends User {
     {
       unit: UnitOfAssessmentDTO;
       grade?: UnitGradeDTO;
-      status: UnitMarkingStatus;
+      status: UnitGradingLifecycleState;
     }[]
   > {
     const data = await this.db.studentDetails.findFirstOrThrow({

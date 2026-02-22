@@ -1,31 +1,31 @@
-import { MarkingMethod } from "@/db/types";
+import { ConsensusMethod } from "@/db/types";
 
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
 
 const consensusMethodData: Record<
-  MarkingMethod,
+  ConsensusMethod,
   { label: string; tip: string }
 > = {
-  [MarkingMethod.AUTO]: {
+  [ConsensusMethod.AUTO]: {
     label: "Auto-resolved",
     tip: "The marks for this unit were close enough to resolve automatically.",
   },
-  [MarkingMethod.MODERATED]: {
+  [ConsensusMethod.MODERATED]: {
     label: "Moderated",
     tip: "This unit has been moderated",
   },
-  [MarkingMethod.NEGOTIATED]: {
+  [ConsensusMethod.NEGOTIATED]: {
     label: "Negotiated",
     tip: "This unit has been negotiated",
   },
-  [MarkingMethod.OVERRIDE]: {
+  [ConsensusMethod.OVERRIDE]: {
     label: "Overridden",
     tip: "The admin overwrote the grade for this unit",
   },
 };
 
-export function ConsensusMethodBadge({ method }: { method: MarkingMethod }) {
+export function ConsensusMethodBadge({ method }: { method: ConsensusMethod }) {
   return (
     <WithTooltip tip={consensusMethodData[method].tip}>
       <div>
