@@ -4,7 +4,7 @@ import {
   type UnitGradeDTO,
   type SupervisorDTO,
   type ReaderDTO,
-  type UnitMarkingStatus,
+  type UnitGradingLifecycleState,
 } from "@/dto";
 
 import { type InstanceParams } from "@/lib/validations/params";
@@ -28,7 +28,7 @@ export async function Marksheet({
   units: {
     unit: UnitOfAssessmentDTO;
     grade?: UnitGradeDTO;
-    status: UnitMarkingStatus;
+    status: UnitGradingLifecycleState;
   }[];
   supervisor: SupervisorDTO;
   reader: ReaderDTO;
