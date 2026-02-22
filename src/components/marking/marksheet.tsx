@@ -46,7 +46,7 @@ export async function Marksheet({
       >
         <Accordion type="multiple" className="space-y-5">
           {units.map((data) => (
-            <UOACard key={data.unit.id} {...data} status={"REQUIRES_MARKING"} />
+            <UOACard key={data.unit.id} {...data} />
           ))}
         </Accordion>
       </MarksheetContextProvider>

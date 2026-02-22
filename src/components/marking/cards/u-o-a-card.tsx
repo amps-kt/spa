@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/accordion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { api } from "@/lib/trpc/client";
 
@@ -107,20 +108,30 @@ function SingleMarkerUnit({
 }) {
   const realStatus = unitToOverall(status);
 
+  // Pin [#e11d48] Rework with match utility?
+
   if (realStatus === OverallMarkingStatus.PENDING) {
     // Singly marked units cannot be pending
     throw new Error("cannot be pending");
-  } else if (realStatus === OverallMarkingStatus.DONE) {
+  }
+
+  if (realStatus === OverallMarkingStatus.DONE) {
     return (
       <ConsensusWrapper unit={unit}>
         <SingleMarkDisplay markerType={markerType} unit={unit} />
       </ConsensusWrapper>
     );
-  } else if (realStatus === OverallMarkingStatus.NOT_SUBMITTED) {
+  }
+
+  if (realStatus === OverallMarkingStatus.NOT_SUBMITTED) {
     return <NonSubmissionCard />;
-  } else if (realStatus === OverallMarkingStatus.CLOSED) {
+  }
+
+  if (realStatus === OverallMarkingStatus.CLOSED) {
     return <ClosedCard />;
-  } else if (realStatus === OverallMarkingStatus.ACTION_REQUIRED) {
+  }
+
+  if (realStatus === OverallMarkingStatus.ACTION_REQUIRED) {
     return <UoaMarkingForm unit={unit} />;
   }
 }
@@ -141,7 +152,7 @@ function ConsensusWrapper({
   });
 
   if (status !== "success") {
-    return <p>Loading...</p>;
+    return <Skeleton className="rounded-lg h-20" />;
   }
 
   return (
@@ -174,6 +185,7 @@ function DoubleMarkUnit({
 }) {
   const markerType = "READER";
 
+  // Pin [#e11d48] Rework with match utility?
   if (
     status === UnitMarkingStatus.DONE ||
     status === UnitMarkingStatus.AUTO_RESOLVED ||
@@ -185,29 +197,41 @@ function DoubleMarkUnit({
         <DoubleMarkDisplay unit={unit} />
       </ConsensusWrapper>
     );
-  } else if (status === UnitMarkingStatus.NOT_SUBMITTED) {
+  }
+
+  if (status === UnitMarkingStatus.NOT_SUBMITTED) {
     return <NonSubmissionCard />;
-  } else if (status === UnitMarkingStatus.CLOSED) {
+  }
+
+  if (status === UnitMarkingStatus.CLOSED) {
     return <ClosedCard />;
-  } else if (status === UnitMarkingStatus.IN_NEGOTIATION) {
+  }
+
+  if (status === UnitMarkingStatus.IN_NEGOTIATION) {
     return (
       <NegotiationWrapper markerType={markerType}>
         <DoubleMarkDisplay unit={unit} />
       </NegotiationWrapper>
     );
-  } else if (status === UnitMarkingStatus.IN_MODERATION) {
+  }
+
+  if (status === UnitMarkingStatus.IN_MODERATION) {
     return (
       <MarkerModerationWrapper>
         <DoubleMarkDisplay unit={unit} />
       </MarkerModerationWrapper>
     );
-  } else if (status === UnitMarkingStatus.PENDING_2ND_MARKER) {
+  }
+
+  if (status === UnitMarkingStatus.PENDING_2ND_MARKER) {
     return (
       <PendingWrapper>
         <DoubleMarkDisplay unit={unit} />
       </PendingWrapper>
     );
-  } else if (status === UnitMarkingStatus.REQUIRES_MARKING) {
+  }
+
+  if (status === UnitMarkingStatus.REQUIRES_MARKING) {
     return <UoaMarkingForm unit={unit} />;
   }
 }
