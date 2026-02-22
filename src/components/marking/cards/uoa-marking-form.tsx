@@ -10,7 +10,11 @@ import z from "zod";
 
 import { Grade, GRADES } from "@/config/grades";
 
-import { type UnitOfAssessmentDTO } from "@/dto";
+import {
+  draftMarkingSubmissionDtoSchema,
+  markingSubmissionDtoSchema,
+  type UnitOfAssessmentDTO,
+} from "@/dto";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -54,32 +58,8 @@ export const componentScoreDtoSchema = z.object({
 });
 
 const formSchema = z.discriminatedUnion("draft", [
-  z.object({
-    draft: z.literal(true),
-    markerId: z.string(),
-    studentId: z.string(),
-    unitOfAssessmentId: z.string(),
-    grade: z.number().int().nonnegative().optional(),
-    finalComment: z.string().optional(),
-    recommendation: z.boolean(),
-    marks: z.record(
-      z.string(), // assessmentCriterionId
-      componentScoreDtoSchema.partial(),
-    ),
-  }),
-  z.object({
-    draft: z.literal(false),
-    markerId: z.string(),
-    studentId: z.string(),
-    unitOfAssessmentId: z.string(),
-    grade: z.number().int().nonnegative(),
-    finalComment: z.string(),
-    recommendation: z.boolean(),
-    marks: z.record(
-      z.string(), // assessmentCriterionId
-      componentScoreDtoSchema,
-    ),
-  }),
+  markingSubmissionDtoSchema,
+  draftMarkingSubmissionDtoSchema,
 ]);
 
 type FormData = z.infer<typeof formSchema>;
