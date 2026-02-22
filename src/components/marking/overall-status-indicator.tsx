@@ -1,6 +1,6 @@
 import { cva } from "class-variance-authority";
 
-import { OverallMarkingStatus } from "@/dto/marking";
+import { StudentGradingLifecycleState } from "@/dto/marking";
 
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
@@ -8,17 +8,17 @@ import { WithTooltip } from "../ui/tooltip-wrapper";
 export const statusIndicatorVariants = cva("", {
   variants: {
     variant: {
-      [OverallMarkingStatus.CLOSED]: "bg-muted-foreground",
-      [OverallMarkingStatus.NOT_SUBMITTED]: "bg-gray-700",
-      [OverallMarkingStatus.DONE]: "bg-green-600",
-      [OverallMarkingStatus.PENDING]: "bg-sky-500",
-      [OverallMarkingStatus.ACTION_REQUIRED]: "bg-destructive",
+      [StudentGradingLifecycleState.CLOSED]: "bg-muted-foreground",
+      [StudentGradingLifecycleState.NOT_SUBMITTED]: "bg-gray-700",
+      [StudentGradingLifecycleState.DONE]: "bg-green-600",
+      [StudentGradingLifecycleState.PENDING]: "bg-sky-500",
+      [StudentGradingLifecycleState.ACTION_REQUIRED]: "bg-destructive",
     },
   },
 });
 
 const markingStatusData: Record<
-  OverallMarkingStatus,
+  StudentGradingLifecycleState,
   { label: string; tip: string }
 > = {
   CLOSED: { label: "Closed", tip: "" },
@@ -31,7 +31,7 @@ const markingStatusData: Record<
 export function OverallStatusIndicator({
   status,
 }: {
-  status: OverallMarkingStatus;
+  status: StudentGradingLifecycleState;
 }) {
   const { label, tip } = markingStatusData[status];
   return (

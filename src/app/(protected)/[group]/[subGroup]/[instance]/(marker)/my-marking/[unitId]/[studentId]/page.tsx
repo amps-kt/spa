@@ -3,7 +3,7 @@ import { ListCheckIcon } from "lucide-react";
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
-import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
+import { MarkingProgress } from "@/dto/result/marking-submission-status";
 
 import { Heading, SectionHeading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
@@ -69,7 +69,7 @@ export default async function MarksPage({
 
   if (!project) throw new Error("no project defined"); // error goes here
 
-  if (status === MarkingSubmissionStatus.CLOSED) {
+  if (status === MarkingProgress.CLOSED) {
     return (
       <PanelWrapper>
         <div className="grid place-items-center py-20">
@@ -81,7 +81,7 @@ export default async function MarksPage({
     );
   }
 
-  if (status === MarkingSubmissionStatus.SUBMITTED) {
+  if (status === MarkingProgress.COMPLETE) {
     return (
       <PanelWrapper>
         <div className="grid place-items-center py-20">

@@ -15,7 +15,7 @@ import {
   type MarkingSubmissionDTO,
 } from "@/dto";
 import { GradingResult } from "@/dto/result/grading-result";
-import { markingSubmissionStatusSchema } from "@/dto/result/marking-submission-status";
+import { markingProgressSchema } from "@/dto/result/marking-submission-status";
 
 import { Marker } from "@/data-objects";
 
@@ -77,7 +77,7 @@ export const markerRouter = createTRPCRouter({
     .output(
       z.object({
         submission: partialMarkingSubmissionDtoSchema,
-        status: markingSubmissionStatusSchema,
+        status: markingProgressSchema,
       }),
     )
     .query(

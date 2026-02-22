@@ -4,8 +4,8 @@ import {
   type PrismaClient,
   Stage,
   AllocationMethod as DB_AllocationMethod,
-  MarkingStatus,
-  MarkingMethod,
+  ConsensusStage,
+  ConsensusMethod,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -168,17 +168,17 @@ export const allocationMethodSchema = z.enum([
 
 // Taking applications for literally any other name
 export const rawUnitMarkingStatusSchema = z.enum([
-  MarkingStatus.DONE,
-  MarkingStatus.PENDING,
-  MarkingStatus.MODERATE,
-  MarkingStatus.NEGOTIATE,
+  ConsensusStage.RESOLVED,
+  ConsensusStage.UNRESOLVED,
+  ConsensusStage.MODERATE,
+  ConsensusStage.NEGOTIATE,
 ]);
 
 export const markingMethodSchema = z.enum([
-  MarkingMethod.AUTO,
-  MarkingMethod.OVERRIDE,
-  MarkingMethod.NEGOTIATED,
-  MarkingMethod.MODERATED,
+  ConsensusMethod.AUTO,
+  ConsensusMethod.OVERRIDE,
+  ConsensusMethod.NEGOTIATED,
+  ConsensusMethod.MODERATED,
 ]);
 
 export {
@@ -188,8 +188,8 @@ export {
   Stage,
   MarkerType,
   AllocationMethod,
-  MarkingStatus as RawUnitMarkingStatus,
-  MarkingMethod,
+  ConsensusStage,
+  ConsensusMethod,
 } from "@prisma/client";
 
 export type New<T> = Omit<T, "id">;

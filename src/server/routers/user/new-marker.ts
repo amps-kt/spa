@@ -6,8 +6,8 @@ import {
   unitOfAssessmentDtoSchema,
 } from "@/dto";
 import {
-  overallMarkingStatusSchema,
-  unitMarkingStatusSchema,
+  studentGradingLifecycleStateSchema,
+  unitGradingLifecycleStateSchema,
 } from "@/dto/marking";
 
 import { markerTypeSchema } from "@/db/types";
@@ -23,11 +23,11 @@ export const newMarkerRouter = createTRPCRouter({
           project: projectDtoSchema,
           student: studentDtoSchema,
           role: markerTypeSchema,
-          status: overallMarkingStatusSchema,
+          status: studentGradingLifecycleStateSchema,
           units: z
             .object({
               unit: unitOfAssessmentDtoSchema,
-              status: unitMarkingStatusSchema,
+              status: unitGradingLifecycleStateSchema,
             })
             .array(),
         })

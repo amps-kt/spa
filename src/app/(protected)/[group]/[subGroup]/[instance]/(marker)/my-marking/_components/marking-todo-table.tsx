@@ -11,8 +11,8 @@ import {
   type UnitOfAssessmentDTO,
 } from "@/dto";
 import {
-  type OverallMarkingStatus,
-  type UnitMarkingStatus,
+  type StudentGradingLifecycleState,
+  type UnitGradingLifecycleState,
 } from "@/dto/marking";
 
 import { type MarkerType } from "@/db/types";
@@ -41,8 +41,8 @@ type TRow = {
   project: ProjectDTO;
   student: StudentDTO;
   role: MarkerType;
-  status: OverallMarkingStatus;
-  units: { unit: UnitOfAssessmentDTO; status: UnitMarkingStatus }[];
+  status: StudentGradingLifecycleState;
+  units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
 };
 
 const columns: ColumnDef<TRow>[] = [
@@ -106,7 +106,7 @@ function UoaStatusRow({
   status,
 }: {
   unit: UnitOfAssessmentDTO;
-  status: UnitMarkingStatus;
+  status: UnitGradingLifecycleState;
 }) {
   return (
     <TableRow>
