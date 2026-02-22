@@ -114,7 +114,7 @@ export const unitGradeDtoSchema = z.object({
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 // --- new:
 
-export const UnitMarkingStatus = {
+export const UnitGradingLifecycleState = {
   CLOSED: "CLOSED",
   NOT_SUBMITTED: "NOT_SUBMITTED",
   REQUIRES_MARKING: "REQUIRES_MARKING",
@@ -123,26 +123,26 @@ export const UnitMarkingStatus = {
   PENDING_2ND_MARKER: "PENDING_2ND_MARKER",
   DONE: "DONE",
   AUTO_RESOLVED: "AUTO_RESOLVED",
-  NEGOTIATED: "NEGOTIATED",
-  MODERATED: "MODERATED",
+  RESOLVED_BY_NEGOTIATION: "RESOLVED_BY_NEGOTIATION",
+  RESOLVED_BY_MODERATION: "RESOLVED_BY_MODERATION",
 } as const;
 
-export type UnitMarkingStatus = keyof typeof UnitMarkingStatus;
+export type UnitGradingLifecycleState = keyof typeof UnitGradingLifecycleState;
 
-export const unitMarkingStatusSchema = z.enum([
-  UnitMarkingStatus.CLOSED,
-  UnitMarkingStatus.NOT_SUBMITTED,
-  UnitMarkingStatus.REQUIRES_MARKING,
-  UnitMarkingStatus.IN_NEGOTIATION,
-  UnitMarkingStatus.IN_MODERATION,
-  UnitMarkingStatus.PENDING_2ND_MARKER,
-  UnitMarkingStatus.DONE,
-  UnitMarkingStatus.AUTO_RESOLVED,
-  UnitMarkingStatus.NEGOTIATED,
-  UnitMarkingStatus.MODERATED,
+export const unitGradingLifecycleStateSchema = z.enum([
+  UnitGradingLifecycleState.CLOSED,
+  UnitGradingLifecycleState.NOT_SUBMITTED,
+  UnitGradingLifecycleState.REQUIRES_MARKING,
+  UnitGradingLifecycleState.IN_NEGOTIATION,
+  UnitGradingLifecycleState.IN_MODERATION,
+  UnitGradingLifecycleState.PENDING_2ND_MARKER,
+  UnitGradingLifecycleState.DONE,
+  UnitGradingLifecycleState.AUTO_RESOLVED,
+  UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION,
+  UnitGradingLifecycleState.RESOLVED_BY_MODERATION,
 ]);
 
-export const OverallMarkingStatus = {
+export const StudentGradingLifecycleState = {
   DONE: "DONE",
   NOT_SUBMITTED: "NOT_SUBMITTED",
   CLOSED: "CLOSED",
@@ -150,38 +150,49 @@ export const OverallMarkingStatus = {
   ACTION_REQUIRED: "ACTION_REQUIRED",
 } as const;
 
-export type OverallMarkingStatus = keyof typeof OverallMarkingStatus;
+export type StudentGradingLifecycleState =
+  keyof typeof StudentGradingLifecycleState;
 
-export const overallMarkingStatusSchema = z.enum([
-  OverallMarkingStatus.DONE,
-  OverallMarkingStatus.NOT_SUBMITTED,
-  OverallMarkingStatus.CLOSED,
-  OverallMarkingStatus.PENDING,
-  OverallMarkingStatus.ACTION_REQUIRED,
+export const studentGradingLifecycleStateSchema = z.enum([
+  StudentGradingLifecycleState.DONE,
+  StudentGradingLifecycleState.NOT_SUBMITTED,
+  StudentGradingLifecycleState.CLOSED,
+  StudentGradingLifecycleState.PENDING,
+  StudentGradingLifecycleState.ACTION_REQUIRED,
 ]);
 
-export function unitToOverall(stat: UnitMarkingStatus): OverallMarkingStatus {
-  const rec: Record<UnitMarkingStatus, OverallMarkingStatus> = {
-    [UnitMarkingStatus.CLOSED]: OverallMarkingStatus.CLOSED,
-    [UnitMarkingStatus.NOT_SUBMITTED]: OverallMarkingStatus.NOT_SUBMITTED,
-    [UnitMarkingStatus.REQUIRES_MARKING]: OverallMarkingStatus.ACTION_REQUIRED,
-    [UnitMarkingStatus.IN_NEGOTIATION]: OverallMarkingStatus.ACTION_REQUIRED,
-    [UnitMarkingStatus.IN_MODERATION]: OverallMarkingStatus.PENDING,
-    [UnitMarkingStatus.PENDING_2ND_MARKER]: OverallMarkingStatus.PENDING,
-    [UnitMarkingStatus.DONE]: OverallMarkingStatus.DONE,
-    [UnitMarkingStatus.AUTO_RESOLVED]: OverallMarkingStatus.DONE,
-    [UnitMarkingStatus.NEGOTIATED]: OverallMarkingStatus.DONE,
-    [UnitMarkingStatus.MODERATED]: OverallMarkingStatus.DONE,
+export function unitToOverall(
+  stat: UnitGradingLifecycleState,
+): StudentGradingLifecycleState {
+  const rec: Record<UnitGradingLifecycleState, StudentGradingLifecycleState> = {
+    [UnitGradingLifecycleState.CLOSED]: StudentGradingLifecycleState.CLOSED,
+    [UnitGradingLifecycleState.NOT_SUBMITTED]:
+      StudentGradingLifecycleState.NOT_SUBMITTED,
+    [UnitGradingLifecycleState.REQUIRES_MARKING]:
+      StudentGradingLifecycleState.ACTION_REQUIRED,
+    [UnitGradingLifecycleState.IN_NEGOTIATION]:
+      StudentGradingLifecycleState.ACTION_REQUIRED,
+    [UnitGradingLifecycleState.IN_MODERATION]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.PENDING_2ND_MARKER]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.DONE]: StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.AUTO_RESOLVED]:
+      StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION]:
+      StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.RESOLVED_BY_MODERATION]:
+      StudentGradingLifecycleState.DONE,
   };
 
   return rec[stat];
 }
 
 export function markingStatusCompare(
-  a: OverallMarkingStatus,
-  b: OverallMarkingStatus,
-): OverallMarkingStatus {
-  const rec: Record<OverallMarkingStatus, number> = {
+  a: StudentGradingLifecycleState,
+  b: StudentGradingLifecycleState,
+): StudentGradingLifecycleState {
+  const rec: Record<StudentGradingLifecycleState, number> = {
     CLOSED: 4,
     DONE: 3,
     NOT_SUBMITTED: 2,
@@ -193,7 +204,10 @@ export function markingStatusCompare(
 }
 
 export function markingStatusMin(
-  s: OverallMarkingStatus[],
-): OverallMarkingStatus {
-  return s.reduce(markingStatusCompare, OverallMarkingStatus.ACTION_REQUIRED);
+  s: StudentGradingLifecycleState[],
+): StudentGradingLifecycleState {
+  return s.reduce(
+    markingStatusCompare,
+    StudentGradingLifecycleState.ACTION_REQUIRED,
+  );
 }

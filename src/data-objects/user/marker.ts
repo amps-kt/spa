@@ -7,15 +7,20 @@ import {
 } from "@/dto";
 import {
   markingStatusMin,
-  type UnitMarkingStatus,
+  type UnitGradingLifecycleState,
   unitToOverall,
-  type OverallMarkingStatus,
+  type StudentGradingLifecycleState,
   type UnitGradeDTO,
 } from "@/dto/marking";
-import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
+import { MarkingProgress } from "@/dto/result/marking-submission-status";
 
 import { Transformers as T } from "@/db/transformers";
-import { MarkerType, type DB } from "@/db/types";
+import {
+  ConsensusMethod,
+  ConsensusStage,
+  MarkerType,
+  type DB,
+} from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -32,15 +37,15 @@ export class Marker extends User {
   public static computeStatus(
     u: UnitOfAssessmentDTO,
     submission: MarkingSubmissionDTO | undefined,
-  ): MarkingSubmissionStatus {
+  ): MarkingProgress {
     if (!u.isOpen) {
-      return MarkingSubmissionStatus.CLOSED;
+      return MarkingProgress.CLOSED;
     } else if (!submission) {
-      return MarkingSubmissionStatus.OPEN;
+      return MarkingProgress.NOT_STARTED;
     } else if (submission.draft) {
-      return MarkingSubmissionStatus.DRAFT;
+      return MarkingProgress.IN_PROGRESS;
     } else {
-      return MarkingSubmissionStatus.SUBMITTED;
+      return MarkingProgress.COMPLETE;
     }
   }
 
@@ -58,8 +63,8 @@ export class Marker extends User {
       project: ProjectDTO;
       student: StudentDTO;
       role: MarkerType;
-      status: OverallMarkingStatus;
-      units: { unit: UnitOfAssessmentDTO; status: UnitMarkingStatus }[];
+      status: StudentGradingLifecycleState;
+      units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
     }[]
   > {
     const projectsToMark = await this.db.studentProjectAllocation.findMany({
@@ -193,7 +198,7 @@ export class Marker extends User {
       markerType: MarkerType;
       unitsOfAssessment: {
         unit: UnitOfAssessmentDTO;
-        status: MarkingSubmissionStatus;
+        status: MarkingProgress;
       }[];
     }[]
   > {
@@ -427,8 +432,8 @@ export class Marker extends User {
         unitOfAssessmentId,
         comment,
         grade,
-        status: "DONE",
-        method: "AUTO",
+        status: ConsensusStage.RESOLVED,
+        method: ConsensusMethod.AUTO,
         submitted: true,
       },
       update: { studentId, unitOfAssessmentId, comment, grade },
