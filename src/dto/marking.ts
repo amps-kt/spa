@@ -67,14 +67,32 @@ export const componentScoreDtoSchema = z.object({
 
 export type ComponentScoreDTO = z.infer<typeof componentScoreDtoSchema>;
 
-export const markingSubmissionDtoSchema = z.object({
-  grade: z.number().int().nonnegative(),
-  finalComment: z.string(),
-  recommendation: z.boolean(),
-  draft: z.boolean(),
+export const draftMarkingSubmissionDtoSchema = z.object({
+  draft: z.literal(true),
   markerId: z.string(),
   studentId: z.string(),
   unitOfAssessmentId: z.string(),
+  grade: z.number().int().nonnegative().optional(),
+  finalComment: z.string().optional(),
+  recommendation: z.boolean(),
+  marks: z.record(
+    z.string(), // assessmentCriterionId
+    componentScoreDtoSchema.partial(),
+  ),
+});
+
+export type DraftMarkingSubmissionDTO = z.infer<
+  typeof draftMarkingSubmissionDtoSchema
+>;
+
+export const markingSubmissionDtoSchema = z.object({
+  draft: z.literal(false),
+  markerId: z.string(),
+  studentId: z.string(),
+  unitOfAssessmentId: z.string(),
+  grade: z.number().int().nonnegative(),
+  finalComment: z.string(),
+  recommendation: z.boolean(),
   marks: z.record(
     z.string(), // assessmentCriterionId
     componentScoreDtoSchema,
