@@ -1,4 +1,4 @@
-import { unitToOverall, type UnitMarkingStatus } from "@/dto/marking";
+import { unitToOverall, type UnitGradingLifecycleState } from "@/dto/marking";
 
 import { Badge } from "../ui/badge";
 import { WithTooltip } from "../ui/tooltip-wrapper";
@@ -6,7 +6,7 @@ import { WithTooltip } from "../ui/tooltip-wrapper";
 import { statusIndicatorVariants } from "./overall-status-indicator";
 
 const markingStatusData: Record<
-  UnitMarkingStatus,
+  UnitGradingLifecycleState,
   { label: string; tip: string }
 > = {
   CLOSED: {
@@ -38,17 +38,21 @@ const markingStatusData: Record<
     label: "Auto-Resolved",
     tip: "The marks for this unit have been automatically resolved",
   },
-  NEGOTIATED: {
+  RESOLVED_BY_NEGOTIATION: {
     label: "Negotiated",
     tip: "The marks for this unit were resolved through negotiation",
   },
-  MODERATED: {
+  RESOLVED_BY_MODERATION: {
     label: "Moderated",
     tip: "The marks for this unit were moderated",
   },
 };
 
-export function UoaStatusIndicator({ status }: { status: UnitMarkingStatus }) {
+export function UoaStatusIndicator({
+  status,
+}: {
+  status: UnitGradingLifecycleState;
+}) {
   const { label, tip } = markingStatusData[status];
   return (
     <WithTooltip tip={tip}>

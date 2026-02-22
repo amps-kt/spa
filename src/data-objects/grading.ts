@@ -2,10 +2,10 @@ import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
 import {
   type MarkingSubmissionDTO,
   type UnitGradeDTO,
-  UnitMarkingStatus,
+  UnitGradingLifecycleState,
 } from "@/dto/marking";
 
-import { RawUnitMarkingStatus, MarkingMethod } from "@/db/types";
+import { ConsensusStage, ConsensusMethod } from "@/db/types";
 
 export class Grading {
   static getUnitStatus(
@@ -13,29 +13,29 @@ export class Grading {
     grade: UnitGradeDTO | undefined,
     submissions: MarkingSubmissionDTO[],
     perspectiveUser?: UserDTO,
-  ): UnitMarkingStatus {
+  ): UnitGradingLifecycleState {
     if (!unit.isOpen) {
-      return UnitMarkingStatus.CLOSED;
-    } else if (grade?.status === RawUnitMarkingStatus.MODERATE) {
-      return UnitMarkingStatus.IN_MODERATION;
-    } else if (grade?.status === RawUnitMarkingStatus.NEGOTIATE) {
-      return UnitMarkingStatus.IN_NEGOTIATION;
-    } else if (grade?.status === RawUnitMarkingStatus.DONE) {
-      if (grade.method === MarkingMethod.AUTO) {
-        return UnitMarkingStatus.AUTO_RESOLVED;
-      } else if (grade.method === MarkingMethod.MODERATED) {
-        return UnitMarkingStatus.MODERATED;
-      } else if (grade.method === MarkingMethod.NEGOTIATED) {
-        return UnitMarkingStatus.NEGOTIATED;
+      return UnitGradingLifecycleState.CLOSED;
+    } else if (grade?.status === ConsensusStage.MODERATE) {
+      return UnitGradingLifecycleState.IN_MODERATION;
+    } else if (grade?.status === ConsensusStage.NEGOTIATE) {
+      return UnitGradingLifecycleState.IN_NEGOTIATION;
+    } else if (grade?.status === ConsensusStage.RESOLVED) {
+      if (grade.method === ConsensusMethod.AUTO) {
+        return UnitGradingLifecycleState.AUTO_RESOLVED;
+      } else if (grade.method === ConsensusMethod.MODERATED) {
+        return UnitGradingLifecycleState.RESOLVED_BY_MODERATION;
+      } else if (grade.method === ConsensusMethod.NEGOTIATED) {
+        return UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION;
       } else if (grade.method === "OVERRIDE") {
-        return UnitMarkingStatus.DONE;
+        return UnitGradingLifecycleState.DONE;
       }
     }
 
     // grade.status === pending
 
     if (submissions.length === 0) {
-      return UnitMarkingStatus.REQUIRES_MARKING;
+      return UnitGradingLifecycleState.REQUIRES_MARKING;
     }
 
     // #submissions > 0
@@ -44,11 +44,11 @@ export class Grading {
       const selfSubmitted = submissions.some(
         (x) => perspectiveUser.id === x.markerId,
       );
-      if (!selfSubmitted) return UnitMarkingStatus.REQUIRES_MARKING;
-      else return UnitMarkingStatus.PENDING_2ND_MARKER;
+      if (!selfSubmitted) return UnitGradingLifecycleState.REQUIRES_MARKING;
+      else return UnitGradingLifecycleState.PENDING_2ND_MARKER;
     }
 
     // At least 1 submission; not done -> need 2nd mark
-    return UnitMarkingStatus.PENDING_2ND_MARKER;
+    return UnitGradingLifecycleState.PENDING_2ND_MARKER;
   }
 }

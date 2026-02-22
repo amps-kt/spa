@@ -1,23 +1,21 @@
 import { z } from "zod";
 
-export const MarkingSubmissionStatus = {
+export const MarkingProgress = {
   /** Unit of assessment not yet open */
   CLOSED: "CLOSED",
   /** Unit of assessment open; no marking submission yet made */
-  OPEN: "OPEN",
+  NOT_STARTED: "NOT_STARTED",
   /** non-final submission saved */
-  DRAFT: "DRAFT",
+  IN_PROGRESS: "IN_PROGRESS",
   /** Unit is fully marked and submitted */
-  SUBMITTED: "SUBMITTED",
+  COMPLETE: "COMPLETE",
 } as const;
 
-export const markingSubmissionStatusSchema = z.enum([
-  MarkingSubmissionStatus.CLOSED,
-  MarkingSubmissionStatus.OPEN,
-  MarkingSubmissionStatus.DRAFT,
-  MarkingSubmissionStatus.SUBMITTED,
+export const markingProgressSchema = z.enum([
+  MarkingProgress.CLOSED,
+  MarkingProgress.NOT_STARTED,
+  MarkingProgress.IN_PROGRESS,
+  MarkingProgress.COMPLETE,
 ]);
 
-export type MarkingSubmissionStatus = z.infer<
-  typeof markingSubmissionStatusSchema
->;
+export type MarkingProgress = z.infer<typeof markingProgressSchema>;
