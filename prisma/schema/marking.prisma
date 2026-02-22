@@ -3,18 +3,22 @@ enum MarkerType {
   READER
 }
 
-enum MarkingStatus {
+enum ConsensusStage {
   PENDING
   DONE
   MODERATE
   NEGOTIATE
+
+  @@map("consensus_stage")
 }
 
-enum MarkingMethod {
+enum ConsensusMethod {
   AUTO
   OVERRIDE
   NEGOTIATED
   MODERATED
+
+  @@map("consensus_method")
 }
 
 enum FinalGradeMethod {
@@ -109,8 +113,8 @@ model UnitOfAssessmentGrade {
   // ---
   grade                Int
   comment              String
-  status               MarkingStatus    @default(PENDING)
-  method               MarkingMethod    @default(AUTO)
+  status               ConsensusStage   @default(PENDING)
+  method               ConsensusMethod  @default(AUTO)
   // ---
   allocationGroupId    String           @map("allocation_group_id")
   allocationSubGroupId String           @map("allocation_sub_group_id")
