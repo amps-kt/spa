@@ -45,8 +45,8 @@ model MarkingComponentSubmission {
   markerId             String                     @map("marker_id") // marker type?
   studentId            String                     @map("student_id")
   unitOfAssessmentId   String                     @map("unit_of_assessment_id")
-  grade                Int
-  justification        String
+  grade                Int?
+  justification        String?
   // ---
   markingComponentId   String                     @map("marking_component_id")
   allocationGroupId    String                     @map("allocation_group_id")
@@ -86,8 +86,8 @@ model UnitOfAssessment {
 }
 
 model UnitOfAssessmentSubmission {
-  grade                Int
-  summary              String
+  grade                Int?
+  summary              String?
   recommendedForPrize  Boolean                      @default(false) @map("recommended_for_prize")
   draft                Boolean
   markerId             String                       @map("marker_id")
