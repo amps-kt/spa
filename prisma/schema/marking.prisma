@@ -4,8 +4,8 @@ enum MarkerType {
 }
 
 enum ConsensusStage {
-  PENDING
-  DONE
+  UNRESOLVED
+  RESOLVED
   MODERATE
   NEGOTIATE
 
@@ -113,7 +113,7 @@ model UnitOfAssessmentGrade {
   // ---
   grade                Int
   comment              String
-  status               ConsensusStage   @default(PENDING)
+  status               ConsensusStage   @default(UNRESOLVED)
   method               ConsensusMethod  @default(AUTO)
   // ---
   allocationGroupId    String           @map("allocation_group_id")
