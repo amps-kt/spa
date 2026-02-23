@@ -1,42 +1,54 @@
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 
+import {
+  draftMarkingSubmissionDtoSchema,
+  markingSubmissionDtoSchema,
+  unitGradeDtoSchema,
+  unitOfAssessmentDtoSchema,
+} from "@/dto";
+
 import { procedure } from "../middleware";
 import { createTRPCRouter } from "../trpc";
 
 export const unitOfAssessmentRouter = createTRPCRouter({
-  getMarks: procedure.unitOfAssessment.marker.mutation(
-    async ({ ctx: { unit } }) => {
-      return await unit.getMarks();
-    },
-  ),
-
-// [#22d3ee] - revisit middleware
-  saveMarks: procedure.unitOfAssessment.marker
-    .input(
+  getMarks: procedure.unitOfAssessment.marker
+    .output(
       z.object({
-        data: z.object({
-          grade: z.number().optional(),
-          finalComment: z.string().optional(),
-          recommendation: z.boolean().optional(),
-          marks: z.record(
-            z.string(),
-            z.object({
-              mark: z.number().optional(),
-              justification: z.string().optional(),
-            }),
-          ),
-        }),
+        unit: unitOfAssessmentDtoSchema,
+        grade: unitGradeDtoSchema.optional(),
+        marks: z.record(
+          z.string(),
+          z.discriminatedUnion("draft", [
+            draftMarkingSubmissionDtoSchema,
+            markingSubmissionDtoSchema,
+          ]),
+        ),
       }),
     )
+    .mutation(async ({ ctx: { unit } }) => {
+      return await unit.getMarks();
+    }),
+
+  getConsensus: procedure.unitOfAssessment.user
+    .input(z.object({ studentId: z.string(), unitId: z.string() }))
+    .output(z.object({ unitGrade: unitGradeDtoSchema }))
+    .query(async ({ ctx: { instance }, input: { studentId, unitId } }) => {
+      // TODO check if perm
+
+      const student = await instance.getStudent(studentId);
+      const unitGrade = await student.unitConsensus({ unitId });
+
+      return { unitGrade };
+    }),
+
+  // [#22d3ee] - revisit middleware
+  saveMarks: procedure.unitOfAssessment.marker
+    .input(z.object({ data: draftMarkingSubmissionDtoSchema }))
     .mutation(
       async ({
-        ctx: { user, instance },
-        input: {
-          studentId,
-          unitId,
-          data: { finalComment, grade, recommendation, marks },
-        },
+        ctx: { unit, user, instance },
+        input: { studentId, unitId, data },
       }) => {
         const markerType = await user.getMarkerType(studentId);
         const { allowedMarkerTypes } =
@@ -49,33 +61,13 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           });
         }
 
-        return await user.writeMarks({
-          unitOfAssessmentId: unitId,
-          studentId,
-          draft: true,
-          recommendation,
-          finalComment,
-          grade,
-          marks,
-        });
+        return await unit.writeMarks(data);
       },
     ),
 
-// [#22d3ee] - revisit middleware
+  // [#22d3ee] - revisit middleware
   submitMarks: procedure.unitOfAssessment.marker
-    .input(
-      z.object({
-        data: z.object({
-          grade: z.number(),
-          finalComment: z.string(),
-          recommendation: z.boolean(),
-          marks: z.record(
-            z.string(),
-            z.object({ mark: z.number(), justification: z.string() }),
-          ),
-        }),
-      }),
-    )
+    .input(z.object({ data: markingSubmissionDtoSchema }))
     .mutation(
       async ({
         ctx: { user, instance },

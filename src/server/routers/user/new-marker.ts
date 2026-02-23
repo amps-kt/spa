@@ -13,6 +13,7 @@ import {
   unitGradingLifecycleStateSchema,
   markingSubmissionDtoSchema,
   unitGradeDtoSchema,
+  draftMarkingSubmissionDtoSchema,
 } from "@/dto/marking";
 
 import { markerTypeSchema } from "@/db/types";
@@ -105,7 +106,13 @@ export const newMarkerRouter = createTRPCRouter({
         unitId: z.string(),
       }),
     )
-    .output(z.object({ marks: markingSubmissionDtoSchema.optional() }))
+    .output(
+      z.object({
+        marks: draftMarkingSubmissionDtoSchema
+          .or(markingSubmissionDtoSchema)
+          .optional(),
+      }),
+    )
     .query(
       async ({ ctx: { instance }, input: { studentId, markerId, unitId } }) => {
         const student = await instance.getStudent(studentId);
@@ -118,6 +125,7 @@ export const newMarkerRouter = createTRPCRouter({
       },
     ),
 
+  // MOVE
   getConsensusGrade: procedure.instance.user
     .input(z.object({ studentId: z.string(), unitId: z.string() }))
     .output(z.object({ unitGrade: unitGradeDtoSchema }))

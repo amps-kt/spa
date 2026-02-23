@@ -1,9 +1,9 @@
 import {
-  type UnitOfAssessmentGrade,
-  type UnitOfAssessmentSubmission,
-} from "@prisma/client";
-
-import { type UnitOfAssessmentDTO } from "@/dto";
+  type UnitGradeDTO,
+  type DraftMarkingSubmissionDTO,
+  type MarkingSubmissionDTO,
+  type UnitOfAssessmentDTO,
+} from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
 import { type DB } from "@/db/types";
@@ -36,8 +36,8 @@ export class UnitOfAssessment extends DataObject {
 
   public async getMarks(): Promise<{
     unit: UnitOfAssessmentDTO;
-    grade?: UnitOfAssessmentGrade;
-    marks: Record<MarkerId, UnitOfAssessmentSubmission>;
+    grade?: UnitGradeDTO;
+    marks: Record<MarkerId, DraftMarkingSubmissionDTO | MarkingSubmissionDTO>;
   }> {
     const data = await this.db.unitOfAssessment.findFirstOrThrow({
       where: { id: this.id },
@@ -72,6 +72,78 @@ export class UnitOfAssessment extends DataObject {
       {},
     );
 
-    return { unit: T.toUnitOfAssessmentDTO(data), grade, marks };
+    return {
+      unit: T.toUnitOfAssessmentDTO(data),
+      grade: grade && T.toUnitGradeDTO(grade),
+      marks,
+    };
+  }
+
+  public async getConsensus({
+    studentId,
+  }: {
+    studentId: string;
+  }): Promise<UnitGradeDTO> {
+    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
+      where: { uoaGradeId: { studentId, unitOfAssessmentId: this.id } },
+    });
+
+    // if (grade === null) return undefined;
+    return T.toUnitGradeDTO(grade);
+  }
+
+  public async writeMarks({
+    markerId,
+    studentId,
+    draft,
+    finalComment: summary,
+    recommendation: recommendedForPrize,
+    grade,
+    marks,
+  }: MarkingSubmissionDTO | DraftMarkingSubmissionDTO) {
+    const unitOfAssessmentId = this.id;
+    await this.db.$transaction([
+      this.db.unitOfAssessmentSubmission.upsert({
+        where: {
+          ...expand(this.instance.params),
+          uoaSubmissionId: { markerId, studentId, unitOfAssessmentId },
+        },
+        create: {
+          ...expand(this.instance.params),
+          markerId,
+          studentId,
+          unitOfAssessmentId,
+          draft,
+          summary,
+          recommendedForPrize,
+          grade,
+        },
+        update: { draft, summary, recommendedForPrize, grade },
+      }),
+
+      ...Object.entries(marks).map(
+        ([markingComponentId, { mark: grade, justification }]) =>
+          this.db.markingComponentSubmission.upsert({
+            where: {
+              markingComponentSubmission: {
+                ...expand(this.instance.params),
+                markerId,
+                studentId,
+                markingComponentId,
+              },
+            },
+            create: {
+              ...expand(this.instance.params),
+              markerId,
+              studentId,
+              markingComponentId,
+              unitOfAssessmentId,
+              grade,
+              justification,
+            },
+            update: { grade, justification },
+          }),
+      ),
+    ]);
   }
 }

@@ -7,6 +7,7 @@ import {
   type UnitGradeDTO,
   type MarkingSubmissionDTO,
   type UnitGradingLifecycleState,
+  type DraftMarkingSubmissionDTO,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -510,7 +511,7 @@ export class Student extends User {
   }: {
     markerId: string;
     unitId: string;
-  }): Promise<MarkingSubmissionDTO | undefined> {
+  }): Promise<MarkingSubmissionDTO | DraftMarkingSubmissionDTO | undefined> {
     const data = await this.db.unitOfAssessmentSubmission.findUnique({
       where: {
         uoaSubmissionId: {
