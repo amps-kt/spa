@@ -1,98 +1,113 @@
-"use client";
+import { useState } from "react";
 
-import { AlertTriangleIcon } from "lucide-react";
+import { type StudentDTO } from "@/dto";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { WithTooltip } from "@/components/ui/tooltip-wrapper";
-import { YesNoAlertDialog } from "@/components/yes-no-alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
 
-interface EnrolledCellProps {
-  enrolled: boolean;
-  studentName?: string;
-  onChange?: (enrolled: boolean) => void;
-  className?: string;
-}
-
+// Couldn't get the `AlertDialog` or `YesNoContainer` to play nice with the `WithTooltip` components no matter how much I tried
+// it was easier to just manually put this together, after all that's kinda the point of owning the components
 export function EnrolledCell({
-  enrolled,
-  studentName,
+  student,
   onChange,
   className,
-}: EnrolledCellProps) {
-  const isUnenrolling = enrolled;
+}: {
+  student: StudentDTO;
+  onChange: (enrolled: boolean) => void;
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  function handleConfirm() {
+    onChange(!student.enrolled);
+    setOpen(false);
+  }
+
+  const isUnenrolling = !student.enrolled;
 
   return (
-    <YesNoAlertDialog
-      action={() => onChange?.(!enrolled)}
-      title={
-        <span className="flex items-center gap-2">
-          {isUnenrolling && (
-            <AlertTriangleIcon className="h-5 w-5 text-destructive" />
-          )}
-          {isUnenrolling ? "Un-enrol student?" : "Re-enrol student?"}
-        </span>
-      }
-      description={
-        isUnenrolling ? (
-          <>
-            You are about to{" "}
-            <strong className="text-destructive">un-enrol</strong>
-            {studentName ? (
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <TooltipProvider delayDuration={150}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant={"ghost"}
+                size="sm"
+                className={cn(
+                  "h-7 min-w-[4.5rem] text-xs font-semibold transition-all cursor-pointer",
+                  isUnenrolling
+                    ? "border-none bg-emerald-500/25 text-emerald-700  hover:bg-emerald-700 hover:text-white"
+                    : "bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground",
+                  className,
+                )}
+              >
+                {isUnenrolling ? "Enrolled" : "Not enrolled"}
+              </Button>
+            </AlertDialogTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {isUnenrolling ? "Un-enrol student" : "Re-enrol student"}
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle className="flex items-center gap-2">
+            {isUnenrolling ? "Un-enrol student?" : "Re-enrol student?"}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {/* open to suggestions on the exact phrasing to use here */}
+            {isUnenrolling ? (
               <>
-                {" "}
-                <strong>{studentName}</strong>
+                You are about to{" "}
+                <strong className="text-destructive">un-enrol</strong>{" "}
+                <strong>{student.name}</strong>
+                from the course. This means none of their units of assessment
+                will be shown to any marker. Are you sure you want to continue?
               </>
             ) : (
-              " this student"
-            )}{" "}
-            from the course. This means none of their units of assessment will
-            be shown to any marker. Are you sure you want to continue?
-          </>
-        ) : (
-          <>
-            You are about to re-enrol
-            {studentName ? (
               <>
-                {" "}
-                <strong>{studentName}</strong>
+                You are about to re-enrol <strong>{student.name}</strong> in the
+                course. This means their submissions will now be shown to their
+                relevant markers.
               </>
-            ) : (
-              " this student"
-            )}{" "}
-            in the course. They will regain access to all associated resources.
-          </>
-        )
-      }
-      confirmLabel={isUnenrolling ? "Yes, un-enrol" : "Yes, re-enrol"}
-      cancelLabel="Cancel"
-      confirmVariant={isUnenrolling ? "destructive" : "default"}
-      trigger={
-        <WithTooltip
-          tip={isUnenrolling ? "Un-enrol student" : "Re-enrol student"}
-          duration={150}
-        >
-          <Button
-            variant={enrolled ? "outline" : "destructive"}
-            size="sm"
-            className={cn(
-              "h-7 min-w-[4.5rem] text-xs font-semibold transition-all",
-              enrolled
-                ? "border-emerald-500/40 text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950"
-                : "border-destructive/30 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground dark:bg-destructive/20",
-              className,
             )}
-            aria-label={
-              enrolled
-                ? `${studentName ?? "Student"} is enrolled. Click to un-enrol.`
-                : `${studentName ?? "Student"} is not enrolled. Click to re-enrol.`
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            className={
+              isUnenrolling
+                ? "bg-destructive text-white hover:bg-destructive/90"
+                : "bg-emerald-600 text-white hover:bg-emerald-700"
             }
           >
-            {enrolled ? "Enrolled" : "Not enrolled"}
-          </Button>
-        </WithTooltip>
-      }
-    />
+            {isUnenrolling ? "Yes, un-enrol" : "Yes, re-enrol"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }
