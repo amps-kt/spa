@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 
 import { format } from "date-fns";
@@ -21,20 +19,22 @@ import {
 
 import { cn } from "@/lib/utils";
 
-interface DueDateCellProps {
+export function DueDateCell({
+  value,
+  onChange,
+  className,
+}: {
   value: Date;
-  onChange?: (date: Date) => void;
+  onChange: (date: Date) => void;
   className?: string;
-}
-
-export function DueDateCell({ value, onChange, className }: DueDateCellProps) {
+}) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Date>(value);
 
   function handleSelect(date: Date | undefined) {
     if (!date) return;
     setSelected(date);
-    onChange?.(date);
+    onChange(date);
     setOpen(false);
   }
 
