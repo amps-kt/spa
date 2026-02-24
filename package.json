@@ -27,6 +27,7 @@
     "db:generate": "prisma generate",
     "db:generate-push": "pnpm run db:generate && pnpm run db:push",
     "db:studio": "prisma studio",
+    "db:migrate": "eval $(grep '^DATABASE_URL' .env) && prisma migrate dev",
     "db:push": "eval $(grep '^DATABASE_URL' .env) && prisma db push",
     "db:drop": "eval $(grep '^DATABASE_URL' .env) && prisma migrate reset",
     "check": "pnpm lint:errs && pnpm tc",
