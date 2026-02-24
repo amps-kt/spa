@@ -1,5 +1,6 @@
 import { accessControlRouter } from "./routers/access-control";
 import { institutionRouter } from "./routers/institution";
+import { teachingOfficeRouter } from "./routers/institution/instance/teachingOffice";
 import { markingRouter } from "./routers/marking";
 import { projectRouter } from "./routers/project";
 import { userRouter } from "./routers/user";
@@ -12,6 +13,7 @@ export const appRouter = createTRPCRouter({
   institution: institutionRouter,
   ac: accessControlRouter,
   marking: markingRouter,
+  teachingOffice: teachingOfficeRouter,
 });
 
 export type AppRouter = typeof appRouter;
