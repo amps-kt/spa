@@ -17,13 +17,15 @@ import { cn } from "@/lib/utils";
 
 type WeightValue = number | "MV";
 
-interface WeightCellProps {
+export function WeightCell({
+  value,
+  onChange,
+  className,
+}: {
   value: WeightValue;
   onChange?: (value: WeightValue) => void;
   className?: string;
-}
-
-export function WeightCell({ value, onChange, className }: WeightCellProps) {
+}) {
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState(String(value));
   const [error, setError] = useState<string | null>(null);
@@ -126,7 +128,7 @@ export function WeightCell({ value, onChange, className }: WeightCellProps) {
           >
             <span
               className={cn(
-                "font-medium tabular-nums",
+                "ml-1 font-medium tabular-nums",
                 value === "MV" && "italic text-muted-foreground",
               )}
             >
