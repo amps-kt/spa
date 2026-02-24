@@ -77,6 +77,7 @@ export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
       flag,
       joined: false,
       latestSubmission: undefined,
+      enrolled: true,
     };
 
     void toast

@@ -40,6 +40,7 @@ export type ReaderDTO = z.infer<typeof readerDtoSchema>;
 export const studentDtoSchema = instanceUserDtoSchema.extend({
   latestSubmission: z.date().optional(),
   flag: flagDtoSchema,
+  enrolled: z.boolean(),
 });
 
 export type StudentDTO = z.infer<typeof studentDtoSchema>;
