@@ -112,7 +112,6 @@ export const unitGradeDtoSchema = z.object({
 });
 
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
-// --- new:
 
 export const UnitGradingLifecycleState = {
   CLOSED: "CLOSED",
