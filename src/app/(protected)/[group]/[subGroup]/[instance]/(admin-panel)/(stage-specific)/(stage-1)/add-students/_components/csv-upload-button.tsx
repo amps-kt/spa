@@ -118,6 +118,7 @@ export function CSVUploadButton({
           email: student.email,
           flag: flags.find((f) => f.id === student.flagId)!,
           joined: false,
+          enrolled: true,
           latestSubmission: undefined,
         }));
 

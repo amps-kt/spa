@@ -155,6 +155,7 @@ export class Transformers {
       joined: data.userInInstance.joined,
       latestSubmission: data.latestSubmissionDateTime ?? undefined,
       flag: data.studentFlag,
+      enrolled: data.enrolled,
     };
   }
 

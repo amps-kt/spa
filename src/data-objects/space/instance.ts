@@ -1,5 +1,3 @@
-import { ReaderPreferenceType } from "@prisma/client";
-
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -21,6 +19,7 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
+import { DB_ReaderPreferenceType } from "@/db/types";
 import {
   type DB,
   Stage,
@@ -1562,11 +1561,11 @@ export class AllocationInstance extends DataObject {
               id: r.userId,
               capacity: r.readingWorkloadQuota - r._count.projectAllocations,
               preferable: r.preferences
-                .filter((p) => p.type === ReaderPreferenceType.PREFERRED)
+                .filter((p) => p.type === DB_ReaderPreferenceType.PREFERRED)
                 .map((p) => p.projectId),
 
               unacceptable: r.preferences
-                .filter((p) => p.type === ReaderPreferenceType.UNACCEPTABLE)
+                .filter((p) => p.type === DB_ReaderPreferenceType.UNACCEPTABLE)
                 .map((p) => p.projectId),
 
               conflict:
@@ -1645,7 +1644,7 @@ export class AllocationInstance extends DataObject {
     const prefMap = preferences.reduce((acc, val) => {
       acc.set(val.readerId, val.type);
       return acc;
-    }, new Map<string, ReaderPreferenceType>());
+    }, new Map<string, DB_ReaderPreferenceType>());
 
     return projects.map(({ project }) => {
       const rpa = project.readerAllocations.at(0);
@@ -1694,11 +1693,11 @@ export class AllocationInstance extends DataObject {
 
     return data.map((r) => {
       const numPreferred = r.preferences.filter(
-        (p) => p.type === ReaderPreferenceType.PREFERRED,
+        (p) => p.type === DB_ReaderPreferenceType.PREFERRED,
       ).length;
 
       const numVetoed = r.preferences.filter(
-        (p) => p.type === ReaderPreferenceType.UNACCEPTABLE,
+        (p) => p.type === DB_ReaderPreferenceType.UNACCEPTABLE,
       ).length;
 
       return { reader: T.toReaderDTO(r), numPreferred, numVetoed };

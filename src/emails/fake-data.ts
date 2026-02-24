@@ -48,6 +48,7 @@ export const fakeStudent = {
   name: "John Doe",
   joined: false,
   flag: { id: "", displayName: "", description: "" },
+  enrolled: true,
 };
 
 export const fakePresentationUnit = {
