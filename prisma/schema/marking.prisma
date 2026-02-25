@@ -111,10 +111,10 @@ model UnitOfAssessmentGrade {
   unitOfAssessment     UnitOfAssessment @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "final_unit_grade_unit")
   studentId            String           @map("student_id")
   // ---
-  grade                Int
-  comment              String
+  grade                Int?
+  comment              String?
   status               ConsensusStage   @default(UNRESOLVED)
-  method               ConsensusMethod  @default(AUTO)
+  method               ConsensusMethod? @default(AUTO)
   // ---
   allocationGroupId    String           @map("allocation_group_id")
   allocationSubGroupId String           @map("allocation_sub_group_id")
