@@ -1,4 +1,4 @@
-import { Grade } from "@/config/grades";
+import { Grade } from "@/logic/grading";
 
 import { MarkerType } from "@/db/types";
 

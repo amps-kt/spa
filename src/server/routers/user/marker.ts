@@ -1,18 +1,17 @@
+import { Grade } from "@/logic/grading";
 import { TRPCError } from "@trpc/server";
 import { addWeeks } from "date-fns";
 import { z } from "zod";
-
-import { Grade } from "@/config/grades";
 
 import {
   partialMarkingSubmissionDtoSchema,
   projectDtoSchema,
   studentDtoSchema,
-  markingSubmissionDtoSchema,
+  fullMarkingSubmissionDtoSchema,
   unitOfAssessmentDtoSchema,
   assessmentCriterionDtoSchema,
   type ReaderDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
 } from "@/dto";
 import { GradingResult } from "@/dto/result/grading-result";
 import { markingProgressSchema } from "@/dto/result/marking-submission-status";
@@ -155,7 +154,7 @@ export const markerRouter = createTRPCRouter({
               ...acc,
               [val.markerId]: T.toMarkingSubmissionDTO(val),
             }),
-            {} as Record<string, MarkingSubmissionDTO>,
+            {} as Record<string, FullMarkingSubmissionDTO>,
           );
 
           // should notify coordinator e.g.:
@@ -178,7 +177,7 @@ export const markerRouter = createTRPCRouter({
   submitMarks: procedure.instance
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     .inStage([Stage.MARK_SUBMISSION])
-    .marker.input(markingSubmissionDtoSchema)
+    .marker.input(fullMarkingSubmissionDtoSchema)
     .mutation(
       async ({
         ctx: { instance, user, db, mailer },
@@ -263,7 +262,7 @@ export const markerRouter = createTRPCRouter({
             ...acc,
             [val.markerId]: T.toMarkingSubmissionDTO(val),
           }),
-          {} as Record<string, MarkingSubmissionDTO>,
+          {} as Record<string, FullMarkingSubmissionDTO>,
         );
 
         const reader: ReaderDTO = await studentDO.getReader();
