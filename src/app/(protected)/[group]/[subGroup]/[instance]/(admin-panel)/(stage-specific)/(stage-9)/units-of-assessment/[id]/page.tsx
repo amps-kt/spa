@@ -1,4 +1,4 @@
-import { Grade } from "@/config/grades";
+import { Grade } from "@/logic/grading";
 
 import { api } from "@/lib/trpc/server";
 import { type PageParams } from "@/lib/validations/params";

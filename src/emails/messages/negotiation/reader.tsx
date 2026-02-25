@@ -13,7 +13,7 @@ import { Heading, Hr, Text } from "@react-email/components";
 
 import {
   type AssessmentCriterionDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
   type SupervisorDTO,
@@ -29,8 +29,8 @@ interface Props {
   supervisor: SupervisorDTO;
   student: StudentDTO;
   criteria: AssessmentCriterionDTO[];
-  supervisorSubmission: MarkingSubmissionDTO;
-  readerSubmission: MarkingSubmissionDTO;
+  supervisorSubmission: FullMarkingSubmissionDTO;
+  readerSubmission: FullMarkingSubmissionDTO;
   unit: UnitOfAssessmentDTO;
   deadline: Date;
 }

@@ -5,7 +5,7 @@ import {
   type ReaderDTO,
   type UnitOfAssessmentDTO,
   type UnitGradeDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type UnitGradingLifecycleState,
   type DraftMarkingSubmissionDTO,
 } from "@/dto";
@@ -19,7 +19,7 @@ import { sortPreferenceType } from "@/lib/utils/sorting/by-preference-type";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { Grading } from "../grading";
+import { Grade } from "../../logic/grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
@@ -481,7 +481,7 @@ export class Student extends User {
       {},
     );
 
-    const submissionsDict: Record<UnitId, MarkingSubmissionDTO[]> =
+    const submissionsDict: Record<UnitId, FullMarkingSubmissionDTO[]> =
       data.unitSubmissions.reduce(
         (acc, val) => {
           const old = acc[val.unitOfAssessmentId] ?? [];
@@ -491,7 +491,7 @@ export class Student extends User {
             [val.unitOfAssessmentId]: [...old, T.toMarkingSubmissionDTO(val)],
           };
         },
-        {} as Record<UnitId, MarkingSubmissionDTO[]>,
+        {} as Record<UnitId, FullMarkingSubmissionDTO[]>,
       );
 
     return data.studentFlag.unitsOfAssessment.map((data) => {
@@ -499,10 +499,29 @@ export class Student extends User {
       const grade = gradesDict[data.id];
       const submissions = submissionsDict[data.id] ?? [];
 
-      const status = Grading.getUnitStatus(unit, grade, submissions);
+      const status = Grade.getUnitStatus(unit, grade, submissions);
 
       return { unit, grade, status };
     });
+  }
+
+  async getMarkerIds(): Promise<{ readerId: string; supervisorId: string }> {
+    const spa = await this.db.studentProjectAllocation.findFirstOrThrow({
+      where: { ...expand(this.instance.params), student: { userId: this.id } },
+      select: {
+        project: {
+          select: {
+            supervisorId: true,
+            readerAllocations: { select: { readerId: true } },
+          },
+        },
+      },
+    });
+
+    const supervisorId = spa.project.supervisorId;
+    const readerId = spa.project.readerAllocations[0].readerId;
+
+    return { supervisorId, readerId };
   }
 
   public async getMarkerMarksByUnitId({
@@ -511,7 +530,9 @@ export class Student extends User {
   }: {
     markerId: string;
     unitId: string;
-  }): Promise<MarkingSubmissionDTO | DraftMarkingSubmissionDTO | undefined> {
+  }): Promise<
+    FullMarkingSubmissionDTO | DraftMarkingSubmissionDTO | undefined
+  > {
     const data = await this.db.unitOfAssessmentSubmission.findUnique({
       where: {
         uoaSubmissionId: {

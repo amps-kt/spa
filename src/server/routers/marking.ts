@@ -4,11 +4,10 @@ import {
   type ProjectMarkingOverview,
   projectMarkingOverviewSchema,
 } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-9)/marking-overview/row";
+import { Grade } from "@/logic/grading";
 import { z } from "zod";
 
-import { Grade } from "@/config/grades";
-
-import { type MarkingSubmissionDTO, type UserDTO } from "@/dto";
+import { type FullMarkingSubmissionDTO, type UserDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
 import { MarkerType, Stage } from "@/db/types";
@@ -139,7 +138,7 @@ export const markingRouter = createTRPCRouter({
               string,
               Record<
                 string,
-                { submission: MarkingSubmissionDTO; comment: string }
+                { submission: FullMarkingSubmissionDTO; comment: string }
               >
             >
           >,

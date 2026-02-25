@@ -11,7 +11,7 @@ import {
 import {
   studentGradingLifecycleStateSchema,
   unitGradingLifecycleStateSchema,
-  markingSubmissionDtoSchema,
+  fullMarkingSubmissionDtoSchema,
   unitGradeDtoSchema,
   draftMarkingSubmissionDtoSchema,
 } from "@/dto/marking";
@@ -109,7 +109,7 @@ export const newMarkerRouter = createTRPCRouter({
     .output(
       z.object({
         marks: draftMarkingSubmissionDtoSchema
-          .or(markingSubmissionDtoSchema)
+          .or(fullMarkingSubmissionDtoSchema)
           .optional(),
       }),
     )

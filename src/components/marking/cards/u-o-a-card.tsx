@@ -2,9 +2,8 @@
 
 import { type ReactNode } from "react";
 
+import { Grade } from "@/logic/grading";
 import { differenceInDays, format, addDays } from "date-fns";
-
-import { Grade } from "@/config/grades";
 
 import {
   type UnitOfAssessmentDTO,

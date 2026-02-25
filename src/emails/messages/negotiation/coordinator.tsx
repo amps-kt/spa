@@ -6,9 +6,8 @@ import {
   fakeSupervisor,
   fakeUnit,
 } from "@/emails/fake-data";
+import { Grade } from "@/logic/grading";
 import { Column, Heading, Row, Section } from "@react-email/components";
-
-import { Grade } from "@/config/grades";
 
 import {
   type ProjectDTO,

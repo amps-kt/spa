@@ -12,6 +12,7 @@ import {
   fakeConductCriteria,
   fakeSupervisorMissingPresentationSubmission,
 } from "@/emails/fake-data";
+import { Grade } from "@/logic/grading";
 import {
   Column,
   Heading,
@@ -21,11 +22,9 @@ import {
   Hr,
 } from "@react-email/components";
 
-import { Grade } from "@/config/grades";
-
 import {
   type AssessmentCriterionDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
   type StudentDTO,
@@ -44,10 +43,10 @@ export interface SummaryProps {
   conductCriteria: AssessmentCriterionDTO[];
   dissertationCriteria: AssessmentCriterionDTO[];
 
-  supervisorConductSubmission: MarkingSubmissionDTO;
-  supervisorPresentationSubmission: MarkingSubmissionDTO;
-  supervisorDissertationSubmission: MarkingSubmissionDTO;
-  readerDissertationSubmission: MarkingSubmissionDTO;
+  supervisorConductSubmission: FullMarkingSubmissionDTO;
+  supervisorPresentationSubmission: FullMarkingSubmissionDTO;
+  supervisorDissertationSubmission: FullMarkingSubmissionDTO;
+  readerDissertationSubmission: FullMarkingSubmissionDTO;
   finalMark: number;
 }
 

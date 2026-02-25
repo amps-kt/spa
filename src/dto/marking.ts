@@ -1,9 +1,10 @@
 import { z } from "zod";
 
 import {
+  ConsensusStage,
   MarkerType,
-  markingMethodSchema,
-  rawUnitMarkingStatusSchema,
+  consensusMethodSchema,
+  consensusStageSchema,
 } from "@/db/types";
 
 import { flagDtoSchema } from "./flag-tag";
@@ -85,7 +86,7 @@ export type DraftMarkingSubmissionDTO = z.infer<
   typeof draftMarkingSubmissionDtoSchema
 >;
 
-export const markingSubmissionDtoSchema = z.object({
+export const fullMarkingSubmissionDtoSchema = z.object({
   draft: z.literal(false),
   markerId: z.string(),
   studentId: z.string(),
@@ -99,12 +100,21 @@ export const markingSubmissionDtoSchema = z.object({
   ),
 });
 
+export type FullMarkingSubmissionDTO = z.infer<
+  typeof fullMarkingSubmissionDtoSchema
+>;
+
+export const markingSubmissionDtoSchema = z.discriminatedUnion("draft", [
+  fullMarkingSubmissionDtoSchema,
+  draftMarkingSubmissionDtoSchema,
+]);
+
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
 /**
  * @deprecated
  */
-export const partialMarkingSubmissionDtoSchema = markingSubmissionDtoSchema
+export const partialMarkingSubmissionDtoSchema = fullMarkingSubmissionDtoSchema
   .partial({ finalComment: true, recommendation: true })
   .extend({
     grade: z.number().int(),
@@ -125,8 +135,8 @@ export type PartialMarkingSubmissionDTO = z.infer<
 export const unitGradeDtoSchema = z.object({
   grade: z.number(),
   comment: z.string(),
-  status: rawUnitMarkingStatusSchema,
-  method: markingMethodSchema,
+  status: consensusStageSchema,
+  method: consensusMethodSchema,
   studentSubmitted: z.boolean(),
   customDueDate: z.date().optional(),
   customWeight: z.number().optional(),
@@ -232,3 +242,24 @@ export function markingStatusMin(
     StudentGradingLifecycleState.ACTION_REQUIRED,
   );
 }
+
+export const markOverrideDtoSchema = z.object({
+  grade: z.number(),
+  justification: z.string(),
+});
+
+export type MarkOverrideDTO = z.infer<typeof markOverrideDtoSchema>;
+
+export const finalMarkingResult = z.discriminatedUnion("status", [
+  z.object({ status: z.literal(ConsensusStage.UNRESOLVED) }),
+  z.object({ status: z.literal(ConsensusStage.NEGOTIATE) }),
+  z.object({ status: z.literal(ConsensusStage.MODERATE) }),
+  z.object({
+    status: z.literal(ConsensusStage.RESOLVED),
+    method: consensusMethodSchema,
+    grade: z.number(),
+    comment: z.string(),
+  }),
+]);
+
+export type FinalMarkingResult = z.infer<typeof finalMarkingResult>;
