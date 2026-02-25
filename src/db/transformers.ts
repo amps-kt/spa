@@ -1,6 +1,6 @@
 import {
   type AssessmentCriterionDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
   type AlgorithmDTO,
@@ -60,7 +60,7 @@ export class Transformers {
     data: DB_UnitOfAssessmentSubmission & {
       criterionScores?: DB_MarkingComponentSubmission[];
     },
-  ): MarkingSubmissionDTO {
+  ): FullMarkingSubmissionDTO {
     return {
       markerId: data.markerId,
       studentId: data.studentId,

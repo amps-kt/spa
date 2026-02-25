@@ -1,8 +1,9 @@
 import {
   type UnitGradeDTO,
   type DraftMarkingSubmissionDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type UnitOfAssessmentDTO,
+  type FinalMarkingResult,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -13,31 +14,30 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { DataObject } from "./data-object";
 
-import { AllocationInstance, Student } from ".";
+import { AllocationInstance } from ".";
 
 type MarkerId = string;
 
 export class UnitOfAssessment extends DataObject {
   public instance: AllocationInstance;
-  public student: Student;
+
   public id: string;
 
-  constructor(
-    db: DB,
-    params: InstanceParams,
-    studentId: string,
-    unitId: string,
-  ) {
+  constructor(db: DB, params: InstanceParams, unitId: string) {
     super(db);
     this.instance = new AllocationInstance(db, params);
-    this.student = new Student(db, studentId, params);
     this.id = unitId;
   }
 
-  public async getMarks(): Promise<{
+  public async getMarks(
+    studentId: string,
+  ): Promise<{
     unit: UnitOfAssessmentDTO;
     grade?: UnitGradeDTO;
-    marks: Record<MarkerId, DraftMarkingSubmissionDTO | MarkingSubmissionDTO>;
+    marks: Record<
+      MarkerId,
+      DraftMarkingSubmissionDTO | FullMarkingSubmissionDTO
+    >;
   }> {
     const data = await this.db.unitOfAssessment.findFirstOrThrow({
       where: { id: this.id },
@@ -47,18 +47,12 @@ export class UnitOfAssessment extends DataObject {
 
         grades: {
           where: {
-            student: {
-              ...expand(this.instance.params),
-              userId: this.student.id,
-            },
+            student: { ...expand(this.instance.params), userId: studentId },
           },
         },
         markerSubmissions: {
           where: {
-            student: {
-              ...expand(this.instance.params),
-              userId: this.student.id,
-            },
+            student: { ...expand(this.instance.params), userId: studentId },
           },
           include: { criterionScores: true },
         },
@@ -100,7 +94,7 @@ export class UnitOfAssessment extends DataObject {
     recommendation: recommendedForPrize,
     grade,
     marks,
-  }: MarkingSubmissionDTO | DraftMarkingSubmissionDTO) {
+  }: FullMarkingSubmissionDTO | DraftMarkingSubmissionDTO) {
     const unitOfAssessmentId = this.id;
     await this.db.$transaction([
       this.db.unitOfAssessmentSubmission.upsert({
@@ -145,5 +139,24 @@ export class UnitOfAssessment extends DataObject {
           }),
       ),
     ]);
+  }
+
+  public async updateFinalMark(studentId: string, newData: FinalMarkingResult) {
+    await this.db.unitOfAssessmentGrade.upsert({
+      where: {
+        uoaGradeId: {
+          ...expand(this.instance.params),
+          unitOfAssessmentId: this.id,
+          studentId,
+        },
+      },
+      create: {
+        ...expand(this.instance.params),
+        unitOfAssessmentId: this.id,
+        studentId,
+        ...newData,
+      },
+      update: newData,
+    });
   }
 }

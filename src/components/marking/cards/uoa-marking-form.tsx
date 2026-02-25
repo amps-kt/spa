@@ -3,15 +3,15 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { type Control, useForm } from "react-hook-form";
 
+import { Grade } from "@/logic/grading";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type MarkingComponent } from "@prisma/client";
 import { CheckIcon, ChevronsUpDownIcon, SaveIcon } from "lucide-react";
-import z from "zod";
 
-import { Grade, GRADES } from "@/config/grades";
+import { GRADES } from "@/config/grades";
 
 import {
-  draftMarkingSubmissionDtoSchema,
+  type MarkingSubmissionDTO,
   markingSubmissionDtoSchema,
   type UnitOfAssessmentDTO,
 } from "@/dto";
@@ -52,18 +52,6 @@ import { YesNoAction } from "@/components/yes-no-action";
 
 import { cn } from "@/lib/utils";
 
-export const componentScoreDtoSchema = z.object({
-  mark: z.number().int().nonnegative(),
-  justification: z.string().min(1),
-});
-
-const formSchema = z.discriminatedUnion("draft", [
-  markingSubmissionDtoSchema,
-  draftMarkingSubmissionDtoSchema,
-]);
-
-type FormData = z.infer<typeof formSchema>;
-
 function formatGrade(grade: number | undefined) {
   if (grade === undefined) return "-";
   return Grade.toLetter(grade);
@@ -77,8 +65,8 @@ export function UoaMarkingForm({
   const saveMarks = undefined;
   const submitMarks = undefined;
 
-  const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<MarkingSubmissionDTO>({
+    resolver: zodResolver(markingSubmissionDtoSchema),
     reValidateMode: "onBlur",
     defaultValues: {
       draft: true,
@@ -90,7 +78,7 @@ export function UoaMarkingForm({
     },
   });
 
-  const handleSubmit = form.handleSubmit((data: FormData) => {
+  const handleSubmit = form.handleSubmit((data: MarkingSubmissionDTO) => {
     if (data.draft) {
       console.log("Saved as draft", data);
       // ...
@@ -229,7 +217,7 @@ function ComponentMarkInput({
   component: { title, description, id },
   computeOverall,
 }: {
-  control: Control<FormData>;
+  control: Control<MarkingSubmissionDTO>;
   component: MarkingComponent;
   computeOverall: () => void;
 }) {

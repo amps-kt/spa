@@ -38,13 +38,22 @@ export const MarkSubmissionEvent = {
 export type MarkSubmissionEvent = keyof typeof MarkSubmissionEvent;
 
 export type AutoResolveResult =
-  | { status: "AUTO_RESOLVED"; grade: number }
-  | { status: Exclude<GradingResult, "AUTO_RESOLVED"> };
+  | { status: typeof MarkSubmissionEvent.AUTO_RESOLVED; grade: number }
+  | {
+      status: Exclude<GradingResult, typeof MarkSubmissionEvent.AUTO_RESOLVED>;
+    };
+
+export type MarkSubmissionEventResult =
+  | { status: typeof MarkSubmissionEvent.AUTO_RESOLVED; grade: number }
+  | { status: typeof MarkSubmissionEvent.SINGLE_MARKED; grade: number }
+  | {
+      status: Exclude<
+        MarkSubmissionEvent,
+        | typeof MarkSubmissionEvent.AUTO_RESOLVED
+        | typeof MarkSubmissionEvent.SINGLE_MARKED
+      >;
+    };
 
 export type ModerationCheckResult =
   | { status: "AUTO_RESOLVED"; grade: number }
   | { status: "MODERATE" };
-
-export type MarkSubmittedResult =
-  | { status: "AUTO_RESOLVED"; grade: number }
-  | { status: Exclude<MarkSubmissionEvent, "AUTO_RESOLVED"> };

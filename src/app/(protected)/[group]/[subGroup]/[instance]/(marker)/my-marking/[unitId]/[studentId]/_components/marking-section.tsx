@@ -3,19 +3,20 @@
 import { Fragment, useCallback, useEffect, useState } from "react";
 import { type Control, useForm } from "react-hook-form";
 
+import { Grade } from "@/logic/grading";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { Grade, GRADES } from "@/config/grades";
+import { GRADES } from "@/config/grades";
 import { PAGES } from "@/config/pages";
 
 import {
   type AssessmentCriterionDTO,
   type PartialMarkingSubmissionDTO,
-  type MarkingSubmissionDTO,
-  markingSubmissionDtoSchema,
+  type FullMarkingSubmissionDTO,
+  fullMarkingSubmissionDtoSchema,
 } from "@/dto";
 
 import { useInstanceParams } from "@/components/params-context";
@@ -62,8 +63,8 @@ export function MarkingSection({
   const { mutateAsync: submitAsync } =
     api.user.marker.submitMarks.useMutation();
 
-  const form = useForm<MarkingSubmissionDTO>({
-    resolver: zodResolver(markingSubmissionDtoSchema),
+  const form = useForm<FullMarkingSubmissionDTO>({
+    resolver: zodResolver(fullMarkingSubmissionDtoSchema),
     reValidateMode: "onBlur",
     defaultValues: {
       ...initialState,
@@ -91,7 +92,7 @@ export function MarkingSection({
     });
   }
 
-  const handleSubmit = form.handleSubmit((data: MarkingSubmissionDTO) => {
+  const handleSubmit = form.handleSubmit((data: FullMarkingSubmissionDTO) => {
     void toast.promise(
       submitAsync({ params, ...data }).then(() => {
         router.push(`${instancePath}/${PAGES.myMarking.href}`);
@@ -201,7 +202,7 @@ function AssessmentCriterionField({
   computeOverallGrade,
 }: {
   criterion: AssessmentCriterionDTO;
-  control: Control<MarkingSubmissionDTO>;
+  control: Control<FullMarkingSubmissionDTO>;
   computeOverallGrade: () => void;
 }) {
   const [open, setOpen] = useState(false);

@@ -1,5 +1,5 @@
 import {
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
   type UnitOfAssessmentDTO,
@@ -24,7 +24,7 @@ import {
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { Grading } from "../grading";
+import { Grading } from "../../logic/grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
@@ -35,7 +35,7 @@ export class Marker extends User {
    */
   public static computeStatus(
     u: UnitOfAssessmentDTO,
-    submission: MarkingSubmissionDTO | undefined,
+    submission: FullMarkingSubmissionDTO | undefined,
   ): MarkingProgress {
     if (!u.isOpen) {
       return MarkingProgress.CLOSED;
@@ -122,7 +122,7 @@ export class Marker extends User {
 
       const unitSubmissions: Record<
         UnitOfAssessmentID,
-        MarkingSubmissionDTO[]
+        FullMarkingSubmissionDTO[]
       > = student.unitSubmissions.reduce(
         (acc, val) => {
           const list = acc[val.unitOfAssessmentId] ?? [];
@@ -131,7 +131,7 @@ export class Marker extends User {
             [val.unitOfAssessmentId]: [...list, T.toMarkingSubmissionDTO(val)],
           };
         },
-        {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
+        {} as Record<UnitOfAssessmentID, FullMarkingSubmissionDTO[]>,
       );
 
       const units = flag.unitsOfAssessment.map((x) => {
@@ -168,7 +168,7 @@ export class Marker extends User {
   async getMarkingSubmission(
     unitOfAssessmentId: string,
     studentId: string,
-  ): Promise<MarkingSubmissionDTO> {
+  ): Promise<FullMarkingSubmissionDTO> {
     const result = await this.db.unitOfAssessmentSubmission.findFirst({
       where: { markerId: this.id, studentId, unitOfAssessmentId },
       include: { criterionScores: true },
