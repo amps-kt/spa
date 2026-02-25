@@ -10,6 +10,7 @@ import {
   fakeSupervisorSubmission,
   fakeUnit,
 } from "@/emails/fake-data";
+import { Grade } from "@/logic/grading";
 import {
   Column,
   Heading,
@@ -19,12 +20,10 @@ import {
   Hr,
 } from "@react-email/components";
 
-import { Grade } from "@/config/grades";
-
 import {
   type AssessmentCriterionDTO,
   type ComponentScoreDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
   type StudentDTO,
@@ -44,8 +43,8 @@ interface Props {
   supervisor: SupervisorDTO;
   deadline: Date;
   criteria: AssessmentCriterionDTO[];
-  supervisorSubmission: MarkingSubmissionDTO;
-  readerSubmission: MarkingSubmissionDTO;
+  supervisorSubmission: FullMarkingSubmissionDTO;
+  readerSubmission: FullMarkingSubmissionDTO;
   negotiationResult?: ComponentScoreDTO;
 }
 

@@ -5,7 +5,7 @@ import { PAUL_EMAIL, tag_coordinator } from "@/config/emails";
 import {
   type AssessmentCriterionDTO,
   type ComponentScoreDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
   type StudentDTO,
@@ -101,7 +101,7 @@ export class Mailer {
     student: StudentDTO;
     unit: UnitOfAssessmentDTO;
     criteria: AssessmentCriterionDTO[];
-    submission: MarkingSubmissionDTO;
+    submission: FullMarkingSubmissionDTO;
     marker: UserDTO;
   }) {
     const message = (
@@ -255,8 +255,8 @@ export class Mailer {
     project: ProjectDTO;
     student: StudentDTO;
     criteria: AssessmentCriterionDTO[];
-    supervisorSubmission: MarkingSubmissionDTO;
-    readerSubmission: MarkingSubmissionDTO;
+    supervisorSubmission: FullMarkingSubmissionDTO;
+    readerSubmission: FullMarkingSubmissionDTO;
     unit: UnitOfAssessmentDTO;
     params: InstanceParams;
     deadline: Date;
@@ -334,8 +334,8 @@ export class Mailer {
     supervisor: SupervisorDTO;
     deadline: Date;
     criteria: AssessmentCriterionDTO[];
-    supervisorSubmission: MarkingSubmissionDTO;
-    readerSubmission: MarkingSubmissionDTO;
+    supervisorSubmission: FullMarkingSubmissionDTO;
+    readerSubmission: FullMarkingSubmissionDTO;
     negotiationResult?: ComponentScoreDTO;
   }) {
     const subject = "Grading Negotiation Required";

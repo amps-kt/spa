@@ -167,14 +167,14 @@ export const allocationMethodSchema = z.enum([
 ]);
 
 // Taking applications for literally any other name
-export const rawUnitMarkingStatusSchema = z.enum([
+export const consensusStageSchema = z.enum([
   ConsensusStage.RESOLVED,
   ConsensusStage.UNRESOLVED,
   ConsensusStage.MODERATE,
   ConsensusStage.NEGOTIATE,
 ]);
 
-export const markingMethodSchema = z.enum([
+export const consensusMethodSchema = z.enum([
   ConsensusMethod.AUTO,
   ConsensusMethod.OVERRIDE,
   ConsensusMethod.NEGOTIATED,

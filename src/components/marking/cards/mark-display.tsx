@@ -2,11 +2,10 @@
 
 import { Fragment } from "react";
 
+import { Grade } from "@/logic/grading";
 import { type ClassValue } from "clsx";
 
-import { Grade } from "@/config/grades";
-
-import { type UnitOfAssessmentDTO, type MarkingSubmissionDTO } from "@/dto";
+import { type UnitOfAssessmentDTO, type FullMarkingSubmissionDTO } from "@/dto";
 
 import { MarkerType } from "@/db/types";
 
@@ -83,7 +82,7 @@ function MarkList({
   marks,
 }: {
   unit: UnitOfAssessmentDTO;
-  marks: MarkingSubmissionDTO;
+  marks: FullMarkingSubmissionDTO;
 }) {
   return (
     <Fragment>

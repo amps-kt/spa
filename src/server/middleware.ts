@@ -155,7 +155,7 @@ const unitOfAssessmentMiddleware = t.middleware(
       })
       .parse(input);
 
-    const unit = new UnitOfAssessment(db, params, studentId, unitId);
+    const unit = new UnitOfAssessment(db, params, unitId);
 
     return next({ ctx: { unit } });
   },
