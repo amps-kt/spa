@@ -11,7 +11,9 @@ import {
 
 import { z } from "zod";
 
-import { type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+import { type FlagDTO, type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+
+import { nubsById } from "@/lib/utils/list-unique";
 
 export const customWeightValueSchema = z
   .number()
@@ -33,13 +35,15 @@ export interface StudentSubmissionsRow {
   }[];
 }
 
-// moving the enrolled field out makes the updaters nicer
+// local mutable copy of student-level state - enrolled is lifted out of the DTO
+// so we can update it without reconstructing the entire StudentDTO on every change
 export interface StudentRowState {
   student: StudentDTO;
   enrolled: boolean;
   units: UnitState[];
 }
 
+// local mutable copy of unit-level state
 export interface UnitState {
   unit: UnitOfAssessmentDTO;
   submitted: boolean;
@@ -47,22 +51,19 @@ export interface UnitState {
   customWeight?: WeightValue;
 }
 
-// this might be a bit weird but I think separating these out this way
-// makes writing the mutations later a lot easier and doesn't
-// - PendingStudentChange[] just gets passed to a studentDetails.updateMany (or possibly two)
-// - PendingUnitChange[] is the nasty one which will require lots more very granular changes, though we can probably get away with a mass upsert (deleteMany + createMany)
+// Separating student-level and unit-level changes makes writing mutations easier:
+// - PendingStudentChange[] maps to a studentDetails.updateMany (or two)
+// - PendingUnitChange[] will require more granular changes (our mass upsert pattern)
 export interface PendingChanges {
   students: PendingStudentChange[];
   units: PendingUnitChange[];
 }
 
-// this tracks per-student changes, the only thing we can change is whether the student is enrolled
 export interface PendingStudentChange {
   studentId: string;
   enrolled?: boolean;
 }
 
-// this is for tracking the per-sub-row changes, everything is optional
 export interface PendingUnitChange {
   studentId: string;
   unitId: string;
@@ -72,26 +73,68 @@ export interface PendingUnitChange {
 }
 
 interface SubmissionsContextType {
-  /** Current mutable state for every row. */
+  /** Current mutable state for every row */
   rows: StudentRowState[];
 
-  /** Update the enrolled status for a student. */
+  // --- flag filtering
+
+  /** All distinct flags present in the data */
+  availableFlags: FlagDTO[];
+
+  /** Currently active flag filter */
+  activeFlag: string;
+
+  /** Set the active flag filter */
+  setActiveFlag: (flagId: string) => void;
+
+  // --- derived from active filter
+
+  /** Rows that match the current flag filter */
+  visibleRows: StudentRowState[];
+
+  /** Distinct UoA IDs across all visible rows */
+  visibleUnitIds: string[];
+
+  /** Distinct UoAs across all visible rows */
+  visibleUnits: UnitOfAssessmentDTO[];
+
+  /** Visible students */
+  visibleStudents: StudentDTO[];
+
+  // --- single-row updaters
+
+  /** Update the enrolled status for a student */
   updateEnrolled: (studentId: string, enrolled: boolean) => void;
 
-  /** Patch a specific unit for a specific student. */
+  /** Patch a specific unit for a specific student */
   updateUnit: (
     studentId: string,
     unitId: string,
     patch: Partial<Omit<UnitState, "unit">>,
   ) => void;
 
-  /** Compute the set of fields that differ from the original server data. */
+  // --- batch updaters
+
+  /**
+   * Apply a patch to specific units across multiple students.
+   * Targets all visible students minus the excluded set.
+   */
+  batchUpdateUnits: (
+    unitIds: string[],
+    studentIds: string[],
+    mode: "include" | "exclude",
+    patch: Partial<Omit<UnitState, "unit">>,
+  ) => void;
+
+  // ---- change tracking ----
+
+  /** Compute the set of fields that differ from the original server data */
   getPendingChanges: () => PendingChanges;
 
-  /** Whether any row has been modified. */
+  /** Whether any row has been modified */
   isDirty: boolean;
 
-  /** Reset all local state back to the original server data. */
+  /** Reset all local state back to the original server data */
   resetAll: () => void;
 }
 
@@ -134,8 +177,39 @@ export function SubmissionsProvider({
     buildInitialState(data),
   );
 
-  // we keep a stable reference to the original data to make diffing easier
+  // stable reference to original data for diffing
   const [originalData] = useState<StudentSubmissionsRow[]>(data);
+
+  const availableFlags = useMemo(
+    () => data.map((x) => x.student.flag).filter(nubsById),
+    [data],
+  );
+  const [activeFlag, setActiveFlag] = useState<string>(availableFlags[0].id); // just have the first flag selected on page-load
+
+  // --- derived visible data
+
+  const visibleRows = useMemo(
+    () => rows.filter((r) => r.student.flag.id === activeFlag),
+    [rows, activeFlag],
+  );
+
+  const visibleUnits = useMemo(
+    // because we only allow one flag to be selected at one time we only need to check one row
+    () => visibleRows[0].units.map((x) => x.unit),
+    [visibleRows],
+  );
+
+  const visibleUnitIds = useMemo(
+    () => visibleUnits.map((u) => u.id),
+    [visibleUnits],
+  );
+
+  const visibleStudents = useMemo(
+    () => visibleRows.map((r) => r.student),
+    [visibleRows],
+  );
+
+  // ---
 
   const updateEnrolled = useCallback((studentId: string, enrolled: boolean) => {
     setRows((prev) =>
@@ -166,6 +240,42 @@ export function SubmissionsProvider({
     [],
   );
 
+  // ---
+
+  const batchUpdateUnits = useCallback(
+    (
+      unitIds: string[],
+      studentIds: string[],
+      mode: "include" | "exclude", // initially had this as a boolean but I think this way is a bit cleaner at the call-site
+      patch: Partial<Omit<UnitState, "unit">>,
+    ) => {
+      const unitIdSet = new Set(unitIds);
+      const studentIdSet = new Set(studentIds);
+      const visibleStudentIdSet = new Set(visibleStudents.map((s) => s.id));
+
+      const affectedStudentIds =
+        mode === "include"
+          ? visibleStudentIdSet.intersection(studentIdSet)
+          : visibleStudentIdSet.difference(studentIdSet);
+
+      setRows((prev) =>
+        prev.map((row) => {
+          if (!affectedStudentIds.has(row.student.id)) return row;
+
+          return {
+            ...row,
+            units: row.units.map((u) =>
+              unitIdSet.has(u.unit.id) ? { ...u, ...patch } : u,
+            ),
+          };
+        }),
+      );
+    },
+    [visibleStudents],
+  );
+
+  // ---
+
   const getPendingChanges = useCallback((): PendingChanges => {
     const students: PendingStudentChange[] = [];
     const units: PendingUnitChange[] = [];
@@ -174,16 +284,15 @@ export function SubmissionsProvider({
       const originalRow = originalData[rowIdx];
       if (!originalRow) return;
 
-      // student-level: enrolled
       if (row.enrolled !== originalRow.student.enrolled) {
         students.push({ studentId: row.student.id, enrolled: row.enrolled });
       }
 
-      // unit-level
       row.units.forEach((u, unitIdx) => {
         const originalUnit = originalRow.unitsOfAssessment[unitIdx];
         if (!originalUnit) return;
 
+        // I kinda hate this, but I think it's the cleanest way to do it
         const changes: Partial<PendingUnitChange> = {};
         let hasDiff = false;
 
@@ -222,16 +331,40 @@ export function SubmissionsProvider({
     setRows(buildInitialState(originalData));
   }, [originalData]);
 
+  // ---
+
   const value = useMemo<SubmissionsContextType>(
     () => ({
       rows,
+      availableFlags,
+      activeFlag,
+      setActiveFlag,
+      visibleRows,
+      visibleUnitIds,
+      visibleUnits,
+      visibleStudents,
       updateEnrolled,
       updateUnit,
+      batchUpdateUnits,
       getPendingChanges,
       isDirty,
       resetAll,
     }),
-    [rows, updateEnrolled, updateUnit, getPendingChanges, isDirty, resetAll],
+    [
+      rows,
+      availableFlags,
+      activeFlag,
+      visibleRows,
+      visibleUnitIds,
+      visibleUnits,
+      visibleStudents,
+      updateEnrolled,
+      updateUnit,
+      batchUpdateUnits,
+      getPendingChanges,
+      isDirty,
+      resetAll,
+    ],
   );
 
   return (
