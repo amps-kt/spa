@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo } from "react";
+
 import { type ColumnDef } from "@tanstack/react-table";
 import { CircleQuestionMarkIcon } from "lucide-react";
 
@@ -20,15 +22,14 @@ import { EnrolledCell } from "./cells/enrolled-cell";
 import { SubmittedCell } from "./cells/submitted-cell";
 import { WeightCell } from "./cells/weight-cell";
 
+import { FlagTabFilter } from "./flag-tab-filter";
 import {
   SubmissionsProvider,
   useSubmissions,
-  type StudentSubmissionsRow,
   useRowState,
+  type StudentSubmissionsRow,
 } from "./submissions-context";
 
-// because there's three different places where I'm hard-coding the width of columns, I figured this was not so bad
-// I found [this](https://tanstack.com/table/latest/docs/api/features/column-sizing#size) which might be the actually correct move
 const columnWidths = {
   student: "min-w-[160px] max-w-[200px]",
   units: "min-w-[150px] max-w-[190px]",
@@ -38,8 +39,14 @@ const columnWidths = {
   enrolled: "min-w-[110px] max-w-[145px]",
 };
 
-// columns are just for header definitions and accessorFn for sorting/filtering
 // this breaks away from our VERY established pattern of defining as much as possible in the column definition
+// but maybe using the custom row is the better patternm, interested to have a discussion about this
+/**
+ * Columns are header-only definitions. All cell rendering is handled
+ * by CustomRow which reads mutable state from the submissions context
+ *
+ * accessorFn is kept for sorting/filtering support
+ */
 const columns: ColumnDef<StudentSubmissionsRow>[] = [
   {
     id: "student",
@@ -51,12 +58,14 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
         column={column}
       />
     ),
+    cell: () => null,
     enableSorting: false,
   },
   {
     id: "units",
     accessorFn: (row) => row.student.flag.displayName,
     header: () => <p className={columnWidths.units}>Units of Assessment</p>,
+    cell: () => null,
     enableSorting: false,
   },
   {
@@ -119,21 +128,22 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
   {
     id: "submitted",
     header: () => <p className={columnWidths.submitted}>Submitted?</p>,
+    cell: () => null,
     enableSorting: false,
   },
   {
     id: "enrolled",
     header: () => <p className={columnWidths.enrolled}>Enrolled?</p>,
+    cell: () => null,
     enableSorting: false,
   },
 ];
 
 const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
   const studentId = row.original.student.id;
-  const { updateEnrolled, updateUnit } = useSubmissions();
   const state = useRowState(studentId);
+  const { updateEnrolled, updateUnit } = useSubmissions();
 
-  // this should never actually be the case
   if (!state) return null;
 
   return (
@@ -210,6 +220,43 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
   );
 };
 
+// Inner component that reads the filtered data from context and passes it to DataTable
+// Separated so that the context is available
+// the provider wraps this in the public component below, don't know how else to get it working
+function InnerDataTable() {
+  const { visibleRows } = useSubmissions();
+
+  // because the filtering source of truth is in the context we're actually not making use of the Tanstack table filtering
+  // and I have to manually filter the data every time the `activeFlag` changes.
+  // Which means I have to convert my internal state representation back to the row shape that DataTable/columns expect
+  const tableData = useMemo<StudentSubmissionsRow[]>(
+    () =>
+      visibleRows.map((row) => ({
+        student: { ...row.student, enrolled: row.enrolled },
+        unitsOfAssessment: row.units.map((u) => ({
+          unit: u.unit,
+          submitted: u.submitted,
+          customDueDate: u.customDueDate,
+          customWeight: u.customWeight,
+        })),
+      })),
+    [visibleRows],
+  );
+
+  return (
+    <div className="space-y-4">
+      <FlagTabFilter />
+      <DataTable
+        className="w-full"
+        columns={columns}
+        data={tableData}
+        CustomRow={CustomRow}
+        hideViewOptions={true}
+      />
+    </div>
+  );
+}
+
 export function StudentSubmissionsDataTable({
   data,
 }: {
@@ -217,12 +264,7 @@ export function StudentSubmissionsDataTable({
 }) {
   return (
     <SubmissionsProvider data={data}>
-      <DataTable
-        className="w-full"
-        columns={columns}
-        data={data}
-        CustomRow={CustomRow}
-      />
+      <InnerDataTable />
     </SubmissionsProvider>
   );
 }

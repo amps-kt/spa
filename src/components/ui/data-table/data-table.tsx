@@ -45,6 +45,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filters?: TableFilter[];
+  hideViewOptions?: boolean;
   removeRow?: () => void;
   CustomRow?: CustomRowType<TData>;
 }
@@ -55,6 +56,7 @@ export default function DataTable<TData, TValue>({
   columns,
   data,
   filters = [],
+  hideViewOptions = false,
   removeRow,
   CustomRow,
 }: DataTableProps<TData, TValue>) {
@@ -110,7 +112,12 @@ export default function DataTable<TData, TValue>({
   return (
     <div className={cn(className)}>
       <div className="flex items-center gap-4 py-4">
-        <DataTableToolbar data={data} filters={filters} table={table} />
+        <DataTableToolbar
+          data={data}
+          filters={filters}
+          table={table}
+          hideViewOptions={hideViewOptions}
+        />
       </div>
       <div className="w-full rounded-md border border-accent dark:border-slate-600">
         <Table>

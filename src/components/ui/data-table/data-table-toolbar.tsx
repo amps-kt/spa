@@ -21,11 +21,13 @@ interface DataTableToolbarProps<TData> {
   data: TData[];
   table: Table<TData>;
   filters: TableFilter[];
+  hideViewOptions: boolean;
 }
 
 export function DataTableToolbar<TData>({
   filters,
   table,
+  hideViewOptions,
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -78,7 +80,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
-      <DataTableViewOptions table={table} />
+      {!hideViewOptions && <DataTableViewOptions table={table} />}
     </div>
   );
 }
