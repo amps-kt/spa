@@ -21,7 +21,7 @@ import { DueDateCell } from "./cells/due-date-cell";
 import { EnrolledCell } from "./cells/enrolled-cell";
 import { SubmittedCell } from "./cells/submitted-cell";
 import { WeightCell } from "./cells/weight-cell";
-import { ActionFilters } from "./mass-actions/action-filters";
+import { ApplyToSection } from "./mass-actions/action-filters";
 
 import { FlagTabFilter } from "./flag-tab-filter";
 import {
@@ -50,7 +50,6 @@ const columnWidths = {
  * accessorFn is kept for sorting/filtering support
  */
 const columns: ColumnDef<StudentSubmissionsRow>[] = [
-  // todo: should add selection column to the data table to then sync with filters
   {
     id: "student",
     accessorFn: (row) => row.student.name,
@@ -83,7 +82,7 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
         <p>Weight</p>
         <WithTooltip
           tip={
-            <p className="font-normal w-44">
+            <p className="w-44 font-normal">
               Weight can be any positive integer or{" "}
               <code className="font-bold">MV</code>
             </p>
@@ -91,7 +90,7 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
         >
           <Button
             variant="ghost"
-            className="grid place-items-center p-1 h-max rounded-full"
+            className="grid h-max place-items-center rounded-full p-1"
           >
             <CircleQuestionMarkIcon className="size-4" />
           </Button>
@@ -106,20 +105,20 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
       <div
         className={cn(
           columnWidths.dueDate,
-          "flex justify-start items-center gap-5",
+          "flex items-center justify-start gap-5",
         )}
       >
         <p>Due Date</p>
         <WithTooltip
           tip={
-            <p className="font-normal w-44">
+            <p className="w-44 font-normal">
               Markers have <strong>+14</strong> days from submission to mark
             </p>
           }
         >
           <Button
             variant="ghost"
-            className="grid place-items-center p-1 h-max rounded-full"
+            className="grid h-max place-items-center rounded-full p-1"
           >
             <CircleQuestionMarkIcon className="size-4" />
           </Button>
@@ -151,7 +150,6 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
 
   return (
     <>
-      {/* main row */}
       <TableRow className="h-16">
         <TableCell className={columnWidths.student}>
           <StudentCell student={state.student} />
@@ -170,19 +168,18 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
         </TableCell>
       </TableRow>
 
-      {/* unit sub-rows */}
       {state.units.map((unitState) => {
         const displayWeight = unitState.customWeight ?? unitState.unit.weight;
         const displayDate =
           unitState.customDueDate ?? unitState.unit.studentSubmissionDeadline;
 
         return (
-          <TableRow key={unitState.unit.id} className="bg-muted/30 h-16">
+          <TableRow key={unitState.unit.id} className="h-16 bg-muted/30">
             <TableCell className={columnWidths.student} />
             <TableCell
               className={cn(
                 columnWidths.units,
-                "font-medium whitespace-normal",
+                "whitespace-normal font-medium",
               )}
             >
               {unitState.unit.title}
@@ -247,15 +244,13 @@ function InnerDataTable() {
   );
 
   return (
-    <div className="space-y-4">
-      <DataTable
-        className="w-full"
-        columns={columns}
-        data={tableData}
-        CustomRow={CustomRow}
-        hideViewOptions={true}
-      />
-    </div>
+    <DataTable
+      className="w-full"
+      columns={columns}
+      data={tableData}
+      CustomRow={CustomRow}
+      hideViewOptions={true}
+    />
   );
 }
 
@@ -267,9 +262,9 @@ export function StudentSubmissionsDataTable({
   return (
     <SubmissionsProvider data={data}>
       <div className="flex flex-col gap-8">
-        <FlagTabFilter className="mb-4" />
+        <FlagTabFilter />
+        <ApplyToSection />
         <QuickActionsTabSwitcher />
-        <ActionFilters />
         <InnerDataTable />
       </div>
     </SubmissionsProvider>

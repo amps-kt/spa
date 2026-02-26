@@ -53,6 +53,8 @@ export interface UnitState {
   customWeight?: WeightValue;
 }
 
+// ---------------------------------------------------------
+
 // Separating student-level and unit-level changes makes writing mutations easier:
 // - PendingStudentChange[] maps to a studentDetails.updateMany (or two)
 // - PendingUnitChange[] will require more granular changes (our mass upsert pattern)
@@ -73,6 +75,8 @@ export interface PendingUnitChange {
   customDueDate?: Date;
   customWeight?: WeightValue;
 }
+
+// ----------------------------------------------------------
 
 interface SubmissionsContextType {
   /** Current mutable state for every row */
@@ -103,6 +107,29 @@ interface SubmissionsContextType {
   /** Visible students */
   visibleStudents: StudentDTO[];
 
+  // --- selection (shared between filters and quick actions)
+
+  /** Currently selected unit IDs */
+  selectedUnitIds: string[];
+
+  /** Set selected unit IDs */
+  setSelectedUnitIds: (ids: string[]) => void;
+
+  /** Currently selected student IDs */
+  selectedStudentIds: string[];
+
+  /** Set selected student IDs */
+  setSelectedStudentIds: (ids: string[]) => void;
+
+  /** Current selection mode */
+  selectionMode: SelectionMode;
+
+  /** Set selection mode (clears student selection on change) */
+  setSelectionMode: (mode: SelectionMode) => void;
+
+  /** Whether the current selection is valid for a quick action */
+  hasValidSelection: boolean;
+
   // --- single-row updaters
 
   /** Update the enrolled status for a student */
@@ -121,14 +148,9 @@ interface SubmissionsContextType {
    * Apply a patch to specific units across multiple students.
    * Targets all visible students minus the excluded set.
    */
-  batchUpdateUnits: (
-    unitIds: string[],
-    studentIds: string[],
-    mode: "include" | "exclude",
-    patch: Partial<Omit<UnitState, "unit">>,
-  ) => void;
+  batchUpdateUnits: (patch: Partial<Omit<UnitState, "unit">>) => void;
 
-  // ---- change tracking ----
+  // --- change tracking
 
   /** Compute the set of fields that differ from the original server data */
   getPendingChanges: () => PendingChanges;
@@ -142,6 +164,8 @@ interface SubmissionsContextType {
 
 const SubmissionsContext = createContext<SubmissionsContextType | null>(null);
 
+// --------------------------------------------------------------- hooks
+
 export function useSubmissions() {
   const ctx = useContext(SubmissionsContext);
   if (!ctx) {
@@ -154,6 +178,8 @@ export function useRowState(studentId: string): StudentRowState | undefined {
   const { rows } = useSubmissions();
   return rows.find((r) => r.student.id === studentId);
 }
+
+// ------------------------------------------------------------ provider
 
 function buildInitialState(data: StudentSubmissionsRow[]): StudentRowState[] {
   return data.map((row) => ({
@@ -182,11 +208,13 @@ export function SubmissionsProvider({
   // stable reference to original data for diffing
   const [originalData] = useState<StudentSubmissionsRow[]>(data);
 
+  // --- flag filtering
+
   const availableFlags = useMemo(
     () => data.map((x) => x.student.flag).filter(nubsById),
     [data],
   );
-  const [activeFlag, setActiveFlag] = useState<string>(availableFlags[0].id); // just have the first flag selected on page-load
+  const [activeFlag, setActiveFlag] = useState<string>(availableFlags[0].id);
 
   // --- derived visible data
 
@@ -196,7 +224,7 @@ export function SubmissionsProvider({
   );
 
   const visibleUnits = useMemo(
-    // because we only allow one flag to be selected at one time we only need to check one row
+    // because we only allow one flag at a time we only need to check one row
     () => visibleRows[0].units.map((x) => x.unit),
     [visibleRows],
   );
@@ -211,7 +239,35 @@ export function SubmissionsProvider({
     [visibleRows],
   );
 
-  // ---
+  // --- selection state
+
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
+  const [selectionMode, setSelectionModeRaw] =
+    useState<SelectionMode>("exclude");
+
+  // clear student selection when mode changes to avoid stale selections
+  const setSelectionMode = useCallback((mode: SelectionMode) => {
+    setSelectionModeRaw(mode);
+    setSelectedStudentIds([]);
+  }, []);
+
+  // clear selection when flag changes since the visible students/units change
+  const setActiveFlagAndClearSelection = useCallback((flagId: string) => {
+    setActiveFlag(flagId);
+    setSelectedUnitIds([]);
+    setSelectedStudentIds([]);
+  }, []);
+
+  const hasValidSelection = useMemo(() => {
+    if (selectedUnitIds.length === 0) return false;
+    if (selectionMode === "include" && selectedStudentIds.length === 0) {
+      return false;
+    }
+    return true;
+  }, [selectedUnitIds, selectedStudentIds, selectionMode]);
+
+  // --- single-row updaters
 
   const updateEnrolled = useCallback((studentId: string, enrolled: boolean) => {
     setRows((prev) =>
@@ -242,21 +298,16 @@ export function SubmissionsProvider({
     [],
   );
 
-  // ---
+  // --- batch updater (now uses shared selection state)
 
   const batchUpdateUnits = useCallback(
-    (
-      unitIds: string[],
-      studentIds: string[],
-      mode: "include" | "exclude", // initially had this as a boolean but I think this way is a bit cleaner at the call-site
-      patch: Partial<Omit<UnitState, "unit">>,
-    ) => {
-      const unitIdSet = new Set(unitIds);
-      const studentIdSet = new Set(studentIds);
+    (patch: Partial<Omit<UnitState, "unit">>) => {
+      const unitIdSet = new Set(selectedUnitIds);
+      const studentIdSet = new Set(selectedStudentIds);
       const visibleStudentIdSet = new Set(visibleStudents.map((s) => s.id));
 
       const affectedStudentIds =
-        mode === "include"
+        selectionMode === "include"
           ? visibleStudentIdSet.intersection(studentIdSet)
           : visibleStudentIdSet.difference(studentIdSet);
 
@@ -273,10 +324,10 @@ export function SubmissionsProvider({
         }),
       );
     },
-    [visibleStudents],
+    [selectedUnitIds, selectedStudentIds, selectionMode, visibleStudents],
   );
 
-  // ---
+  // --- change detection
 
   const getPendingChanges = useCallback((): PendingChanges => {
     const students: PendingStudentChange[] = [];
@@ -294,7 +345,6 @@ export function SubmissionsProvider({
         const originalUnit = originalRow.unitsOfAssessment[unitIdx];
         if (!originalUnit) return;
 
-        // I kinda hate this, but I think it's the cleanest way to do it
         const changes: Partial<PendingUnitChange> = {};
         let hasDiff = false;
 
@@ -333,18 +383,25 @@ export function SubmissionsProvider({
     setRows(buildInitialState(originalData));
   }, [originalData]);
 
-  // ---
+  // --- context value
 
   const value = useMemo<SubmissionsContextType>(
     () => ({
       rows,
       availableFlags,
       activeFlag,
-      setActiveFlag,
+      setActiveFlag: setActiveFlagAndClearSelection,
       visibleRows,
       visibleUnitIds,
       visibleUnits,
       visibleStudents,
+      selectedUnitIds,
+      setSelectedUnitIds,
+      selectedStudentIds,
+      setSelectedStudentIds,
+      selectionMode,
+      setSelectionMode,
+      hasValidSelection,
       updateEnrolled,
       updateUnit,
       batchUpdateUnits,
@@ -356,10 +413,16 @@ export function SubmissionsProvider({
       rows,
       availableFlags,
       activeFlag,
+      setActiveFlagAndClearSelection,
       visibleRows,
       visibleUnitIds,
       visibleUnits,
       visibleStudents,
+      selectedUnitIds,
+      selectedStudentIds,
+      selectionMode,
+      setSelectionMode,
+      hasValidSelection,
       updateEnrolled,
       updateUnit,
       batchUpdateUnits,
