@@ -146,11 +146,28 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
   const state = useRowState(studentId);
   const { updateEnrolled, updateUnit } = useSubmissions();
 
+  const unitIds = useMemo(
+    () => state?.units.map((u) => u.unit.id) ?? [],
+    [state],
+  );
+
+  const { studentStatus, targetedUnitIds } = useSelectionIndicators(
+    studentId,
+    unitIds,
+  );
+
   if (!state) return null;
 
   return (
     <>
-      <TableRow className="h-16">
+      <TableRow
+        className={cn(
+          "h-16",
+          studentStatus === "targeted" && "border-l-[3px] border-l-indigo-400",
+          studentStatus === "excluded" && "border-l-[3px] border-l-rose-400",
+          studentStatus === "none" && "border-l-[3px] border-l-transparent",
+        )}
+      >
         <TableCell className={columnWidths.student}>
           <StudentCell student={state.student} />
         </TableCell>
@@ -173,8 +190,22 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
         const displayDate =
           unitState.customDueDate ?? unitState.unit.studentSubmissionDeadline;
 
+        // a unit sub-row is highlighted if BOTH the unit is selected
+        // AND the student is targeted
+        const isUnitTargeted =
+          studentStatus === "targeted" &&
+          targetedUnitIds.has(unitState.unit.id);
+
         return (
-          <TableRow key={unitState.unit.id} className="h-16 bg-muted/30">
+          <TableRow
+            key={unitState.unit.id}
+            className={cn(
+              "h-16 bg-muted/30",
+              isUnitTargeted
+                ? "border-l-[3px] border-l-indigo-400"
+                : "border-l-[3px] border-l-transparent",
+            )}
+          >
             <TableCell className={columnWidths.student} />
             <TableCell
               className={cn(
@@ -219,6 +250,50 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
     </>
   );
 };
+
+type StudentTargetStatus = "targeted" | "excluded" | "none";
+
+// ? this feels like it's too much of a presentation util to be moved to the context file, but open to feedback
+function useSelectionIndicators(studentId: string, unitIds: string[]) {
+  const {
+    selectedUnitIds,
+    selectedStudentIds,
+    selectionMode,
+    visibleStudents,
+  } = useSubmissions();
+
+  return useMemo(() => {
+    const selectedUnitSet = new Set(selectedUnitIds);
+    const selectedStudentSet = new Set(selectedStudentIds);
+    const isVisible = visibleStudents.some((s) => s.id === studentId);
+
+    const targetedUnitIds = new Set(
+      unitIds.filter((id) => selectedUnitSet.has(id)),
+    );
+
+    let status: StudentTargetStatus = "none";
+
+    if (selectedUnitSet.size > 0 && isVisible) {
+      // ? I didn't make enums before cause these both felt really minor,
+      // ? but now that we have a bunch of magic strings everywhere maybe I should?
+      if (selectionMode === "exclude") {
+        status = selectedStudentSet.has(studentId) ? "excluded" : "targeted";
+      } else {
+        // include mode
+        status = selectedStudentSet.has(studentId) ? "targeted" : "none";
+      }
+    }
+
+    return { studentStatus: status, targetedUnitIds };
+  }, [
+    studentId,
+    unitIds,
+    selectedUnitIds,
+    selectedStudentIds,
+    selectionMode,
+    visibleStudents,
+  ]);
+}
 
 // Inner component that reads the filtered data from context and passes it to DataTable
 // Separated so that the context is available
