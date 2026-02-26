@@ -41,7 +41,7 @@ export function EnrolledCell({
     setOpen(false);
   }
 
-  const isUnenrolling = !student.enrolled;
+  const isCurrentlyEnrolled = student.enrolled;
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -54,18 +54,18 @@ export function EnrolledCell({
                 size="sm"
                 className={cn(
                   "h-7 min-w-[4.5rem] text-xs font-semibold transition-all cursor-pointer",
-                  isUnenrolling
+                  isCurrentlyEnrolled
                     ? "border-none bg-emerald-500/25 text-emerald-700  hover:bg-emerald-700 hover:text-white"
                     : "bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground",
                   className,
                 )}
               >
-                {isUnenrolling ? "Enrolled" : "Not enrolled"}
+                {isCurrentlyEnrolled ? "Enrolled" : "Not enrolled"}
               </Button>
             </AlertDialogTrigger>
           </TooltipTrigger>
           <TooltipContent side="top">
-            {isUnenrolling ? "Un-enrol student" : "Re-enrol student"}
+            {isCurrentlyEnrolled ? "Un-enrol student" : "Re-enrol student"}
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -73,11 +73,11 @@ export function EnrolledCell({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            {isUnenrolling ? "Un-enrol student?" : "Re-enrol student?"}
+            {isCurrentlyEnrolled ? "Un-enrol student?" : "Re-enrol student?"}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {/* open to suggestions on the exact phrasing to use here */}
-            {isUnenrolling ? (
+            {isCurrentlyEnrolled ? (
               <>
                 You are about to{" "}
                 <strong className="text-destructive">un-enrol</strong>{" "}
@@ -99,12 +99,12 @@ export function EnrolledCell({
           <AlertDialogAction
             onClick={handleConfirm}
             className={
-              isUnenrolling
+              isCurrentlyEnrolled
                 ? "bg-destructive text-white hover:bg-destructive/90"
                 : "bg-emerald-600 text-white hover:bg-emerald-700"
             }
           >
-            {isUnenrolling ? "Yes, un-enrol" : "Yes, re-enrol"}
+            {isCurrentlyEnrolled ? "Yes, un-enrol" : "Yes, re-enrol"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
