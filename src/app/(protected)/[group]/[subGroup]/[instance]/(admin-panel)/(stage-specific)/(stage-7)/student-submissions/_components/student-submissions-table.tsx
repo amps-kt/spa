@@ -21,6 +21,7 @@ import { DueDateCell } from "./cells/due-date-cell";
 import { EnrolledCell } from "./cells/enrolled-cell";
 import { SubmittedCell } from "./cells/submitted-cell";
 import { WeightCell } from "./cells/weight-cell";
+import { ActionFilters } from "./mass-actions/action-filters";
 
 import { FlagTabFilter } from "./flag-tab-filter";
 import {
@@ -29,6 +30,7 @@ import {
   useRowState,
   type StudentSubmissionsRow,
 } from "./submissions-context";
+import { QuickActionsTabSwitcher } from "./tab-switcher";
 
 const columnWidths = {
   student: "min-w-[160px] max-w-[200px]",
@@ -48,6 +50,7 @@ const columnWidths = {
  * accessorFn is kept for sorting/filtering support
  */
 const columns: ColumnDef<StudentSubmissionsRow>[] = [
+  // todo: should add selection column to the data table to then sync with filters
   {
     id: "student",
     accessorFn: (row) => row.student.name,
@@ -245,7 +248,6 @@ function InnerDataTable() {
 
   return (
     <div className="space-y-4">
-      <FlagTabFilter />
       <DataTable
         className="w-full"
         columns={columns}
@@ -264,7 +266,12 @@ export function StudentSubmissionsDataTable({
 }) {
   return (
     <SubmissionsProvider data={data}>
-      <InnerDataTable />
+      <div className="flex flex-col gap-8">
+        <FlagTabFilter className="mb-4" />
+        <QuickActionsTabSwitcher />
+        <ActionFilters />
+        <InnerDataTable />
+      </div>
     </SubmissionsProvider>
   );
 }
