@@ -256,7 +256,7 @@ export function SubmissionsProvider({
 
   const visibleUnits = useMemo(
     // because we only allow one flag at a time we only need to check one row
-    () => visibleRows[0].units.map((x) => x.unit),
+    () => visibleRows[0]?.units.map((x) => x.unit) ?? [],
     [visibleRows],
   );
 
