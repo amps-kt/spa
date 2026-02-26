@@ -93,6 +93,9 @@ interface SubmissionsContextType {
   /** Set the active flag filter */
   setActiveFlag: (flagId: string) => void;
 
+  /** Which flag tabs currently have pending changes */
+  dirtyFlags: Set<string>;
+
   // --- derived from active filter
 
   /** Rows that match the current flag filter */
@@ -193,6 +196,33 @@ function buildInitialState(data: StudentSubmissionsRow[]): StudentRowState[] {
       customWeight: u.customWeight,
     })),
   }));
+}
+
+function hasPendingChangesForFlag(
+  flagId: string,
+  rows: StudentRowState[],
+  originalData: StudentSubmissionsRow[],
+): boolean {
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    const originalRow = originalData[i];
+    if (!originalRow || row.student.flag.id !== flagId) continue;
+
+    // student-level: enrolled
+    if (row.enrolled !== originalRow.student.enrolled) return true;
+
+    // unit-level
+    for (let j = 0; j < row.units.length; j++) {
+      const u = row.units[j];
+      const ou = originalRow.unitsOfAssessment[j];
+      if (!ou) continue;
+      if (u.submitted !== ou.submitted) return true;
+      if (u.customDueDate !== ou.customDueDate) return true;
+      if (u.customWeight !== ou.customWeight) return true;
+    }
+  }
+
+  return false;
 }
 
 export function SubmissionsProvider({
@@ -380,6 +410,16 @@ export function SubmissionsProvider({
     return students.length > 0 || units.length > 0;
   }, [getPendingChanges]);
 
+  const dirtyFlags = useMemo(
+    () =>
+      new Set(
+        availableFlags
+          .map((f) => f.id)
+          .filter((id) => hasPendingChangesForFlag(id, rows, originalData)),
+      ),
+    [availableFlags, rows, originalData],
+  );
+
   const resetAll = useCallback(() => {
     setRows(buildInitialState(originalData));
   }, [originalData]);
@@ -392,6 +432,7 @@ export function SubmissionsProvider({
       availableFlags,
       activeFlag,
       setActiveFlag: setActiveFlagAndClearSelection,
+      dirtyFlags,
       visibleRows,
       visibleUnitIds,
       visibleUnits,
@@ -415,6 +456,7 @@ export function SubmissionsProvider({
       availableFlags,
       activeFlag,
       setActiveFlagAndClearSelection,
+      dirtyFlags,
       visibleRows,
       visibleUnitIds,
       visibleUnits,

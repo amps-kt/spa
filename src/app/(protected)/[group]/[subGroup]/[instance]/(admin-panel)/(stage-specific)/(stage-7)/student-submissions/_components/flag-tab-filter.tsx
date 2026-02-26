@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { useSubmissions } from "./submissions-context";
 
 export function FlagTabFilter({ className }: { className?: string }) {
-  const { availableFlags, activeFlag, setActiveFlag } = useSubmissions();
+  const { availableFlags, activeFlag, setActiveFlag, dirtyFlags } =
+    useSubmissions();
 
   if (availableFlags.length <= 1) return null;
 
@@ -32,6 +33,9 @@ export function FlagTabFilter({ className }: { className?: string }) {
           onClick={() => setActiveFlag(flag.id)}
         >
           {flag.displayName}
+          {flag.id !== activeFlag && dirtyFlags.has(flag.id) && (
+            <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-indigo-500" />
+          )}
         </Button>
       ))}
     </div>
