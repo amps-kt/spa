@@ -12,15 +12,26 @@ export function FlagTabFilter({ className }: { className?: string }) {
   if (availableFlags.length <= 1) return null;
 
   return (
-    <div className={cn("flex items-center gap-4", className)} role="tablist">
+    <div
+      className={cn(
+        "inline-flex items-center gap-1 rounded-lg bg-muted p-1",
+        className,
+      )}
+    >
       {availableFlags.map((flag) => (
         <Button
           key={flag.id}
-          variant={activeFlag === flag.id ? "secondary" : "outline"}
+          size="lg"
+          variant={activeFlag === flag.id ? "default" : "ghost"}
+          className={cn(
+            "rounded-md w-full text-lg font-medium transition-colors cursor-pointer",
+            activeFlag === flag.id
+              ? "bg-primary text-primary-foreground"
+              : "text-muted-foreground hover:text-foreground hover:bg-primary/10",
+          )}
           onClick={() => setActiveFlag(flag.id)}
-          className="cursor-pointer"
         >
-          {flag.displayName}{" "}
+          {flag.displayName}
         </Button>
       ))}
     </div>
