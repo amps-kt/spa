@@ -1,3 +1,5 @@
+import { Grade } from "@/logic/grading";
+
 import {
   type FullMarkingSubmissionDTO,
   type ProjectDTO,
@@ -24,7 +26,6 @@ import {
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { Grading } from "../../logic/grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
@@ -136,7 +137,7 @@ export class Marker extends User {
 
       const units = flag.unitsOfAssessment.map((x) => {
         const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
-        const status = Grading.getUnitStatus(
+        const status = Grade.getUnitStatus(
           unit,
           unitGrades[unit.id],
           unitSubmissions[unit.id] ?? [],
@@ -178,12 +179,13 @@ export class Marker extends User {
 
     if (result) return T.toMarkingSubmissionDTO(result);
 
+    // TODO review if this stays in
     return {
       unitOfAssessmentId,
       studentId,
       grade: -1,
       markerId: this.id,
-      draft: true,
+      draft: false,
       marks: {},
       finalComment: "",
       recommendation: false,
