@@ -261,7 +261,7 @@ export function ReviewChangesDialog({
     // TODO: wire up tRPC mutations here
     setIsCommitting(false);
     // TODO: this should only trigger after the tRPC mutation
-    // commitFlag(activeFlag);
+    commitFlag(activeFlag);
   }
 
   return (

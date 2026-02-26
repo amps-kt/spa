@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { FileDiffIcon, RotateCcwIcon, SaveIcon } from "lucide-react";
+import { FileDiffIcon, RotateCcwIcon } from "lucide-react";
 
 import {
   AlertDialog,
