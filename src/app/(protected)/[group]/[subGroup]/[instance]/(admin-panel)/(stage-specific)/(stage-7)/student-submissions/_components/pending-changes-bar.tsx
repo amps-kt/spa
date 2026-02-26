@@ -33,12 +33,13 @@ function countFieldChanges(changes: PendingChanges): number {
 }
 
 export function PendingChangesBar() {
-  const { isDirty, getPendingChanges, resetAll } = useSubmissions();
+  const { isDirty, activeFlag, getPendingChangesForFlag, resetFlag } =
+    useSubmissions();
   const [reviewOpen, setReviewOpen] = useState(false);
 
   if (!isDirty) return null;
 
-  const pendingChanges = getPendingChanges();
+  const pendingChanges = getPendingChangesForFlag(activeFlag);
   const totalChanges = countFieldChanges(pendingChanges);
 
   return (
@@ -61,14 +62,15 @@ export function PendingChangesBar() {
                 <AlertDialogTitle>Discard all changes?</AlertDialogTitle>
                 <AlertDialogDescription>
                   This will reset all {totalChanges} pending change
-                  {totalChanges !== 1 ? "s" : ""} back to the original data
-                  before you began editing. This action cannot be undone.
+                  {totalChanges !== 1 ? "s" : ""} in the current tab back to the
+                  original data before you began editing. Changes in other tabs
+                  will not be affected. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={resetAll}
+                  onClick={() => resetFlag(activeFlag)}
                   className="bg-destructive text-white hover:bg-destructive/90"
                 >
                   Yes, discard all
