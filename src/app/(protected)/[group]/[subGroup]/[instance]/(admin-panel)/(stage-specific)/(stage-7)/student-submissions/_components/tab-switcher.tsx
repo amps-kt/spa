@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { CheckCircle2Icon, ClockIcon, ZapIcon } from "lucide-react";
@@ -8,6 +10,8 @@ import { cn } from "@/lib/utils";
 
 import { ChangeDeadlineAction } from "./mass-actions/change-deadline";
 import { MarkAsSubmittedAction } from "./mass-actions/mark-as-submitted";
+
+import { useSubmissions } from "./submissions-context";
 
 type TabId = "submitted" | "deadline";
 
@@ -36,70 +40,82 @@ const TABS: {
 ];
 
 export function QuickActionsTabSwitcher() {
+  const { hasValidSelection } = useSubmissions();
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
 
   const activeDefinition = TABS.find((t) => t.id === activeTab) ?? null;
   const ActivePanel = activeDefinition?.panel ?? null;
 
   return (
-    <>
-      <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-6">
+      <div>
         <SectionHeading icon={ZapIcon}>Quick Actions</SectionHeading>
-        <p className="tracking-tight text-muted-foreground text-sm">
-          To trigger an action you must select a student and unit. You can make
-          selections via the Filters menu
-        </p>
-        <div className="flex gap-2">
-          {/* todo: 1. both tabs should be disabled unless ther's a valid selection (so at least one unit and one student) */}
-          {/* todo: 2. Now that the actual action panels are so slim, maybe we can stack everything vertically or something? */}
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(isActive ? null : tab.id)}
+        {!hasValidSelection ? (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Select at least one unit above to enable quick actions.
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-muted-foreground">
+            Choose an action to apply to your current selection.
+          </p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          const isDisabled = !hasValidSelection;
+          return (
+            <button
+              key={tab.id}
+              disabled={isDisabled}
+              onClick={() => setActiveTab(isActive ? null : tab.id)}
+              className={cn(
+                "group flex flex-1 items-start gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                isDisabled && "cursor-not-allowed opacity-50",
+                !isDisabled &&
+                  isActive &&
+                  "border-indigo-200 bg-indigo-50 text-indigo-900",
+                !isDisabled &&
+                  !isActive &&
+                  "border-border bg-card text-foreground hover:border-indigo-100 hover:bg-indigo-50/40",
+              )}
+            >
+              <div
                 className={cn(
-                  "group flex flex-1 items-start gap-3 rounded-lg border px-4 py-3 text-left transition-colors",
+                  "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
                   isActive
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-900"
-                    : "border-border bg-card text-foreground hover:border-indigo-100 hover:bg-indigo-50/40",
+                    ? "bg-indigo-100 text-indigo-600"
+                    : "bg-muted text-muted-foreground group-hover:bg-indigo-100 group-hover:text-indigo-500",
+                  isDisabled &&
+                    "group-hover:bg-muted group-hover:text-muted-foreground",
                 )}
               >
-                <div
+                <Icon className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <p
                   className={cn(
-                    "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md",
-                    isActive
-                      ? "bg-indigo-100 text-indigo-600"
-                      : "bg-muted text-muted-foreground group-hover:bg-indigo-100 group-hover:text-indigo-500",
+                    "text-sm font-medium leading-snug",
+                    isActive && "text-indigo-800",
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                </div>
-                <div className="min-w-0">
-                  <p
-                    className={cn(
-                      "text-sm font-medium leading-snug",
-                      isActive && "text-indigo-800",
-                    )}
-                  >
-                    {tab.label}
-                  </p>
-                  <p
-                    className={cn(
-                      "mt-0.5 text-xs leading-relaxed text-muted-foreground",
-                      isActive && "text-indigo-600/70",
-                    )}
-                  >
-                    {tab.description}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-        {ActivePanel && activeDefinition && <ActivePanel />}
-      </section>
-    </>
+                  {tab.label}
+                </p>
+                <p
+                  className={cn(
+                    "mt-0.5 text-xs leading-relaxed text-muted-foreground",
+                    isActive && "text-indigo-600/70",
+                  )}
+                >
+                  {tab.description}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      {ActivePanel && hasValidSelection && <ActivePanel />}
+    </section>
   );
 }

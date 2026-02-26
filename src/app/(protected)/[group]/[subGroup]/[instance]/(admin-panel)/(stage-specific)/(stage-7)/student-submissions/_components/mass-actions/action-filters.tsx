@@ -1,88 +1,47 @@
-import { useState } from "react";
+"use client";
 
 import { ListFilterPlusIcon } from "lucide-react";
 
 import { SectionHeading } from "@/components/heading";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 
-import { cn } from "@/lib/utils";
-
-import { type SelectionMode, useSubmissions } from "../submissions-context";
+import { useSubmissions } from "../submissions-context";
 
 import { StudentMultiSelect } from "./student-multi-select";
 import { UnitMultiSelect } from "./unit-multi-select";
 
-function InternalActionFilters({
-  selectedUnitIds,
-  onSelectedUnitIdsChange,
-  selectedStudentIds,
-  onSelectedStudentIdsChange,
-  selectionMode,
-  onSelectionModeChange,
-}: {
-  selectedUnitIds: string[];
-  onSelectedUnitIdsChange: (ids: string[]) => void;
-  selectedStudentIds: string[];
-  onSelectedStudentIdsChange: (ids: string[]) => void;
-  selectionMode: SelectionMode;
-  onSelectionModeChange: (mode: SelectionMode) => void;
-}) {
-  const { visibleUnits } = useSubmissions();
+export function ApplyToSection() {
+  const {
+    visibleUnits,
+    selectedUnitIds,
+    setSelectedUnitIds,
+    selectedStudentIds,
+    setSelectedStudentIds,
+    selectionMode,
+    setSelectionMode,
+  } = useSubmissions();
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border bg-card p-4 space-y-4 flex justify-around items-center gap-x-5",
-      )}
-    >
-      <UnitMultiSelect
-        units={visibleUnits}
-        selected={selectedUnitIds}
-        onChange={onSelectedUnitIdsChange}
-      />
-      <StudentMultiSelect
-        className="max-w-1/2"
-        selectedStudentIds={selectedStudentIds}
-        onSelectedStudentIdsChange={onSelectedStudentIdsChange}
-        selectionMode={selectionMode}
-        onSelectionModeChange={onSelectionModeChange}
-      />
-    </div>
-  );
-}
-
-export function ActionFilters() {
-  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [selectionMode, setSelectionMode] = useState<SelectionMode>("include");
-
-  return (
-    <Accordion type="single" collapsible>
-      <AccordionItem value="filters-menu">
-        <AccordionTrigger>
-          <SectionHeading
-            icon={ListFilterPlusIcon}
-            iconClassName="text-muted-foreground"
-          >
-            Filters
-          </SectionHeading>
-        </AccordionTrigger>
-        <AccordionContent>
-          <InternalActionFilters
-            selectedUnitIds={selectedUnitIds}
-            onSelectedUnitIdsChange={setSelectedUnitIds}
-            selectedStudentIds={selectedStudentIds}
-            onSelectedStudentIdsChange={setSelectedStudentIds}
-            selectionMode={selectionMode}
-            onSelectionModeChange={setSelectionMode}
-          />
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+    <section className="flex flex-col gap-4">
+      <div>
+        <SectionHeading icon={ListFilterPlusIcon}>Apply to</SectionHeading>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Select which units and students the quick actions should affect.
+        </p>
+      </div>
+      <div className="flex items-start justify-around gap-x-5 rounded-lg border bg-card p-4">
+        <UnitMultiSelect
+          units={visibleUnits}
+          selected={selectedUnitIds}
+          onChange={setSelectedUnitIds}
+        />
+        <StudentMultiSelect
+          className="max-w-1/2"
+          selectedStudentIds={selectedStudentIds}
+          onSelectedStudentIdsChange={setSelectedStudentIds}
+          selectionMode={selectionMode}
+          onSelectionModeChange={setSelectionMode}
+        />
+      </div>
+    </section>
   );
 }
