@@ -16,7 +16,7 @@ export default async function MarksheetPage({
     studentId,
   });
 
-  const { supervisor, reader } = await api.user.newMarker.getStudentMarkers({
+  const { supervisor, reader } = await api.msp.marker.project.getMarkers({
     params,
     studentId,
   });

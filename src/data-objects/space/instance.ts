@@ -7,7 +7,7 @@ import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
 
 import {
   type UnitOfAssessmentDTO,
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type FlagDTO,
   type InstanceDTO,
   type InstanceDisplayData,
@@ -72,7 +72,7 @@ export class AllocationInstance extends DataObject {
 
   public async getCriteria(
     unitOfAssessmentId: string,
-  ): Promise<AssessmentCriterionDTO[]> {
+  ): Promise<MarkingComponentDTO[]> {
     const data = await this.db.markingComponent.findMany({
       where: { unitOfAssessmentId },
       orderBy: { layoutIndex: "asc" },

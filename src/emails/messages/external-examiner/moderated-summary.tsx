@@ -24,7 +24,7 @@ import {
 } from "@react-email/components";
 
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
@@ -41,9 +41,9 @@ export interface ModeratedSummaryProps {
   supervisor: SupervisorDTO;
   // thirdMarker: UserDTO;
 
-  presentationCriteria: AssessmentCriterionDTO[];
-  conductCriteria: AssessmentCriterionDTO[];
-  dissertationCriteria: AssessmentCriterionDTO[];
+  presentationCriteria: MarkingComponentDTO[];
+  conductCriteria: MarkingComponentDTO[];
+  dissertationCriteria: MarkingComponentDTO[];
 
   supervisorConductSubmission: FullMarkingSubmissionDTO;
   supervisorPresentationSubmission: FullMarkingSubmissionDTO;

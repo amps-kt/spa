@@ -8,6 +8,7 @@ import {
   type FullMarkingSubmissionDTO,
   type UnitGradingLifecycleState,
   type DraftMarkingSubmissionDTO,
+  type MarkingSubmissionDTO,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -481,7 +482,7 @@ export class Student extends User {
       {},
     );
 
-    const submissionsDict: Record<UnitId, FullMarkingSubmissionDTO[]> =
+    const submissionsDict: Record<UnitId, MarkingSubmissionDTO[]> =
       data.unitSubmissions.reduce(
         (acc, val) => {
           const old = acc[val.unitOfAssessmentId] ?? [];
@@ -491,7 +492,7 @@ export class Student extends User {
             [val.unitOfAssessmentId]: [...old, T.toMarkingSubmissionDTO(val)],
           };
         },
-        {} as Record<UnitId, FullMarkingSubmissionDTO[]>,
+        {} as Record<UnitId, MarkingSubmissionDTO[]>,
       );
 
     return data.studentFlag.unitsOfAssessment.map((data) => {

@@ -10,7 +10,7 @@ import {
 import { Text, Heading } from "@react-email/components";
 
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
@@ -24,7 +24,7 @@ interface Props {
   project: ProjectDTO;
   student: StudentDTO;
   unit: UnitOfAssessmentDTO;
-  criteria: AssessmentCriterionDTO[];
+  criteria: MarkingComponentDTO[];
   submission: FullMarkingSubmissionDTO;
   marker: UserDTO;
 }

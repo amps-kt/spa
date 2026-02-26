@@ -45,7 +45,7 @@ export function SingleMarkDisplay({
   const marker = markerType === MarkerType.READER ? reader : supervisor;
 
   const { data, status } =
-    api.user.newMarker.getStudentMarkerMarksByUnitId.useQuery({
+    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery({
       params,
       studentId,
       unitId: unit.id,
@@ -68,8 +68,8 @@ export function SingleMarkDisplay({
 
       {status === "pending" && <p>loading</p>}
       {status === "error" && <p>Something went wrong</p>}
-      {status === "success" && data.marks ? (
-        <MarkList unit={unit} marks={data.marks} />
+      {status === "success" && data && !data.draft ? (
+        <MarkList unit={unit} marks={data} />
       ) : (
         <p>Marks not yet submitted</p>
       )}

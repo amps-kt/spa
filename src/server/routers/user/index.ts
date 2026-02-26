@@ -19,7 +19,6 @@ import { auth } from "@/lib/auth";
 import { relativeComplement } from "@/lib/utils/general/set-difference";
 import { nubsById } from "@/lib/utils/list-unique";
 
-import { markerRouter } from "./marker";
 import { newMarkerRouter } from "./new-marker";
 import { readerRouter } from "./reader";
 import { studentRouter } from "./student";
@@ -29,7 +28,6 @@ export const userRouter = createTRPCRouter({
   student: studentRouter,
   supervisor: supervisorRouter,
   reader: readerRouter,
-  marker: markerRouter,
   newMarker: newMarkerRouter,
 
   get: procedure.user

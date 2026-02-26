@@ -3,9 +3,7 @@ import { z } from "zod";
 
 import {
   projectDtoSchema,
-  readerDtoSchema,
   studentDtoSchema,
-  supervisorDtoSchema,
   unitOfAssessmentDtoSchema,
 } from "@/dto";
 import {
@@ -40,6 +38,7 @@ export const newMarkerRouter = createTRPCRouter({
         .array(),
     )
     .query(async ({ ctx: { user } }) => await user.getAssignedMarking()),
+
   // [#22d3ee] - revisit middleware
   // Help name
   getStudentMarkingData: procedure.instance.user
@@ -78,26 +77,7 @@ export const newMarkerRouter = createTRPCRouter({
       return { student: studentData, units };
     }),
 
-  // [#22d3ee] - revisit middleware
-  getStudentMarkers: procedure.instance.user
-    .input(z.object({ studentId: z.string() }))
-    .output(
-      z.object({ reader: readerDtoSchema, supervisor: supervisorDtoSchema }),
-    )
-    .query(async ({ ctx: { instance, user }, input: { studentId } }) => {
-      const isMarker = await user.isStudentMarker(instance.params, studentId);
-      const isAdmin = await user.isSubGroupAdminOrBetter(instance.params);
-
-      if (!(isMarker || isAdmin)) {
-        throw new TRPCError({ code: "UNAUTHORIZED" });
-      }
-      const student = await instance.getStudent(studentId);
-      const reader = await student.getReader();
-      const supervisor = await student.getSupervisor();
-
-      return { reader, supervisor };
-    }),
-
+  // msp/marker/unit getMarksByMarkerId
   getStudentMarkerMarksByUnitId: procedure.instance.user
     .input(
       z.object({
@@ -107,34 +87,15 @@ export const newMarkerRouter = createTRPCRouter({
       }),
     )
     .output(
-      z.object({
-        marks: draftMarkingSubmissionDtoSchema
-          .or(fullMarkingSubmissionDtoSchema)
-          .optional(),
-      }),
+      draftMarkingSubmissionDtoSchema
+        .or(fullMarkingSubmissionDtoSchema)
+        .optional(),
     )
     .query(
       async ({ ctx: { instance }, input: { studentId, markerId, unitId } }) => {
         const student = await instance.getStudent(studentId);
-        const marks = await student.getMarkerMarksByUnitId({
-          markerId,
-          unitId,
-        });
 
-        return { marks };
+        return await student.getMarkerMarksByUnitId({ markerId, unitId });
       },
     ),
-
-  // MOVE
-  getConsensusGrade: procedure.instance.user
-    .input(z.object({ studentId: z.string(), unitId: z.string() }))
-    .output(z.object({ unitGrade: unitGradeDtoSchema }))
-    .query(async ({ ctx: { instance }, input: { studentId, unitId } }) => {
-      // TODO check if perm
-
-      const student = await instance.getStudent(studentId);
-      const unitGrade = await student.unitConsensus({ unitId });
-
-      return { unitGrade };
-    }),
 });

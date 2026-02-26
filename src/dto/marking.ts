@@ -1,17 +1,12 @@
 import { z } from "zod";
 
-import {
-  ConsensusStage,
-  MarkerType,
-  consensusMethodSchema,
-  consensusStageSchema,
-} from "@/db/types";
+import { ConsensusStage, MarkerType, consensusMethodSchema } from "@/db/types";
 
 import { flagDtoSchema } from "./flag-tag";
 
 // --- markscheme stuff:
 
-export const assessmentCriterionDtoSchema = z.object({
+export const markingComponentDtoSchema = z.object({
   id: z.string(),
   unitOfAssessmentId: z.string(),
   title: z.string(),
@@ -20,9 +15,7 @@ export const assessmentCriterionDtoSchema = z.object({
   layoutIndex: z.number(),
 });
 
-export type AssessmentCriterionDTO = z.infer<
-  typeof assessmentCriterionDtoSchema
->;
+export type MarkingComponentDTO = z.infer<typeof markingComponentDtoSchema>;
 
 export const unitOfAssessmentDtoSchema = z.object({
   id: z.string(),
@@ -31,7 +24,7 @@ export const unitOfAssessmentDtoSchema = z.object({
   markerSubmissionDeadline: z.date(),
   weight: z.number(),
   isOpen: z.boolean(),
-  components: z.array(assessmentCriterionDtoSchema),
+  components: z.array(markingComponentDtoSchema),
   flag: flagDtoSchema,
   allowedMarkerTypes: z.array(z.enum(MarkerType)),
 });
@@ -111,36 +104,34 @@ export const markingSubmissionDtoSchema = z.discriminatedUnion("draft", [
 
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
-/**
- * @deprecated
- */
-export const partialMarkingSubmissionDtoSchema = fullMarkingSubmissionDtoSchema
-  .partial({ finalComment: true, recommendation: true })
-  .extend({
-    grade: z.number().int(),
-    marks: z
-      .record(
-        z.string(), // assessmentCriterionId
-        z
-          .object({ mark: z.number().int(), justification: z.string() })
-          .partial(),
-      )
-      .optional(),
-  });
-
-export type PartialMarkingSubmissionDTO = z.infer<
-  typeof partialMarkingSubmissionDtoSchema
->;
-
-export const unitGradeDtoSchema = z.object({
+export const resolvedUnitGradeDtoSchema = z.object({
   grade: z.number(),
   comment: z.string(),
-  status: consensusStageSchema,
+  status: z.literal(ConsensusStage.RESOLVED),
   method: consensusMethodSchema,
   studentSubmitted: z.boolean(),
   customDueDate: z.date().optional(),
   customWeight: z.number().optional(),
 });
+
+export const unresolvedUnitGradeDtoSchema = z.object({
+  grade: z.number().optional(),
+  comment: z.string().optional(),
+  status: z.enum([
+    ConsensusStage.MODERATE,
+    ConsensusStage.NEGOTIATE,
+    ConsensusStage.UNRESOLVED,
+  ]),
+  method: consensusMethodSchema.optional(),
+  studentSubmitted: z.boolean(),
+  customDueDate: z.date().optional(),
+  customWeight: z.number().optional(),
+});
+
+export const unitGradeDtoSchema = z.discriminatedUnion("status", [
+  resolvedUnitGradeDtoSchema,
+  unresolvedUnitGradeDtoSchema,
+]);
 
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 // --- new:
