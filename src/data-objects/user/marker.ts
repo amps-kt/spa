@@ -1,7 +1,6 @@
 import { Grade } from "@/logic/grading";
 
 import {
-  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
   type UnitOfAssessmentDTO,
@@ -14,15 +13,9 @@ import {
   type UnitGradeDTO,
   type MarkingSubmissionDTO,
 } from "@/dto/marking";
-import { MarkingProgress } from "@/dto/result/marking-submission-status";
 
 import { Transformers as T } from "@/db/transformers";
-import {
-  ConsensusMethod,
-  ConsensusStage,
-  MarkerType,
-  type DB,
-} from "@/db/types";
+import { MarkerType, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -32,24 +25,6 @@ import { AllocationInstance } from "../space/instance";
 import { User } from ".";
 
 export class Marker extends User {
-  /**
-   * @deprecated
-   */
-  public static computeStatus(
-    u: UnitOfAssessmentDTO,
-    submission: FullMarkingSubmissionDTO | undefined,
-  ): MarkingProgress {
-    if (!u.isOpen) {
-      return MarkingProgress.CLOSED;
-    } else if (!submission) {
-      return MarkingProgress.NOT_STARTED;
-    } else if (submission.draft) {
-      return MarkingProgress.IN_PROGRESS;
-    } else {
-      return MarkingProgress.COMPLETE;
-    }
-  }
-
   instance: AllocationInstance;
 
   constructor(db: DB, id: string, params: InstanceParams) {
@@ -185,105 +160,5 @@ export class Marker extends User {
     }
 
     throw new Error("User is not a marker for this student");
-  }
-
-  public async writeMarks({
-    unitOfAssessmentId,
-    studentId,
-    draft,
-    marks = {},
-    finalComment = "",
-    recommendation,
-    grade = -1,
-  }: Omit<
-    {
-      unitOfAssessmentId: string;
-      studentId: string;
-      draft: boolean;
-      marks: Record<string, { mark?: number; justification?: string }>;
-      finalComment?: string;
-      recommendation?: boolean;
-      grade?: number;
-    },
-    "markerId"
-  >) {
-    const markerId = this.id;
-    await this.db.$transaction([
-      this.db.unitOfAssessmentSubmission.upsert({
-        where: {
-          ...expand(this.instance.params),
-          uoaSubmissionId: { markerId, studentId, unitOfAssessmentId },
-        },
-        create: {
-          ...expand(this.instance.params),
-          markerId,
-          studentId,
-          unitOfAssessmentId,
-          draft,
-          summary: finalComment,
-          recommendedForPrize: recommendation,
-          grade,
-        },
-        update: {
-          draft,
-          summary: finalComment,
-          recommendedForPrize: recommendation,
-          grade: grade,
-        },
-      }),
-
-      ...Object.entries(marks).map(([markingComponentId, m]) =>
-        this.db.markingComponentSubmission.upsert({
-          where: {
-            markingComponentSubmission: {
-              ...expand(this.instance.params),
-              markerId,
-              studentId,
-              markingComponentId,
-            },
-          },
-          create: {
-            ...expand(this.instance.params),
-            markerId,
-            studentId,
-            markingComponentId,
-            unitOfAssessmentId,
-            grade: m.mark ?? -1,
-            justification: m.justification ?? "",
-          },
-          update: { grade: m.mark, justification: m.justification },
-        }),
-      ),
-    ]);
-  }
-
-  public async writeFinalMark({
-    studentId,
-    unitOfAssessmentId,
-    grade,
-    comment,
-  }: {
-    studentId: string;
-    unitOfAssessmentId: string;
-    grade: number;
-    comment: string;
-  }) {
-    await this.db.unitOfAssessmentGrade.upsert({
-      where: {
-        ...expand(this.instance.params),
-        uoaGradeId: { studentId, unitOfAssessmentId },
-      },
-      create: {
-        ...expand(this.instance.params),
-        studentId,
-        unitOfAssessmentId,
-        comment,
-        grade,
-        status: ConsensusStage.RESOLVED,
-        method: ConsensusMethod.AUTO,
-        submitted: true,
-      },
-      update: { studentId, unitOfAssessmentId, comment, grade },
-    });
   }
 }

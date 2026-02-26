@@ -103,7 +103,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           });
         }
 
-        await user.writeMarks(data);
+        await unit.writeMarks(data);
 
         const student = await instance.getStudent(studentId);
         const { readerId, supervisorId } = await student.getMarkerIds();
