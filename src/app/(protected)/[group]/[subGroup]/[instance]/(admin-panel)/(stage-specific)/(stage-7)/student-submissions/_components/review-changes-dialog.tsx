@@ -225,10 +225,14 @@ export function ReviewChangesDialog({
   open,
   onOpenChange,
 }: ReviewChangesDialogProps) {
-  const { getPendingChanges, rows } = useSubmissions();
+  const { getPendingChangesForFlag, activeFlag, rows, commitFlag } =
+    useSubmissions();
   const [isCommitting, setIsCommitting] = useState(false);
 
-  const changes = useMemo(() => getPendingChanges(), [getPendingChanges]);
+  const changes = useMemo(
+    () => getPendingChangesForFlag(activeFlag),
+    [getPendingChangesForFlag, activeFlag],
+  );
 
   const findStudentName = useMemo(() => {
     const nameMap = keyBy(rows, (r) => r.student.id);
@@ -256,6 +260,8 @@ export function ReviewChangesDialog({
     onOpenChange(false);
     // TODO: wire up tRPC mutations here
     setIsCommitting(false);
+    // TODO: this should only trigger after the tRPC mutation
+    // commitFlag(activeFlag);
   }
 
   return (

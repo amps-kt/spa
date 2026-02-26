@@ -96,6 +96,10 @@ interface SubmissionsContextType {
   /** Which flag tabs currently have pending changes */
   dirtyFlags: Set<string>;
 
+  getPendingChangesForFlag: (flagId: string) => PendingChanges;
+  commitFlag: (flagId: string) => void;
+  resetFlag: (flagId: string) => void;
+
   // --- derived from active filter
 
   /** Rows that match the current flag filter */
@@ -237,7 +241,8 @@ export function SubmissionsProvider({
   );
 
   // stable reference to original data for diffing
-  const [originalData] = useState<StudentSubmissionsRow[]>(data);
+  const [originalData, setOriginalData] =
+    useState<StudentSubmissionsRow[]>(data);
 
   // --- flag filtering
 
@@ -358,8 +363,107 @@ export function SubmissionsProvider({
     [selectedUnitIds, selectedStudentIds, selectionMode, visibleStudents],
   );
 
-  // --- change detection
+  // --- per-flag operations
 
+  const getPendingChangesForFlag = useCallback(
+    (flagId: string): PendingChanges => {
+      const students: PendingStudentChange[] = [];
+      const units: PendingUnitChange[] = [];
+
+      rows.forEach((row, rowIdx) => {
+        if (row.student.flag.id !== flagId) return;
+        const originalRow = originalData[rowIdx];
+        if (!originalRow) return;
+
+        if (row.enrolled !== originalRow.student.enrolled) {
+          students.push({ studentId: row.student.id, enrolled: row.enrolled });
+        }
+
+        row.units.forEach((u, unitIdx) => {
+          const originalUnit = originalRow.unitsOfAssessment[unitIdx];
+          if (!originalUnit) return;
+
+          const changes: Partial<PendingUnitChange> = {};
+          let hasDiff = false;
+
+          if (u.submitted !== originalUnit.submitted) {
+            changes.submitted = u.submitted;
+            hasDiff = true;
+          }
+          if (u.customDueDate !== originalUnit.customDueDate) {
+            changes.customDueDate = u.customDueDate;
+            hasDiff = true;
+          }
+          if (u.customWeight !== originalUnit.customWeight) {
+            changes.customWeight = u.customWeight;
+            hasDiff = true;
+          }
+
+          if (hasDiff) {
+            units.push({
+              studentId: row.student.id,
+              unitId: u.unit.id,
+              ...changes,
+            });
+          }
+        });
+      });
+
+      return { students, units };
+    },
+    [rows, originalData],
+  );
+
+  // after a successful mutation, update the baseline for committed rows so they no longer appear as dirty
+  // instead of fetching the data from the server and diffing it
+  const commitFlag = useCallback(
+    (flagId: string) => {
+      setOriginalData((prev) =>
+        prev.map((orig, i) => {
+          const row = rows[i];
+          if (row.student.flag.id !== flagId) return orig;
+
+          return {
+            student: { ...row.student, enrolled: row.enrolled },
+            unitsOfAssessment: row.units.map((u) => ({
+              unit: u.unit,
+              submitted: u.submitted,
+              customDueDate: u.customDueDate,
+              customWeight: u.customWeight,
+            })),
+          };
+        }),
+      );
+    },
+    [rows],
+  );
+
+  const resetFlag = useCallback(
+    (flagId: string) => {
+      setRows((prev) =>
+        prev.map((row, i) => {
+          if (row.student.flag.id !== flagId) return row;
+          const orig = originalData[i];
+          return {
+            student: orig.student,
+            enrolled: orig.student.enrolled,
+            units: orig.unitsOfAssessment.map((u) => ({
+              unit: u.unit,
+              submitted: u.submitted,
+              customDueDate: u.customDueDate,
+              customWeight: u.customWeight,
+            })),
+          };
+        }),
+      );
+    },
+    [originalData],
+  );
+
+  // --- global change detection
+  /**
+   * @deprecated use `getPendingChangesForFlag` instead
+   */
   const getPendingChanges = useCallback((): PendingChanges => {
     const students: PendingStudentChange[] = [];
     const units: PendingUnitChange[] = [];
@@ -406,9 +510,9 @@ export function SubmissionsProvider({
   }, [rows, originalData]);
 
   const isDirty = useMemo(() => {
-    const { students, units } = getPendingChanges();
+    const { students, units } = getPendingChangesForFlag(activeFlag);
     return students.length > 0 || units.length > 0;
-  }, [getPendingChanges]);
+  }, [getPendingChangesForFlag, activeFlag]);
 
   const dirtyFlags = useMemo(
     () =>
@@ -433,6 +537,9 @@ export function SubmissionsProvider({
       activeFlag,
       setActiveFlag: setActiveFlagAndClearSelection,
       dirtyFlags,
+      getPendingChangesForFlag,
+      commitFlag,
+      resetFlag,
       visibleRows,
       visibleUnitIds,
       visibleUnits,
@@ -457,6 +564,9 @@ export function SubmissionsProvider({
       activeFlag,
       setActiveFlagAndClearSelection,
       dirtyFlags,
+      getPendingChangesForFlag,
+      commitFlag,
+      resetFlag,
       visibleRows,
       visibleUnitIds,
       visibleUnits,
