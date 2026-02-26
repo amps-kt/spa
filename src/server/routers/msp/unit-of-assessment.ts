@@ -112,14 +112,15 @@ export const unitOfAssessmentRouter = createTRPCRouter({
             comment: "",
             grade: result.grade,
           });
-          mailer.notifyMarkingComplete();
+
+          // mailer.notifyMarkingComplete();
 
           return;
         }
 
         if (result.status === MarkSubmissionEvent.FIRST_OF_TWO) {
           // await unit.updateFinalMark(studentId, {status: ConsensusStage.UNRESOLVED}) // <- not necessary?
-          mailer.sendMarkingreceipt();
+          // mailer.sendMarkingreceipt();
 
           return;
         }
@@ -131,7 +132,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
             comment: "",
             grade: result.grade,
           });
-          mailer.notifyMarkingComplete();
+          // mailer.notifyMarkingComplete();
 
           return;
         }
@@ -140,7 +141,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           await unit.updateFinalMark(studentId, {
             status: ConsensusStage.MODERATE,
           });
-          mailer.notifyModeration();
+          // mailer.notifyModeration();
 
           return;
         }
@@ -152,7 +153,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           await unit.updateFinalMark(studentId, {
             status: ConsensusStage.NEGOTIATE,
           });
-          mailer.notifyNegotiate();
+          // mailer.notifyNegotiate();
 
           return;
         }
@@ -173,7 +174,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
           grade: result.grade,
           comment: data.justification,
         });
-        mailer.notifyMarkingComplete();
+        // mailer.notifyMarkingComplete();
 
         return;
       }
@@ -182,7 +183,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         await unit.updateFinalMark(studentId, {
           status: ConsensusStage.MODERATE,
         });
-        mailer.notifyModeration();
+        // mailer.notifyModeration();
 
         return;
       }
@@ -198,7 +199,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         grade: data.grade,
       });
 
-      mailer.notifyMarkingComplete();
+      // mailer.notifyMarkingComplete();
 
       return;
     }),

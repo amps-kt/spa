@@ -1,6 +1,5 @@
 import {
   type AssessmentCriterionDTO,
-  type FullMarkingSubmissionDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
   type AlgorithmDTO,
@@ -16,6 +15,8 @@ import {
   type TagDTO,
   type ComponentScoreDTO,
   type UnitGradeDTO,
+  type MarkingSubmissionDTO,
+  markingSubmissionDtoSchema,
 } from "@/dto";
 
 import {
@@ -60,8 +61,8 @@ export class Transformers {
     data: DB_UnitOfAssessmentSubmission & {
       criterionScores?: DB_MarkingComponentSubmission[];
     },
-  ): FullMarkingSubmissionDTO {
-    return {
+  ): MarkingSubmissionDTO {
+    return markingSubmissionDtoSchema.parse({
       markerId: data.markerId,
       studentId: data.studentId,
       grade: data.grade,
@@ -76,12 +77,16 @@ export class Transformers {
       finalComment: data.summary,
       recommendation: data.recommendedForPrize,
       draft: data.draft,
-    };
+    });
   }
+
   public static toScoreDTO(
     data: DB_MarkingComponentSubmission,
-  ): ComponentScoreDTO {
-    return { mark: data.grade, justification: data.justification };
+  ): Partial<ComponentScoreDTO> {
+    return {
+      mark: data.grade ?? undefined,
+      justification: data.justification ?? undefined,
+    };
   }
 
   public static toAllocationGroupDTO(
