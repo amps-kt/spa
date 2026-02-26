@@ -1,19 +1,21 @@
 import { Grade } from "@/logic/grading";
-import { ConsensusMethod, ConsensusStage } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import z from "zod";
 
 import {
   draftMarkingSubmissionDtoSchema,
   fullMarkingSubmissionDtoSchema,
+  markingSubmissionDtoSchema,
   markOverrideDtoSchema,
   unitGradeDtoSchema,
   unitOfAssessmentDtoSchema,
 } from "@/dto";
 import { MarkSubmissionEvent } from "@/dto/result/grading-result";
 
-import { procedure } from "../../middleware";
-import { createTRPCRouter } from "../../trpc";
+import { ConsensusMethod, ConsensusStage } from "@/db/types";
+
+import { procedure } from "@/server/middleware";
+import { createTRPCRouter } from "@/server/trpc";
 
 export const unitOfAssessmentRouter = createTRPCRouter({
   getMarks: procedure.unitOfAssessment.marker
@@ -21,30 +23,42 @@ export const unitOfAssessmentRouter = createTRPCRouter({
       z.object({
         unit: unitOfAssessmentDtoSchema,
         grade: unitGradeDtoSchema.optional(),
-        marks: z.record(
-          z.string(),
-          z.discriminatedUnion("draft", [
-            draftMarkingSubmissionDtoSchema,
-            fullMarkingSubmissionDtoSchema,
-          ]),
-        ),
+        marks: z.record(z.string(), markingSubmissionDtoSchema),
       }),
     )
-    .mutation(
+    .query(
       async ({ ctx: { unit }, input: { studentId } }) =>
         await unit.getMarks(studentId),
     ),
 
+  // msp/marker/unit getMarksByMarkerId
+  getMarksByMarkerId: procedure.instance.user
+    .input(
+      z.object({
+        studentId: z.string(),
+        markerId: z.string(),
+        unitId: z.string(),
+      }),
+    )
+    .output(markingSubmissionDtoSchema.optional())
+    .query(
+      async ({ ctx: { instance }, input: { studentId, markerId, unitId } }) => {
+        const student = await instance.getStudent(studentId);
+
+        return await student.getMarkerMarksByUnitId({ markerId, unitId });
+      },
+    ),
+
   getConsensus: procedure.unitOfAssessment.user
     .input(z.object({ studentId: z.string(), unitId: z.string() }))
-    .output(z.object({ unitGrade: unitGradeDtoSchema }))
+    .output(unitGradeDtoSchema)
     .query(async ({ ctx: { instance }, input: { studentId, unitId } }) => {
       // TODO check if perm
 
       const student = await instance.getStudent(studentId);
       const unitGrade = await student.unitConsensus({ unitId });
 
-      return { unitGrade };
+      return unitGrade;
     }),
 
   // [#22d3ee] - revisit middleware
@@ -188,25 +202,4 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         return;
       }
     }),
-
-  resolveModeration: procedure.unitOfAssessment.subGroupAdmin
-    .input(z.object({ data: markOverrideDtoSchema }))
-    .mutation(async ({ ctx: { unit }, input: { studentId, data } }) => {
-      await unit.updateFinalMark(studentId, {
-        status: ConsensusStage.RESOLVED,
-        method: ConsensusMethod.MODERATED,
-        comment: data.justification,
-        grade: data.grade,
-      });
-
-      // mailer.notifyMarkingComplete();
-
-      return;
-    }),
-
-  resetMarks: procedure.unitOfAssessment.subGroupAdmin.mutation(
-    async ({ ctx: { unit } }) => {
-      // unit.reset();
-    },
-  ),
 });
