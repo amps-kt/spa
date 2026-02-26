@@ -13,7 +13,7 @@ import {
   StudentGradingLifecycleState,
 } from "@/dto";
 
-import { MarkerType } from "@/db/types";
+import { ConsensusStage, MarkerType } from "@/db/types";
 
 import {
   AccordionContent,
@@ -144,14 +144,19 @@ function ConsensusWrapper({
 }) {
   const { params, studentId } = useMarksheetContext();
 
-  const { status, data } = api.user.newMarker.getConsensusGrade.useQuery({
-    params,
-    studentId,
-    unitId: unit.id,
-  });
+  const { status, data } =
+    api.msp.marker.unitOfAssessment.getConsensus.useQuery({
+      params,
+      studentId,
+      unitId: unit.id,
+    });
 
   if (status !== "success") {
     return <Skeleton className="rounded-lg h-20" />;
+  }
+
+  if (data.status !== ConsensusStage.RESOLVED) {
+    throw new Error("unreachable");
   }
 
   return (
@@ -162,13 +167,13 @@ function ConsensusWrapper({
       <div>
         <div className="flex flex-row justify-between">
           <h1 className="text-lg font-semibold my-4">Consensus:</h1>
-          <ConsensusMethodBadge method={data.unitGrade.method} />
+          <ConsensusMethodBadge method={data.method} />
         </div>
         <div className="flex flex-row items-start gap-5">
           <p className="font-semibold text-secondary text-3xl">
-            {Grade.toLetter(data.unitGrade.grade)}
+            {Grade.toLetter(data.grade)}
           </p>
-          <p className="text-muted-foreground">{data.unitGrade.comment}</p>
+          <p className="text-muted-foreground">{data.comment}</p>
         </div>
       </div>
     </div>

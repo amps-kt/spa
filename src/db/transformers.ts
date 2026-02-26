@@ -1,5 +1,5 @@
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
   type AlgorithmDTO,
@@ -17,6 +17,7 @@ import {
   type UnitGradeDTO,
   type MarkingSubmissionDTO,
   markingSubmissionDtoSchema,
+  unitGradeDtoSchema,
 } from "@/dto";
 
 import {
@@ -247,7 +248,7 @@ export class Transformers {
   public static toAssessmentCriterionDTO(
     this: void,
     data: DB_MarkingComponent,
-  ): AssessmentCriterionDTO {
+  ): MarkingComponentDTO {
     return {
       id: data.id,
       unitOfAssessmentId: data.unitOfAssessmentId,
@@ -284,13 +285,13 @@ export class Transformers {
     this: void,
     data: DB_UnitOfAssessmentGrade,
   ): UnitGradeDTO {
-    return {
+    return unitGradeDtoSchema.parse({
       grade: data.grade,
       comment: data.comment,
       status: data.status,
       method: data.method,
       studentSubmitted: data.submitted,
-    };
+    });
   }
 
   public static toGroupDTO(this: void, group: DB_AllocationGroup): GroupDTO {

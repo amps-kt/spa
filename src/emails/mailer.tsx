@@ -3,7 +3,7 @@ import { type ReactElement } from "react";
 import { PAUL_EMAIL, tag_coordinator } from "@/config/emails";
 
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type ComponentScoreDTO,
   type FullMarkingSubmissionDTO,
   type ProjectDTO,
@@ -100,7 +100,7 @@ export class Mailer {
     project: ProjectDTO;
     student: StudentDTO;
     unit: UnitOfAssessmentDTO;
-    criteria: AssessmentCriterionDTO[];
+    criteria: MarkingComponentDTO[];
     submission: FullMarkingSubmissionDTO;
     marker: UserDTO;
   }) {
@@ -254,7 +254,7 @@ export class Mailer {
     reader: ReaderDTO;
     project: ProjectDTO;
     student: StudentDTO;
-    criteria: AssessmentCriterionDTO[];
+    criteria: MarkingComponentDTO[];
     supervisorSubmission: FullMarkingSubmissionDTO;
     readerSubmission: FullMarkingSubmissionDTO;
     unit: UnitOfAssessmentDTO;
@@ -333,7 +333,7 @@ export class Mailer {
     unit: UnitOfAssessmentDTO;
     supervisor: SupervisorDTO;
     deadline: Date;
-    criteria: AssessmentCriterionDTO[];
+    criteria: MarkingComponentDTO[];
     supervisorSubmission: FullMarkingSubmissionDTO;
     readerSubmission: FullMarkingSubmissionDTO;
     negotiationResult?: ComponentScoreDTO;

@@ -1,10 +1,7 @@
 import { Grade } from "@/logic/grading";
 import { Text, Section, Row, Heading } from "@react-email/components";
 
-import {
-  type AssessmentCriterionDTO,
-  type FullMarkingSubmissionDTO,
-} from "@/dto";
+import { type MarkingComponentDTO, type FullMarkingSubmissionDTO } from "@/dto";
 
 import { FormatPercent } from "@/lib/utils/format-percent";
 
@@ -13,7 +10,7 @@ export function Marksheet({
   criteria,
 }: {
   submission: FullMarkingSubmissionDTO;
-  criteria: AssessmentCriterionDTO[];
+  criteria: MarkingComponentDTO[];
 }) {
   const totalWeight = criteria.reduce((acc, val) => acc + val.weight, 0);
 

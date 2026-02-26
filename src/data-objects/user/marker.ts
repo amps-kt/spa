@@ -12,6 +12,7 @@ import {
   unitToOverall,
   type StudentGradingLifecycleState,
   type UnitGradeDTO,
+  type MarkingSubmissionDTO,
 } from "@/dto/marking";
 import { MarkingProgress } from "@/dto/result/marking-submission-status";
 
@@ -123,7 +124,7 @@ export class Marker extends User {
 
       const unitSubmissions: Record<
         UnitOfAssessmentID,
-        FullMarkingSubmissionDTO[]
+        MarkingSubmissionDTO[]
       > = student.unitSubmissions.reduce(
         (acc, val) => {
           const list = acc[val.unitOfAssessmentId] ?? [];
@@ -132,7 +133,7 @@ export class Marker extends User {
             [val.unitOfAssessmentId]: [...list, T.toMarkingSubmissionDTO(val)],
           };
         },
-        {} as Record<UnitOfAssessmentID, FullMarkingSubmissionDTO[]>,
+        {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
       );
 
       const units = flag.unitsOfAssessment.map((x) => {
@@ -164,172 +165,6 @@ export class Marker extends User {
         units,
       };
     });
-  }
-
-  async getMarkingSubmission(
-    unitOfAssessmentId: string,
-    studentId: string,
-  ): Promise<FullMarkingSubmissionDTO> {
-    const result = await this.db.unitOfAssessmentSubmission.findFirst({
-      where: { markerId: this.id, studentId, unitOfAssessmentId },
-      include: { criterionScores: true },
-    });
-
-    console.log(result);
-
-    if (result) return T.toMarkingSubmissionDTO(result);
-
-    // TODO review if this stays in
-    return {
-      unitOfAssessmentId,
-      studentId,
-      grade: -1,
-      markerId: this.id,
-      draft: false,
-      marks: {},
-      finalComment: "",
-      recommendation: false,
-    };
-  }
-
-  public async getProjectsWithSubmissions(): Promise<
-    {
-      project: ProjectDTO;
-      student: StudentDTO;
-      markerType: MarkerType;
-      unitsOfAssessment: {
-        unit: UnitOfAssessmentDTO;
-        status: MarkingProgress;
-      }[];
-    }[]
-  > {
-    type Ret = Awaited<ReturnType<typeof this.getProjectsWithSubmissions>>;
-    let assignedProjects: Ret = [];
-
-    const markerId = this.id;
-
-    if (await this.isSupervisor(this.instance.params)) {
-      const data = await this.db.studentProjectAllocation.findMany({
-        where: {
-          ...expand(this.instance.params),
-          project: { supervisorId: this.id },
-        },
-        include: {
-          student: {
-            include: {
-              userInInstance: { include: { user: true } },
-              studentFlag: {
-                include: {
-                  unitsOfAssessment: {
-                    where: { allowedMarkerTypes: { has: "SUPERVISOR" } },
-                    include: {
-                      markingComponents: true,
-                      flag: true,
-                      markerSubmissions: { where: { markerId } },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-            },
-          },
-        },
-      });
-
-      assignedProjects = assignedProjects.concat(
-        data.flatMap((a) => ({
-          project: T.toProjectDTO(a.project),
-          student: T.toStudentDTO(a.student),
-          markerType: MarkerType.SUPERVISOR,
-          unitsOfAssessment: a.student.studentFlag.unitsOfAssessment.map(
-            (u) => {
-              const submission = u.markerSubmissions.find(
-                (s) => s.studentId === a.student.userId,
-              );
-
-              const unit = T.toUnitOfAssessmentDTO(u);
-
-              return {
-                unit,
-                status: Marker.computeStatus(
-                  unit,
-                  submission && T.toMarkingSubmissionDTO(submission),
-                ),
-              };
-            },
-          ),
-        })),
-      );
-    }
-
-    if (await this.isReader(this.instance.params)) {
-      const readerAllocations = await this.db.readerProjectAllocation.findMany({
-        where: { ...expand(this.instance.params), readerId: this.id },
-        include: {
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-              studentAllocations: {
-                include: {
-                  student: {
-                    include: {
-                      userInInstance: { include: { user: true } },
-                      studentFlag: {
-                        include: {
-                          unitsOfAssessment: {
-                            include: {
-                              markerSubmissions: true,
-                              flag: true,
-                              markingComponents: true,
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      assignedProjects = assignedProjects.concat(
-        readerAllocations.flatMap(({ project }) => ({
-          project: T.toProjectDTO(project),
-          student: T.toStudentDTO(project.studentAllocations[0].student),
-          markerType: MarkerType.READER,
-          unitsOfAssessment:
-            project.studentAllocations[0].student.studentFlag.unitsOfAssessment.map(
-              (u) => {
-                const submission = u.markerSubmissions.find(
-                  (s) => s.studentId === project.studentAllocations[0].userId,
-                );
-
-                const unit = T.toUnitOfAssessmentDTO(u);
-
-                return {
-                  unit,
-                  status: Marker.computeStatus(
-                    unit,
-                    submission && T.toMarkingSubmissionDTO(submission),
-                  ),
-                };
-              },
-            ),
-        })),
-      );
-    }
-
-    return assignedProjects.sort((a, b) =>
-      a.student.id.localeCompare(b.student.id),
-    );
   }
 
   public async getMarkerType(studentId: string): Promise<MarkerType> {

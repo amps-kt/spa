@@ -2,7 +2,6 @@ import { GRADES } from "@/config/grades";
 
 import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
 import {
-  type FullMarkingSubmissionDTO,
   type MarkingSubmissionDTO,
   type UnitGradeDTO,
   UnitGradingLifecycleState,
@@ -152,7 +151,7 @@ export class Grade {
   public static getUnitStatus(
     unit: UnitOfAssessmentDTO,
     grade: UnitGradeDTO | undefined,
-    submissions: FullMarkingSubmissionDTO[],
+    submissions: MarkingSubmissionDTO[],
     perspectiveUser?: UserDTO,
   ): UnitGradingLifecycleState {
     if (!unit.isOpen) {
@@ -175,14 +174,16 @@ export class Grade {
 
     // grade.status === pending
 
-    if (submissions.length === 0) {
+    const validSubmissions = submissions.filter((s) => !s.draft);
+
+    if (validSubmissions.length === 0) {
       return UnitGradingLifecycleState.REQUIRES_MARKING;
     }
 
-    // #submissions > 0
+    // #validSumbissions > 0
 
     if (perspectiveUser) {
-      const selfSubmitted = submissions.some(
+      const selfSubmitted = validSubmissions.some(
         (x) => perspectiveUser.id === x.markerId,
       );
       if (!selfSubmitted) return UnitGradingLifecycleState.REQUIRES_MARKING;
