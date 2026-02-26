@@ -230,16 +230,18 @@ export function ReviewChangesDialog({
 
   const changes = useMemo(() => getPendingChanges(), [getPendingChanges]);
 
-  // ? shouldn't these be callbacks?
   const findStudentName = useMemo(() => {
     const nameMap = keyBy(rows, (r) => r.student.id);
     return (id: string) => nameMap[id].student.name;
   }, [rows]);
 
-  // ? shouldn't these be callbacks?
   const findUnitTitle = useMemo(() => {
-    const titleMap = keyBy(rows[0].units, (u) => u.unit.id);
-    return (id: string) => titleMap[id].unit.title;
+    const titleMap = keyBy(
+      rows.flatMap((r) => r.units),
+      (u) => u.unit.id,
+      (u) => u.unit.title,
+    );
+    return (id: string) => titleMap[id] ?? id;
   }, [rows]);
 
   const grouped = useMemo(
