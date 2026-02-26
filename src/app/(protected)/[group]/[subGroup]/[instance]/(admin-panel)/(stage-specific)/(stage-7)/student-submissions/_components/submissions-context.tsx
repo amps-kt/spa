@@ -22,6 +22,8 @@ export const customWeightValueSchema = z
 
 export type WeightValue = z.infer<typeof customWeightValueSchema>;
 
+export type SelectionMode = "include" | "exclude";
+
 // Data table rows contain general information about the student, all captures in the StudentDTO
 // and information about the specific uoas they have to be graded on
 // This is just the shape of the data as it gets returned from the server
