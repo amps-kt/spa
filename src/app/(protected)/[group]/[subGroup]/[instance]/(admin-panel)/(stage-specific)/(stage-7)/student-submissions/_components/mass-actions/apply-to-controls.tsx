@@ -9,7 +9,7 @@ import { useSubmissions } from "../submissions-context";
 import { StudentMultiSelect } from "./student-multi-select";
 import { UnitMultiSelect } from "./unit-multi-select";
 
-export function ApplyToSection() {
+export function ApplyToControls() {
   const {
     visibleUnits,
     selectedUnitIds,

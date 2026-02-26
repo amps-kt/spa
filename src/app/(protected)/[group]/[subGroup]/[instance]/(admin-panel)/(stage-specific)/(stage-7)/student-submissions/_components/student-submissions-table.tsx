@@ -21,7 +21,7 @@ import { DueDateCell } from "./cells/due-date-cell";
 import { EnrolledCell } from "./cells/enrolled-cell";
 import { SubmittedCell } from "./cells/submitted-cell";
 import { WeightCell } from "./cells/weight-cell";
-import { ApplyToSection } from "./mass-actions/action-filters";
+import { ApplyToControls } from "./mass-actions/apply-to-controls";
 
 import { FlagTabFilter } from "./flag-tab-filter";
 import { PendingChangesBar } from "./pending-changes-bar";
@@ -339,7 +339,7 @@ export function StudentSubmissionsDataTable({
     <SubmissionsProvider data={data}>
       <div className="flex flex-col gap-8">
         <FlagTabFilter />
-        <ApplyToSection />
+        <ApplyToControls />
         <QuickActionsTabSwitcher />
         <InnerDataTable />
         <PendingChangesBar />
