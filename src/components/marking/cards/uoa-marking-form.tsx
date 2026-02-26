@@ -5,12 +5,13 @@ import { type Control, useForm } from "react-hook-form";
 
 import { Grade } from "@/logic/grading";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type MarkingComponent } from "@prisma/client";
 import { CheckIcon, ChevronsUpDownIcon, SaveIcon } from "lucide-react";
+import { toast } from "sonner";
 
 import { GRADES } from "@/config/grades";
 
 import {
+  type MarkingComponentDTO,
   type MarkingSubmissionDTO,
   markingSubmissionDtoSchema,
   type UnitOfAssessmentDTO,
@@ -50,7 +51,10 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { YesNoAction } from "@/components/yes-no-action";
 
+import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+
+import { useMarksheetContext } from "../marksheet-context";
 
 function formatGrade(grade: number | undefined) {
   if (grade === undefined) return "-";
@@ -62,8 +66,13 @@ export function UoaMarkingForm({
 }: {
   unit: UnitOfAssessmentDTO;
 }) {
-  const saveMarks = undefined;
-  const submitMarks = undefined;
+  const { params } = useMarksheetContext();
+
+  const { mutateAsync: saveMarks } =
+    api.msp.marker.unitOfAssessment.saveMarks.useMutation();
+
+  const { mutateAsync: submitMarks } =
+    api.msp.marker.unitOfAssessment.submitMarks.useMutation();
 
   const form = useForm<MarkingSubmissionDTO>({
     resolver: zodResolver(markingSubmissionDtoSchema),
@@ -80,11 +89,33 @@ export function UoaMarkingForm({
 
   const handleSubmit = form.handleSubmit((data: MarkingSubmissionDTO) => {
     if (data.draft) {
-      console.log("Saved as draft", data);
-      // ...
+      void toast.promise(
+        saveMarks({
+          params,
+          studentId: data.studentId,
+          unitId: data.unitOfAssessmentId,
+          data,
+        }),
+        {
+          loading: `Saving draft marks...`,
+          success: `Draft marks saved`,
+          error: "Something went wrong",
+        },
+      );
     } else {
-      console.log("Submitted!", data);
-      // ...
+      void toast.promise(
+        submitMarks({
+          params,
+          studentId: data.studentId,
+          unitId: data.unitOfAssessmentId,
+          data,
+        }),
+        {
+          loading: `Submitting marks...`,
+          success: `Marks submitted`,
+          error: "Something went wrong",
+        },
+      );
     }
   });
 
@@ -218,7 +249,7 @@ function ComponentMarkInput({
   computeOverall,
 }: {
   control: Control<MarkingSubmissionDTO>;
-  component: MarkingComponent;
+  component: MarkingComponentDTO;
   computeOverall: () => void;
 }) {
   return (

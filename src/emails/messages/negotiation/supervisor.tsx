@@ -14,7 +14,7 @@ import { env } from "@/env";
 import { Button, Hr, Section, Text, Heading } from "@react-email/components";
 
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
@@ -32,7 +32,7 @@ interface Props {
   reader: ReaderDTO;
   student: StudentDTO;
   unit: UnitOfAssessmentDTO;
-  criteria: AssessmentCriterionDTO[];
+  criteria: MarkingComponentDTO[];
   supervisorSubmission: FullMarkingSubmissionDTO;
   readerSubmission: FullMarkingSubmissionDTO;
   params: InstanceParams;
