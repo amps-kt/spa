@@ -15,40 +15,33 @@ import {
 
 import { cn } from "@/lib/utils";
 
-import { type SelectionMode, useSubmissions } from "../submissions-context";
+import { useSubmissions } from "../submissions-context";
 
 export function ChangeDeadlineAction() {
-  const { batchUpdateUnits, visibleStudents } = useSubmissions();
+  const {
+    batchUpdateUnits,
+    visibleStudents,
+    selectedStudentIds,
+    selectionMode,
+    hasValidSelection,
+  } = useSubmissions();
 
-  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [selectionMode] = useState<SelectionMode>("include");
   const [newDate, setNewDate] = useState<Date | undefined>();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-
-  const confirmDisabled =
-    selectedUnitIds.length === 0 ||
-    !newDate ||
-    (selectionMode === "include" && selectedStudentIds.length === 0);
-
-  function handleConfirm() {
-    if (!newDate) return;
-    batchUpdateUnits(selectedUnitIds, selectedStudentIds, selectionMode, {
-      customDueDate: newDate,
-    });
-    // reset form after applying
-    setSelectedUnitIds([]);
-    setSelectedStudentIds([]);
-    setNewDate(undefined);
-  }
 
   const affectedCount =
     selectionMode === "exclude"
       ? visibleStudents.length - selectedStudentIds.length
       : selectedStudentIds.length;
 
+  function handleConfirm() {
+    if (!newDate) return;
+    batchUpdateUnits({ customDueDate: newDate });
+    setNewDate(undefined);
+  }
+
   return (
-    <div className="rounded-lg border bg-card p-4 space-y-4 flex justify-around items-center gap-x-5">
+    <div className="flex items-center justify-around gap-x-5 rounded-lg border bg-card p-4">
       <div className="space-y-1.5">
         <label className="text-sm font-medium">New Due Date</label>
         <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
@@ -81,7 +74,7 @@ export function ChangeDeadlineAction() {
       <Button
         size="sm"
         className="w-96"
-        disabled={confirmDisabled}
+        disabled={!hasValidSelection || !newDate}
         onClick={handleConfirm}
       >
         Update deadline for {affectedCount} student
