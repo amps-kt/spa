@@ -174,6 +174,7 @@ export function useSubmissions() {
   return ctx;
 }
 
+// ? maybe we should error if the find fails so we don't have to deal with the undefined case everywhere?
 export function useRowState(studentId: string): StudentRowState | undefined {
   const { rows } = useSubmissions();
   return rows.find((r) => r.student.id === studentId);
