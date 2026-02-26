@@ -24,6 +24,7 @@ import { WeightCell } from "./cells/weight-cell";
 import { ApplyToSection } from "./mass-actions/action-filters";
 
 import { FlagTabFilter } from "./flag-tab-filter";
+import { PendingChangesBar } from "./pending-changes-bar";
 import {
   SubmissionsProvider,
   useSubmissions,
@@ -341,6 +342,7 @@ export function StudentSubmissionsDataTable({
         <ApplyToSection />
         <QuickActionsTabSwitcher />
         <InnerDataTable />
+        <PendingChangesBar />
       </div>
     </SubmissionsProvider>
   );
