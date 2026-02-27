@@ -20,7 +20,7 @@ import { sortPreferenceType } from "@/lib/utils/sorting/by-preference-type";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { Grade } from "../../logic/grading";
+import { Grade } from "@/logic/grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
