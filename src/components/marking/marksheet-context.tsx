@@ -10,6 +10,7 @@ interface MarksheetContextType {
   reader: ReaderDTO;
   supervisor: SupervisorDTO;
   studentId: string;
+  markerId: string;
   params: InstanceParams;
 }
 
@@ -21,12 +22,13 @@ export function MarksheetContextProvider({
   reader,
   supervisor,
   studentId,
+  markerId,
   params,
   children,
 }: { children: ReactNode } & MarksheetContextType) {
   return (
     <marksheetContext.Provider
-      value={{ reader, supervisor, studentId, params }}
+      value={{ reader, supervisor, studentId, markerId, params }}
     >
       {children}
     </marksheetContext.Provider>

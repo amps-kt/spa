@@ -66,8 +66,9 @@ export class Transformers {
     return markingSubmissionDtoSchema.parse({
       markerId: data.markerId,
       studentId: data.studentId,
-      grade: data.grade,
+      grade: data.grade ?? undefined,
       unitOfAssessmentId: data.unitOfAssessmentId,
+      // ? Does this mean you sometimes won't fetch everything?
       marks: (data.criterionScores ?? []).reduce(
         (acc, val) => ({
           ...acc,
@@ -75,7 +76,7 @@ export class Transformers {
         }),
         {},
       ),
-      finalComment: data.summary,
+      finalComment: data.summary ?? undefined,
       recommendation: data.recommendedForPrize,
       draft: data.draft,
     });

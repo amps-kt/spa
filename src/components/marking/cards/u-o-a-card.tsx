@@ -105,7 +105,14 @@ function SingleMarkerUnit({
   status: UnitGradingLifecycleState;
   markerType: MarkerType;
 }) {
+  const { params, studentId, markerId } = useMarksheetContext();
   const realStatus = unitToOverall(status);
+
+  const { data: initialValues, status: queryStatus } =
+    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery(
+      { params, studentId, unitId: unit.id, markerId },
+      { enabled: realStatus === StudentGradingLifecycleState.ACTION_REQUIRED },
+    );
 
   // Pin [#e11d48] Rework with match utility?
 
@@ -131,7 +138,10 @@ function SingleMarkerUnit({
   }
 
   if (realStatus === StudentGradingLifecycleState.ACTION_REQUIRED) {
-    return <UoaMarkingForm unit={unit} />;
+    if (queryStatus === "pending") {
+      return <Skeleton className="h-60 rounded-lg" />;
+    }
+    return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
   }
 }
 
@@ -187,6 +197,7 @@ function DoubleMarkUnit({
   unit: UnitOfAssessmentDTO;
   status: UnitGradingLifecycleState;
 }) {
+  // ! not done
   const markerType = "READER";
 
   // Pin [#e11d48] Rework with match utility?
@@ -236,8 +247,24 @@ function DoubleMarkUnit({
   }
 
   if (status === UnitGradingLifecycleState.REQUIRES_MARKING) {
-    return <UoaMarkingForm unit={unit} />;
+    <UoaMarkingLoader unit={unit} />;
   }
+}
+
+function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
+  const { params, studentId, markerId } = useMarksheetContext();
+
+  const { data: initialValues, status: queryStatus } =
+    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery({
+      params,
+      studentId,
+      unitId: unit.id,
+      markerId,
+    });
+  if (queryStatus === "pending") {
+    return <Skeleton className="h-60 rounded-lg" />;
+  }
+  return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
 }
 
 function NegotiationWrapper({
