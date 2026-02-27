@@ -10,6 +10,7 @@ import { Transformers as T } from "@/db/transformers";
 import { type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
+import { keyBy } from "@/lib/utils/general/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { DataObject } from "./data-object";
@@ -61,9 +62,9 @@ export class UnitOfAssessment extends DataObject {
 
     const grade = data.grades.at(0);
 
-    const marks = data.markerSubmissions.reduce(
-      (acc, val) => ({ ...acc, [val.markerId]: val }),
-      {},
+    const marks = keyBy(
+      data.markerSubmissions.map(T.toMarkingSubmissionDTO),
+      (s) => s.markerId,
     );
 
     return {
@@ -71,19 +72,6 @@ export class UnitOfAssessment extends DataObject {
       grade: grade && T.toUnitGradeDTO(grade),
       marks,
     };
-  }
-
-  public async getConsensus({
-    studentId,
-  }: {
-    studentId: string;
-  }): Promise<UnitGradeDTO> {
-    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
-      where: { uoaGradeId: { studentId, unitOfAssessmentId: this.id } },
-    });
-
-    // if (grade === null) return undefined;
-    return T.toUnitGradeDTO(grade);
   }
 
   public async writeMarks({
@@ -139,14 +127,7 @@ export class UnitOfAssessment extends DataObject {
 
   public async updateFinalMark(studentId: string, newData: FinalMarkingResult) {
     await this.db.unitOfAssessmentGrade.upsert({
-      where: {
-        uoaGradeId: {
-          // ! check if this also blows up
-          // ...expand(this.instance.params),
-          unitOfAssessmentId: this.id,
-          studentId,
-        },
-      },
+      where: { uoaGradeId: { unitOfAssessmentId: this.id, studentId } },
       create: {
         ...expand(this.instance.params),
         unitOfAssessmentId: this.id,

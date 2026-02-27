@@ -166,7 +166,6 @@ export const allocationMethodSchema = z.enum([
   DB_AllocationMethod.RANDOM,
 ]);
 
-// Taking applications for literally any other name
 export const consensusStageSchema = z.enum([
   ConsensusStage.RESOLVED,
   ConsensusStage.UNRESOLVED,

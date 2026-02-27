@@ -49,17 +49,32 @@ export const unitOfAssessmentRouter = createTRPCRouter({
       },
     ),
 
-  getConsensus: procedure.unitOfAssessment.user
+  getConsensus: procedure.unitOfAssessment.marker
     .input(z.object({ studentId: z.string(), unitId: z.string() }))
     .output(unitGradeDtoSchema)
-    .query(async ({ ctx: { instance }, input: { studentId, unitId } }) => {
-      // TODO check if perm
+    .query(
+      async ({
+        ctx: { instance, user },
+        input: { studentId, unitId, params },
+      }) => {
+        const isAdmin = await user.isSubGroupAdminOrBetter(params);
+        const markerType = await user.getMarkerType(studentId);
+        const { allowedMarkerTypes } =
+          await instance.getUnitOfAssessment(unitId);
 
-      const student = await instance.getStudent(studentId);
-      const unitGrade = await student.unitConsensus({ unitId });
+        if (!allowedMarkerTypes.includes(markerType) && !isAdmin) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User is not correct marker type",
+          });
+        }
 
-      return unitGrade;
-    }),
+        const student = await instance.getStudent(studentId);
+        const unitGrade = await student.getUnitGrade({ unitId });
+
+        return unitGrade;
+      },
+    ),
 
   // [#22d3ee] - revisit middleware
   saveMarks: procedure.unitOfAssessment.marker
@@ -112,7 +127,8 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         const { marks } = await unit.getMarks(studentId);
 
         const supervisorSubmission = marks[supervisorId];
-        const readerSubmission = marks[readerId];
+        const readerSubmission =
+          readerId === undefined ? undefined : marks[readerId];
 
         const result = Grade.handleSubmission(
           allowedMarkerTypes,
@@ -134,7 +150,9 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         }
 
         if (result.status === MarkSubmissionEvent.FIRST_OF_TWO) {
-          // await unit.updateFinalMark(studentId, {status: ConsensusStage.UNRESOLVED}) // <- not necessary?
+          await unit.updateFinalMark(studentId, {
+            status: ConsensusStage.UNRESOLVED,
+          });
           // mailer.sendMarkingreceipt();
 
           return;
