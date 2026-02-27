@@ -98,10 +98,7 @@ export class UnitOfAssessment extends DataObject {
     const unitOfAssessmentId = this.id;
     await this.db.$transaction([
       this.db.unitOfAssessmentSubmission.upsert({
-        where: {
-          ...expand(this.instance.params),
-          uoaSubmissionId: { markerId, studentId, unitOfAssessmentId },
-        },
+        where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
         create: {
           ...expand(this.instance.params),
           markerId,
@@ -120,7 +117,6 @@ export class UnitOfAssessment extends DataObject {
           this.db.markingComponentSubmission.upsert({
             where: {
               markingComponentSubmission: {
-                ...expand(this.instance.params),
                 markerId,
                 studentId,
                 markingComponentId,
@@ -145,7 +141,8 @@ export class UnitOfAssessment extends DataObject {
     await this.db.unitOfAssessmentGrade.upsert({
       where: {
         uoaGradeId: {
-          ...expand(this.instance.params),
+          // ! check if this also blows up
+          // ...expand(this.instance.params),
           unitOfAssessmentId: this.id,
           studentId,
         },
