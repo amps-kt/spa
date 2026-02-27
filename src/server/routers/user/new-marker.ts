@@ -66,6 +66,7 @@ export const newMarkerRouter = createTRPCRouter({
       const student = await instance.getStudent(studentId);
 
       const studentData = await student.get();
+      // todo: this needs some tlc
       const markerType = isAdmin
         ? undefined
         : await user

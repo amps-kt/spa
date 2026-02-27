@@ -7,6 +7,9 @@ import {
   type UnitGradingLifecycleState,
 } from "@/dto";
 
+import { MarkerType } from "@/db/types";
+
+import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Heading } from "../heading";
@@ -33,6 +36,10 @@ export async function Marksheet({
   supervisor: SupervisorDTO;
   reader: ReaderDTO;
 }) {
+  const user = await api.user.get();
+  const userMarkerType =
+    supervisor.id === user.id ? MarkerType.SUPERVISOR : MarkerType.READER;
+
   return (
     <div>
       <Heading className="mb-10">
@@ -43,11 +50,16 @@ export async function Marksheet({
         supervisor={supervisor}
         params={params}
         studentId={student.id}
+        markerId={user.id}
       >
         <Accordion type="multiple" className="space-y-5">
-          {units.map((data) => (
-            <UOACard key={data.unit.id} {...data} />
-          ))}
+          {units
+            // ! this filtering should be handled on the server
+            // it kinda happens, but I don't think the logic is right
+            .filter((u) => u.unit.allowedMarkerTypes.includes(userMarkerType))
+            .map((data) => (
+              <UOACard key={data.unit.id} {...data} status="REQUIRES_MARKING" />
+            ))}
         </Accordion>
       </MarksheetContextProvider>
     </div>
