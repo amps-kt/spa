@@ -105,17 +105,9 @@ function SingleMarkerUnit({
   status: UnitGradingLifecycleState;
   markerType: MarkerType;
 }) {
-  const { params, studentId, markerId } = useMarksheetContext();
   const realStatus = unitToOverall(status);
 
-  const { data: initialValues, status: queryStatus } =
-    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery(
-      { params, studentId, unitId: unit.id, markerId },
-      { enabled: realStatus === StudentGradingLifecycleState.ACTION_REQUIRED },
-    );
-
   // Pin [#e11d48] Rework with match utility?
-
   if (realStatus === StudentGradingLifecycleState.PENDING) {
     // Singly marked units cannot be pending
     throw new Error("cannot be pending");
@@ -138,10 +130,7 @@ function SingleMarkerUnit({
   }
 
   if (realStatus === StudentGradingLifecycleState.ACTION_REQUIRED) {
-    if (queryStatus === "pending") {
-      return <Skeleton className="h-60 rounded-lg" />;
-    }
-    return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
+    <UoaMarkingLoader unit={unit} />;
   }
 }
 
@@ -166,7 +155,9 @@ function ConsensusWrapper({
   }
 
   if (data.status !== ConsensusStage.RESOLVED) {
-    throw new Error("unreachable");
+    throw new Error(
+      "ConsensusWrapper should not be called if ConsensusStage != RESOLVED",
+    );
   }
 
   return (

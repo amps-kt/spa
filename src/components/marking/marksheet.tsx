@@ -53,13 +53,9 @@ export async function Marksheet({
         markerId={user.id}
       >
         <Accordion type="multiple" className="space-y-5">
-          {units
-            // ! this filtering should be handled on the server
-            // it kinda happens, but I don't think the logic is right
-            .filter((u) => u.unit.allowedMarkerTypes.includes(userMarkerType))
-            .map((data) => (
-              <UOACard key={data.unit.id} {...data} status="REQUIRES_MARKING" />
-            ))}
+          {units.map((data) => (
+            <UOACard key={data.unit.id} {...data} />
+          ))}
         </Accordion>
       </MarksheetContextProvider>
     </div>
