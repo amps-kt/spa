@@ -23,3 +23,5 @@ export const GRADES = [
   { label: "G2", value: 1 },
   { label: "H", value: 0 },
 ];
+
+export const MIN_PASSING_GRADE = "D3";
