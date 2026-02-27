@@ -1,3 +1,5 @@
+import { Grade } from "@/logic/grading";
+
 import {
   type StudentDTO,
   type ProjectDTO,
@@ -20,7 +22,6 @@ import { sortPreferenceType } from "@/lib/utils/sorting/by-preference-type";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { Grade } from "@/logic/grading";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
@@ -506,7 +507,7 @@ export class Student extends User {
     });
   }
 
-  async getMarkerIds(): Promise<{ readerId: string; supervisorId: string }> {
+  async getMarkerIds(): Promise<{ readerId?: string; supervisorId: string }> {
     const spa = await this.db.studentProjectAllocation.findFirstOrThrow({
       where: { ...expand(this.instance.params), student: { userId: this.id } },
       select: {
@@ -520,7 +521,7 @@ export class Student extends User {
     });
 
     const supervisorId = spa.project.supervisorId;
-    const readerId = spa.project.readerAllocations[0].readerId;
+    const readerId = spa.project.readerAllocations.at(0)?.readerId;
 
     return { supervisorId, readerId };
   }
@@ -550,7 +551,7 @@ export class Student extends User {
     return T.toMarkingSubmissionDTO(data);
   }
 
-  public async unitConsensus({
+  public async getUnitGrade({
     unitId,
   }: {
     unitId: string;

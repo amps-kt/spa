@@ -121,9 +121,12 @@ export class Grade {
     readerSubmission?: MarkingSubmissionDTO,
   ): MarkSubmissionEventResult {
     if (allowedMarkerTypes.length === 1) {
-      const { grade } = (allowedMarkerTypes[0] === MarkerType.SUPERVISOR
-        ? supervisorSubmission
-        : readerSubmission) ?? { grade: undefined };
+      const submission =
+        allowedMarkerTypes[0] === MarkerType.SUPERVISOR
+          ? supervisorSubmission
+          : readerSubmission;
+
+      const { grade } = submission ?? { grade: undefined };
 
       if (grade === undefined) {
         throw new Error("Bad grade type passed to single-marked unit");
