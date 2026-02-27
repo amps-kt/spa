@@ -1,4 +1,4 @@
-import { GRADES } from "@/config/grades";
+import { GRADES, MIN_PASSING_GRADE } from "@/config/grades";
 
 import { type UserDTO, type UnitOfAssessmentDTO } from "@/dto";
 import {
@@ -73,7 +73,7 @@ export class Grade {
   }
 
   public static isFailing(grade: number): boolean {
-    return grade < this.toInt("D3");
+    return grade < this.toInt(MIN_PASSING_GRADE);
   }
 
   public static isExtreme(grade: number): boolean {
