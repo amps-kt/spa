@@ -88,10 +88,13 @@ export class Grade {
     }
   }
 
-  public static autoResolve(
-    supervisorGrade: number,
-    readerGrade: number,
-  ): AutoResolveResult {
+  public static autoResolve({
+    supervisorGrade,
+    readerGrade,
+  }: {
+    supervisorGrade: number;
+    readerGrade: number;
+  }): AutoResolveResult {
     const diff = Math.abs(supervisorGrade - readerGrade);
 
     if (diff <= 1) {
@@ -139,7 +142,10 @@ export class Grade {
       return { status: MarkSubmissionEvent.FIRST_OF_TWO };
     }
 
-    return this.autoResolve(supervisorSubmission.grade, readerSubmission.grade);
+    return this.autoResolve({
+      supervisorGrade: supervisorSubmission.grade,
+      readerGrade: readerSubmission.grade,
+    });
   }
 
   public static handleNegotiationResolution(
