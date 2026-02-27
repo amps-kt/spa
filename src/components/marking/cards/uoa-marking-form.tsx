@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { type Control, useForm } from "react-hook-form";
 
 import { Grade } from "@/logic/grading";
@@ -62,11 +62,13 @@ function formatGrade(grade: number | undefined) {
 }
 
 export function UoaMarkingForm({
-  unit: { components },
+  unit: { components, id: unitOfAssessmentId },
+  initialValues,
 }: {
   unit: UnitOfAssessmentDTO;
+  initialValues?: MarkingSubmissionDTO;
 }) {
-  const { params } = useMarksheetContext();
+  const { params, studentId, markerId } = useMarksheetContext();
 
   const { mutateAsync: saveMarks } =
     api.msp.marker.unitOfAssessment.saveMarks.useMutation();
@@ -77,25 +79,19 @@ export function UoaMarkingForm({
   const form = useForm<MarkingSubmissionDTO>({
     resolver: zodResolver(markingSubmissionDtoSchema),
     reValidateMode: "onBlur",
-    defaultValues: {
+    defaultValues: initialValues ?? {
       draft: true,
-      finalComment: "",
-      markerId: "jake",
-      studentId: "john",
-      unitOfAssessmentId: "doobery",
       recommendation: false,
+      markerId,
+      studentId,
+      unitOfAssessmentId,
     },
   });
 
   const handleSubmit = form.handleSubmit((data: MarkingSubmissionDTO) => {
     if (data.draft) {
       void toast.promise(
-        saveMarks({
-          params,
-          studentId: data.studentId,
-          unitId: data.unitOfAssessmentId,
-          data,
-        }),
+        saveMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
         {
           loading: `Saving draft marks...`,
           success: `Draft marks saved`,
@@ -104,12 +100,7 @@ export function UoaMarkingForm({
       );
     } else {
       void toast.promise(
-        submitMarks({
-          params,
-          studentId: data.studentId,
-          unitId: data.unitOfAssessmentId,
-          data,
-        }),
+        submitMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
         {
           loading: `Submitting marks...`,
           success: `Marks submitted`,
@@ -128,11 +119,10 @@ export function UoaMarkingForm({
       score: marks[c.id].mark!,
     }));
 
-    const grade = Grade.weightedAverage(scores);
-    form.setValue("grade", grade, { shouldValidate: true });
+    form.setValue("grade", Grade.weightedAverage(scores), {
+      shouldValidate: true,
+    });
   }, [components, form]);
-
-  useEffect(computeOverall, [computeOverall]);
 
   const grade = form.watch("grade");
   const draft = form.watch("draft");
@@ -164,8 +154,7 @@ export function UoaMarkingForm({
               {formatGrade(grade)}
             </p>
           </div>
-
-          {components.length > 1 ? (
+          {components.length > 1 && (
             <FormField
               control={form.control}
               name="finalComment"
@@ -178,11 +167,12 @@ export function UoaMarkingForm({
                   <FormControl>
                     <Textarea {...field} />
                   </FormControl>
+                  <div className="h-6">
+                    <FormMessage />
+                  </div>
                 </FormItem>
               )}
             />
-          ) : (
-            <Fragment />
           )}
           <div className="flex flex-row gap-2 items-center">
             <p className="text-muted-foreground w-3/4 mr-auto">
@@ -207,7 +197,9 @@ export function UoaMarkingForm({
                       className="mb-0"
                       // Inverted here since 'on' needs to indicate 'final', rather than draft
                       checked={!field.value}
-                      onCheckedChange={(v) => field.onChange(!v)}
+                      onCheckedChange={(v) => {
+                        field.onChange(!v);
+                      }}
                     />
                   </FormControl>
                 </FormItem>
@@ -221,7 +213,7 @@ export function UoaMarkingForm({
             ) : (
               <YesNoAction
                 disabled={!form.formState.isValid}
-                action={handleSubmit}
+                action={() => void handleSubmit()}
                 trigger={
                   <Button>
                     Save <SaveIcon className="size-4 ml-2" />
