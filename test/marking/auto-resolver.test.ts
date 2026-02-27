@@ -16,25 +16,25 @@ const D3 = Grade.toInt(MIN_PASSING_GRADE);
 
 void describe("Autoresolve", () => {
   test("A1 A1 Moderate", () => {
-    const res = Grade.autoResolve(A1, A1);
+    const res = Grade.autoResolve({ supervisorGrade: A1, readerGrade: A1 });
 
     expect(res.status === GradingResult.MODERATE);
   });
 
   test("A1 A2 Moderate", () => {
-    const res = Grade.autoResolve(A1, A2);
+    const res = Grade.autoResolve({ supervisorGrade: A1, readerGrade: A2 });
 
     expect(res.status === GradingResult.MODERATE);
   });
 
   test("A2 A1 Auto A2", () => {
-    const res = Grade.autoResolve(A2, A1);
+    const res = Grade.autoResolve({ supervisorGrade: A2, readerGrade: A1 });
 
     expect(res.status === GradingResult.AUTO_RESOLVED && res.grade === A2);
   });
 
   test("H H Moderate", () => {
-    const res = Grade.autoResolve(H, H);
+    const res = Grade.autoResolve({ supervisorGrade: H, readerGrade: H });
 
     expect(res.status === GradingResult.MODERATE);
   });
@@ -42,8 +42,11 @@ void describe("Autoresolve", () => {
   void describe("properties", () => {
     test("Fail Moderate", () => {
       assert(
-        property(integer({ max: D3 - 1 }), (g) => {
-          const res = Grade.autoResolve(g, g);
+        property(integer({ max: D3 - 1 }), (grade) => {
+          const res = Grade.autoResolve({
+            supervisorGrade: grade,
+            readerGrade: grade,
+          });
 
           return res.status === GradingResult.MODERATE;
         }),
@@ -53,7 +56,10 @@ void describe("Autoresolve", () => {
     test("Diff +1 always OK", () => {
       assert(
         property(integer({ min: D3, max: A2 }), (grade) => {
-          const res = Grade.autoResolve(grade, grade + 1);
+          const res = Grade.autoResolve({
+            supervisorGrade: grade,
+            readerGrade: grade + 1,
+          });
           return (
             res.status === GradingResult.AUTO_RESOLVED && res.grade === grade
           );
@@ -64,7 +70,10 @@ void describe("Autoresolve", () => {
     test("Diff -1 always OK", () => {
       assert(
         property(integer({ min: D3, max: A2 }), (grade) => {
-          const res = Grade.autoResolve(grade, grade - 1);
+          const res = Grade.autoResolve({
+            supervisorGrade: grade,
+            readerGrade: grade - 1,
+          });
           return (
             res.status === GradingResult.AUTO_RESOLVED && res.grade === grade
           );
@@ -75,7 +84,10 @@ void describe("Autoresolve", () => {
     test("Diff +2 OK iff no band diff", () => {
       assert(
         property(integer({ min: D3, max: A3 }), (grade) => {
-          const res = Grade.autoResolve(grade, grade + 2);
+          const res = Grade.autoResolve({
+            supervisorGrade: grade,
+            readerGrade: grade + 2,
+          });
           if (Grade.haveMajorBandDifference(grade, grade + 2)) {
             return res.status === GradingResult.NEGOTIATE1;
           } else {
