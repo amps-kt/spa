@@ -70,7 +70,7 @@ export function WeightCell({
     if (e.key === "Escape") cancel();
   }
 
-  const displayValue = value === "MV" ? "MV" : String(value);
+  const displayValue = (value === "MV" || value === 0) ? "MV" : String(value);
 
   if (editing) {
     return (
