@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
 
@@ -32,9 +33,15 @@ export function FlagTabFilter({ className }: { className?: string }) {
           )}
           onClick={() => setActiveFlag(flag.id)}
         >
-          {flag.displayName}
-          {flag.id !== activeFlag && dirtyFlags.has(flag.id) && (
-            <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-indigo-500" />
+          {flag.id !== activeFlag && dirtyFlags.has(flag.id) ? (
+            <WithTooltip tip="You have unsaved changes in this tab">
+              <p>
+                {flag.displayName}
+                <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-indigo-500" />
+              </p>
+            </WithTooltip>
+          ) : (
+            <p>{flag.displayName}</p>
           )}
         </Button>
       ))}

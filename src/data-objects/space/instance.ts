@@ -86,7 +86,13 @@ export class AllocationInstance extends DataObject {
     const flagData = await this.db.flag.findMany({
       where: expand(this.params),
       include: {
-        unitsOfAssessment: { include: { flag: true, markingComponents: true } },
+        unitsOfAssessment: {
+          include: { flag: true, markingComponents: true },
+          orderBy: [
+            { defaultStudentSubmissionDeadline: "asc" },
+            { title: "asc" },
+          ],
+        },
       },
     });
 

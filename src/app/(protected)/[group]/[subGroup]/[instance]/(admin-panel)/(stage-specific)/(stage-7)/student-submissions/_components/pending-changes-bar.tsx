@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { FileDiffIcon, RotateCcwIcon } from "lucide-react";
 
@@ -37,10 +37,17 @@ export function PendingChangesBar() {
     useSubmissions();
   const [reviewOpen, setReviewOpen] = useState(false);
 
-  if (!isDirty) return null;
+  const pendingChanges = useMemo(
+    () => getPendingChangesForFlag(activeFlag),
+    [activeFlag, getPendingChangesForFlag],
+  );
 
-  const pendingChanges = getPendingChangesForFlag(activeFlag);
-  const totalChanges = countFieldChanges(pendingChanges);
+  const totalChanges = useMemo(
+    () => countFieldChanges(pendingChanges),
+    [pendingChanges],
+  );
+
+  if (!isDirty) return null;
 
   return (
     <>

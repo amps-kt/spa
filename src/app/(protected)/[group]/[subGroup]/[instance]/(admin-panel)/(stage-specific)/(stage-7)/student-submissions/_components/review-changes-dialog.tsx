@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 
 import { format } from "date-fns";
 import {
@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { keyBy } from "@/lib/utils/key-by";
 
 import {
+  StudentRowState,
   useSubmissions,
   type PendingChanges,
   type PendingUnitChange,
@@ -41,7 +42,8 @@ type PendingUnitChangeDisplay = PendingUnitChange & { unitTitle: string };
 interface ChangesGroupedByStudent {
   studentId: string;
   studentName: string;
-  enrolmentChange?: boolean; // ???? this is whether the enrolled status changed right?, not what it has changed to
+  /** undefined == no change */
+  newEnrollmentValue?: boolean;
   unitChanges: PendingUnitChangeDisplay[];
 }
 
@@ -50,17 +52,16 @@ function groupChangesByStudent(
   findStudentName: (id: string) => string,
   findUnitTitle: (id: string) => string,
 ): ChangesGroupedByStudent[] {
-  const record = changes.students.reduce(
-    (acc, s) => ({
-      ...acc,
-      [s.studentId]: {
+  const record = keyBy(
+    changes.students,
+    (s) => s.studentId,
+    (s) =>
+      ({
         studentId: s.studentId,
         studentName: findStudentName(s.studentId),
-        enrolmentChange: s.enrolled,
+        newEnrollmentValue: s.enrolled,
         unitChanges: [],
-      },
-    }),
-    {} as Record<string, ChangesGroupedByStudent>,
+      }) as ChangesGroupedByStudent,
   );
 
   for (const u of changes.units) {
@@ -121,7 +122,7 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
   const [open, setOpen] = useState(false);
 
   const changeCount =
-    (group.enrolmentChange !== undefined ? 1 : 0) +
+    (group.newEnrollmentValue !== undefined ? 1 : 0) +
     group.unitChanges.reduce((sum, u) => {
       let fields = 0;
       if (u.submitted !== undefined) fields++;
@@ -135,7 +136,9 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
       <CollapsibleTrigger asChild>
         <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
           <div className="flex items-center gap-2">
-            <span className="font-medium">{group.studentName}</span>
+            <span className="font-medium truncate max-w-64">
+              {group.studentName}
+            </span>
             <span className="text-xs text-muted-foreground">
               {group.studentId}
             </span>
@@ -155,11 +158,11 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="space-y-1 px-3 pb-2 pt-1">
-          {group.enrolmentChange !== undefined && (
+          {group.newEnrollmentValue !== undefined && (
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <UserIcon className="h-3 w-3" />
-                {group.enrolmentChange
+                {group.newEnrollmentValue
                   ? "Will be re-enrolled"
                   : "Will be un-enrolled"}
               </span>
@@ -231,19 +234,25 @@ export function ReviewChangesDialog({
     [getPendingChangesForFlag, activeFlag],
   );
 
-  const findStudentName = useMemo(() => {
-    const nameMap = keyBy(rows, (r) => r.student.id);
-    return (id: string) => nameMap[id].student.name;
-  }, [rows]);
+  const findStudentName = useCallback(
+    (id: string) => {
+      const nameMap = keyBy(rows, (r) => r.student.id);
+      return nameMap[id].student.name;
+    },
+    [rows],
+  );
 
-  const findUnitTitle = useMemo(() => {
-    const titleMap = keyBy(
-      rows.flatMap((r) => r.units),
-      (u) => u.unit.id,
-      (u) => u.unit.title,
-    );
-    return (id: string) => titleMap[id] ?? id;
-  }, [rows]);
+  const findUnitTitle = useCallback(
+    (id: string) => {
+      const titleMap = keyBy(
+        rows.flatMap((r) => r.units),
+        (u) => u.unit.id,
+        (u) => u.unit.title,
+      );
+      return titleMap[id] ?? id;
+    },
+    [rows],
+  );
 
   const grouped = useMemo(
     () => groupChangesByStudent(changes, findStudentName, findUnitTitle),
