@@ -46,7 +46,7 @@ export function DueDateCell({
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  "group flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5",
+                  "flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5",
                   "text-sm transition-colors hover:bg-accent",
                   className,
                 )}
@@ -55,7 +55,7 @@ export function DueDateCell({
                 <span className="tabular-nums">
                   {format(selected, "dd/MM/yyyy")}
                 </span>
-                <PencilIcon className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                <PencilIcon className="h-3 w-3 text-muted-foreground" />
               </button>
             </PopoverTrigger>
           </TooltipTrigger>

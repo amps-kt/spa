@@ -2,6 +2,8 @@
 
 import {
   createContext,
+  type Dispatch,
+  type SetStateAction,
   useCallback,
   useContext,
   useMemo,
@@ -9,14 +11,15 @@ import {
   type ReactNode,
 } from "react";
 
+import { useQueryState, createParser } from "nuqs";
 import { z } from "zod";
 
 import { type FlagDTO, type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
 
 import { nubsById } from "@/lib/utils/list-unique";
 
-export const customWeightValueSchema = z
-  .number()
+export const customWeightValueSchema = z.coerce
+  .number<number>()
   .positive()
   .or(z.literal("MV"));
 
@@ -122,7 +125,7 @@ interface SubmissionsContextType {
   selectedStudentIds: string[];
 
   /** Set selected student IDs */
-  setSelectedStudentIds: (ids: string[]) => void;
+  setSelectedStudentIds: Dispatch<SetStateAction<string[]>>;
 
   /** Current selection mode */
   selectionMode: SelectionMode;
@@ -249,7 +252,12 @@ export function SubmissionsProvider({
     () => data.map((x) => x.student.flag).filter(nubsById),
     [data],
   );
-  const [activeFlag, setActiveFlag] = useState<string>(availableFlags[0].id);
+  const [activeFlag, setActiveFlag] = useQueryState<string>(
+    "flag",
+    parseFlagId(availableFlags.map((f) => f.id)).withDefault(
+      availableFlags[0].id,
+    ),
+  );
 
   // --- derived visible data
 
@@ -531,3 +539,14 @@ export function SubmissionsProvider({
     </SubmissionsContext.Provider>
   );
 }
+
+const parseFlagId = (validFlags: string[]) =>
+  createParser({
+    parse(queryValue) {
+      const cleanVal = queryValue.trim().toLowerCase();
+      return validFlags.includes(cleanVal) ? cleanVal : null;
+    },
+    serialize(value) {
+      return value;
+    },
+  });

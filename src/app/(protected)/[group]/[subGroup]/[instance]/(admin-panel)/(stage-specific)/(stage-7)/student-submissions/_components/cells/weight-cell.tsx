@@ -15,6 +15,8 @@ import {
 
 import { cn } from "@/lib/utils";
 
+import { customWeightValueSchema } from "../submissions-context";
+
 type WeightValue = number | "MV";
 
 export function WeightCell({
@@ -23,7 +25,7 @@ export function WeightCell({
   className,
 }: {
   value: WeightValue;
-  onChange?: (value: WeightValue) => void;
+  onChange: (value: WeightValue) => void;
   className?: string;
 }) {
   const [editing, setEditing] = useState(false);
@@ -45,19 +47,14 @@ export function WeightCell({
   }
 
   function commit() {
-    const trimmed = inputValue.trim();
-    if (trimmed.toUpperCase() === "MV") {
-      onChange?.("MV");
-      setEditing(false);
-      return;
-    }
-    const num = Number(trimmed);
-    if (!trimmed || isNaN(num) || num < 0) {
-      setError('Enter a number or "MV"');
-      return;
-    }
-    onChange?.(num);
+    const res = customWeightValueSchema.safeParse(
+      inputValue.trim().toUpperCase(),
+    );
+
+    if (res.success) onChange(res.data);
+    else setError('Enter a number or "MV"');
     setEditing(false);
+    return;
   }
 
   function cancel() {
@@ -120,7 +117,7 @@ export function WeightCell({
           <button
             onClick={openEdit}
             className={cn(
-              "group flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5",
+              "flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5",
               "text-sm transition-colors hover:bg-accent",
               className,
             )}
@@ -134,7 +131,7 @@ export function WeightCell({
             >
               {displayValue}
             </span>
-            <PencilIcon className="h-3 w-3 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+            <PencilIcon className="h-3 w-3 text-muted-foreground" />
           </button>
         </TooltipTrigger>
         <TooltipContent side="top">Edit weight</TooltipContent>

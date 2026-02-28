@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { type Dispatch, type SetStateAction, useState } from "react";
 
 import { type ClassValue } from "clsx";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, RotateCcwIcon } from "lucide-react";
 
 import { type StudentDTO } from "@/dto";
 
+import { StudentBadge } from "@/components/ui/badges/student-badge";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -14,12 +15,12 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { StudentBadge } from "@/components/ui/data-table/cells/student-cell";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
 
@@ -33,7 +34,7 @@ export function StudentMultiSelect({
   className,
 }: {
   selectedStudentIds: string[];
-  onSelectedStudentIdsChange: (ids: string[]) => void;
+  onSelectedStudentIdsChange: Dispatch<SetStateAction<string[]>>;
   selectionMode: SelectionMode;
   onSelectionModeChange: (mode: SelectionMode) => void;
   className?: ClassValue;
@@ -46,10 +47,7 @@ export function StudentMultiSelect({
         <label className="text-sm font-medium">Students</label>
         <div className="inline-flex items-center gap-1 rounded-md bg-muted p-0.5">
           <button
-            onClick={() => {
-              onSelectionModeChange("exclude");
-              onSelectedStudentIdsChange([]);
-            }}
+            onClick={() => onSelectionModeChange("exclude")}
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
               selectionMode === "exclude"
@@ -60,10 +58,7 @@ export function StudentMultiSelect({
             Exclude
           </button>
           <button
-            onClick={() => {
-              onSelectionModeChange("include");
-              onSelectedStudentIdsChange([]);
-            }}
+            onClick={() => onSelectionModeChange("include")}
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
               selectionMode === "include"
@@ -91,12 +86,21 @@ export function StudentMultiSelect({
 
       {selectedStudentIds.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {/* todo: selected students should sync with the selection column on the data table */}
           {selectedStudentIds.map((id) => {
             const student = visibleStudents.find((s) => s.id === id);
             if (!student) return null;
             // todo: should be able to X these to remove the student from the selection
-            return <StudentBadge key={student.id} student={student} />;
+            return (
+              <StudentBadge
+                key={student.id}
+                student={student}
+                onClick={() => {
+                  onSelectedStudentIdsChange((prev) =>
+                    prev.filter((id) => id !== student.id),
+                  );
+                }}
+              />
+            );
           })}
         </div>
       )}
@@ -131,26 +135,38 @@ function StudentCombobox({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 w-full justify-start text-sm font-normal"
-        >
-          {selected.length === 0 ? (
-            <span className="text-muted-foreground">
-              {mode === "exclude"
-                ? "No students excluded"
-                : "No students selected"}
-            </span>
-          ) : (
-            <span>
-              {selected.length} student{selected.length !== 1 && "s"}{" "}
-              {mode === "exclude" ? "excluded" : "selected"}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+      <div className="flex gap-2">
+        <PopoverTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 w-full justify-start text-sm font-normal"
+          >
+            {selected.length === 0 ? (
+              <span className="text-muted-foreground">
+                {mode === "exclude"
+                  ? "No students excluded"
+                  : "No students selected"}
+              </span>
+            ) : (
+              <span>
+                {selected.length} student{selected.length !== 1 && "s"}{" "}
+                {mode === "exclude" ? "excluded" : "selected"}
+              </span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <WithTooltip tip="Reset selected students">
+          <Button
+            className="grid place-items-center size-9"
+            variant="outline"
+            onClick={() => onChange([])}
+            disabled={selected.length === 0}
+          >
+            <RotateCcwIcon className="size-4" />
+          </Button>
+        </WithTooltip>
+      </div>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
           <CommandInput placeholder={placeholder} />

@@ -42,8 +42,6 @@ const columnWidths = {
   enrolled: "min-w-[110px] max-w-[145px]",
 };
 
-// this breaks away from our VERY established pattern of defining as much as possible in the column definition
-// but maybe using the custom row is the better patternm, interested to have a discussion about this
 /**
  * Columns are header-only definitions. All cell rendering is handled
  * by CustomRow which reads mutable state from the submissions context

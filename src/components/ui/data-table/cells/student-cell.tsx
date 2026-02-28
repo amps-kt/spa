@@ -29,20 +29,3 @@ export function StudentCell({
     </div>
   );
 }
-export function StudentBadge({
-  student,
-  className,
-}: {
-  student: StudentDTO;
-  className?: ClassValue;
-}) {
-  return (
-    <Badge
-      variant="accent"
-      className={cn("rounded-md flex justify-start gap-2 w-max", className)}
-    >
-      <p className="font-sm ">{student.id}</p>
-      <p className="text-muted-foreground">{student.name}</p>
-    </Badge>
-  );
-}
