@@ -2,8 +2,8 @@ import { cva } from "class-variance-authority";
 
 import { StudentGradingLifecycleState } from "@/dto/marking";
 
-import { Badge } from "../ui/badge";
-import { WithTooltip } from "../ui/tooltip-wrapper";
+import { Badge } from "../badge";
+import { WithTooltip } from "../tooltip-wrapper";
 
 export const statusIndicatorVariants = cva("", {
   variants: {
@@ -29,7 +29,7 @@ const markingStatusData: Record<
   ACTION_REQUIRED: { label: "Action Required", tip: "" },
 };
 
-export function OverallStatusIndicator({
+export function StudentGradingLifecycleBadge({
   status,
 }: {
   status: StudentGradingLifecycleState;

@@ -17,9 +17,9 @@ import {
 
 import { type MarkerType } from "@/db/types";
 
-import { OverallStatusIndicator } from "@/components/marking/overall-status-indicator";
-import { UoaStatusIndicator } from "@/components/marking/uoa-status-indicator";
 import { RoleBadge } from "@/components/role-badge";
+import { StudentGradingLifecycleBadge } from "@/components/ui/badges/student-grading-lifecycle-badge";
+import { UnitGradingLifecycleBadge } from "@/components/ui/badges/unit-grading-lifecycle-badge";
 import { buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { ExpandingCell } from "@/components/ui/data-table/cells/expanding-cell";
@@ -77,7 +77,9 @@ const columns: ColumnDef<TRow>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Status" />
     ),
-    cell: ({ row }) => <OverallStatusIndicator status={row.original.status} />,
+    cell: ({ row }) => (
+      <StudentGradingLifecycleBadge status={row.original.status} />
+    ),
   },
   {
     id: "actions",
@@ -112,7 +114,7 @@ function UoaStatusRow({
     <TableRow>
       <TableCell>{unit.title}</TableCell>
       <TableCell>
-        <UoaStatusIndicator status={status} />
+        <UnitGradingLifecycleBadge status={status} />
       </TableCell>
     </TableRow>
   );

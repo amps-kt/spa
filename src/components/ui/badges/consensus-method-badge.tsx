@@ -1,7 +1,7 @@
 import { ConsensusMethod } from "@/db/types";
 
-import { Badge } from "../ui/badge";
-import { WithTooltip } from "../ui/tooltip-wrapper";
+import { Badge } from "../badge";
+import { WithTooltip } from "../tooltip-wrapper";
 
 const consensusMethodData: Record<
   ConsensusMethod,
