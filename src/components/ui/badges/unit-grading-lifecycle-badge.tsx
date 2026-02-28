@@ -1,9 +1,9 @@
 import { unitToOverall, type UnitGradingLifecycleState } from "@/dto/marking";
 
-import { Badge } from "../ui/badge";
-import { WithTooltip } from "../ui/tooltip-wrapper";
+import { Badge } from "../badge";
+import { WithTooltip } from "../tooltip-wrapper";
 
-import { statusIndicatorVariants } from "./overall-status-indicator";
+import { statusIndicatorVariants } from "./student-grading-lifecycle-badge";
 
 const markingStatusData: Record<
   UnitGradingLifecycleState,
@@ -48,7 +48,7 @@ const markingStatusData: Record<
   },
 };
 
-export function UoaStatusIndicator({
+export function UnitGradingLifecycleBadge({
   status,
 }: {
   status: UnitGradingLifecycleState;
