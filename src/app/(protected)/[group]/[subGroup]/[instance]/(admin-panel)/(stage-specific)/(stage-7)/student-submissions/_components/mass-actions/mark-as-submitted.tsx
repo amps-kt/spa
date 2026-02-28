@@ -35,7 +35,7 @@ export function MarkAsSubmittedAction() {
     <div className="flex items-center justify-around gap-x-5 rounded-lg border bg-card p-4 min-h-26">
       <p className="text-sm basis-3/6">
         The submission status of the selected units for the selected students,
-        regardless of what it&apos;s currently set to, is about to be changed to
+        regardless of what it&apos;s currently set to, is about to be changed to the
         value set here.
       </p>
       <div className="flex justify-between items-center gap-3 rounded-md border p-3 basis-1/6">
