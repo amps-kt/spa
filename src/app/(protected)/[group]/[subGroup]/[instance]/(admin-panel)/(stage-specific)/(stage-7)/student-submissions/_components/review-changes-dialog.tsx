@@ -45,9 +45,6 @@ interface ChangesGroupedByStudent {
   unitChanges: PendingUnitChangeDisplay[];
 }
 
-// I think the best way to present the changes is to group them by student (probably)
-// alternatively I could group them by the kind of change ig
-// so all weight changes, then all due date changes, etc.
 function groupChangesByStudent(
   changes: PendingChanges,
   findStudentName: (id: string) => string,
