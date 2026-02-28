@@ -296,11 +296,14 @@ export function SubmissionsProvider({
   }, []);
 
   // clear selection when flag changes since the visible students/units change
-  const setActiveFlagAndClearSelection = useCallback((flagId: string) => {
-    setActiveFlag(flagId);
-    setSelectedUnitIds([]);
-    setSelectedStudentIds([]);
-  }, []);
+  const setActiveFlagAndClearSelection = useCallback(
+    (flagId: string) => {
+      void setActiveFlag(flagId);
+      setSelectedUnitIds([]);
+      setSelectedStudentIds([]);
+    },
+    [setActiveFlag],
+  );
 
   const hasValidSelection = useMemo(() => {
     if (selectedUnitIds.length === 0) return false;
