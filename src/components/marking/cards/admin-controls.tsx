@@ -51,7 +51,7 @@ export function ResetMarksButton({
           .then(() => router.refresh());
       }}
       trigger={
-        <Button variant="destructive" className="px-2 py-1 ml-auto">
+        <Button variant="outline" className="px-3 py-2 ml-auto">
           <WithTooltip tip={`Reset marks for ${marker.name}`}>
             <RotateCcwIcon className="size-4" />
           </WithTooltip>
