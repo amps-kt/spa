@@ -85,7 +85,7 @@ export const fullMarkingSubmissionDtoSchema = z.object({
   studentId: z.string(),
   unitOfAssessmentId: z.string(),
   grade: z.number().int().nonnegative(),
-  finalComment: z.string(),
+  finalComment: z.string().optional(),
   recommendation: z.boolean(),
   marks: z.record(
     z.string(), // assessmentCriterionId
@@ -106,7 +106,7 @@ export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
 export const resolvedUnitGradeDtoSchema = z.object({
   grade: z.number(),
-  comment: z.string(),
+  comment: z.string().optional(),
   status: z.literal(ConsensusStage.RESOLVED),
   method: consensusMethodSchema,
   studentSubmitted: z.boolean(),
