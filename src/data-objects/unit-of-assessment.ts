@@ -7,7 +7,7 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
+import { ConsensusStage, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { keyBy } from "@/lib/utils/general/key-by";
@@ -122,6 +122,33 @@ export class UnitOfAssessment extends DataObject {
             update: { grade, justification },
           }),
       ),
+    ]);
+  }
+
+  async resetMarks({
+    markerId,
+    studentId,
+  }: {
+    markerId: string;
+    studentId: string;
+  }): Promise<void> {
+    const unitOfAssessmentId = this.id;
+
+    await this.db.$transaction([
+      this.db.unitOfAssessmentSubmission.delete({
+        where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
+      }),
+
+      this.db.unitOfAssessmentGrade.upsert({
+        where: { uoaGradeId: { studentId, unitOfAssessmentId } },
+        create: {
+          studentId,
+          unitOfAssessmentId,
+          status: ConsensusStage.UNRESOLVED,
+          ...expand(this.instance.params),
+        },
+        update: { status: ConsensusStage.UNRESOLVED },
+      }),
     ]);
   }
 

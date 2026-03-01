@@ -1,16 +1,72 @@
 "use client";
 
-import { DialogContent, DialogTitle } from "@radix-ui/react-dialog";
 import { RotateCcwIcon } from "lucide-react";
+import { toast } from "sonner";
+
+import { type UserDTO } from "@/dto";
 
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogHeader, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { WithTooltip } from "@/components/ui/tooltip-wrapper";
+import { YesNoAction } from "@/components/yes-no-action";
 
-export function ResetMarksButton() {
+import { useAppRouter } from "@/lib/routing";
+import { api } from "@/lib/trpc/client";
+
+import { useMarksheetContext } from "../marksheet-context";
+
+export function ResetMarksButton({
+  unitId,
+  marker,
+}: {
+  unitId: string;
+  marker: UserDTO;
+}) {
+  const router = useAppRouter();
+
+  const { params, studentId } = useMarksheetContext();
+
+  const { mutateAsync: api_resetMarks } =
+    api.msp.admin.unitOfAssessment.resetMarks.useMutation();
+
   return (
-    <Button size="icon" variant="destructive">
-      <RotateCcwIcon />
-    </Button>
+    <YesNoAction
+      action={() => {
+        void toast
+          .promise(
+            api_resetMarks({ params, studentId, unitId, markerId: marker.id }),
+            {
+              loading: `Resetting marks...`,
+              success: `Marks reset successfully `,
+              error: "Something went wrong",
+            },
+          )
+          .unwrap()
+          .then(() => router.refresh());
+      }}
+      trigger={
+        <Button variant="destructive" className="px-2 py-1 ml-auto">
+          <WithTooltip tip={`Reset marks for ${marker.name}`}>
+            <RotateCcwIcon className="size-4" />
+          </WithTooltip>
+        </Button>
+      }
+      title={"Reset Marks"}
+      description={
+        <div>
+          <p>
+            This will reset {marker.name}&apos;s marks for this unit of
+            assessment. This cannot be undone. Are you sure you wish to proceed?
+          </p>
+        </div>
+      }
+    />
   );
 }
 

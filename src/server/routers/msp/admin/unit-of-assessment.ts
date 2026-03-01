@@ -23,9 +23,11 @@ export const unitOfAssessmentRouter = createTRPCRouter({
       return;
     }),
 
-  resetMarks: procedure.unitOfAssessment.subGroupAdmin.mutation(
-    async ({ ctx: { unit } }) => {
-      // unit.reset();
-    },
-  ),
+  resetMarks: procedure.unitOfAssessment.subGroupAdmin
+    .input(z.object({ markerId: z.string(), studentId: z.string() }))
+    .mutation(async ({ ctx: { unit }, input: { markerId, studentId } }) => {
+      await unit.resetMarks({ markerId, studentId });
+
+      // mailer.notifyMarkingReset()
+    }),
 });
