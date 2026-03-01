@@ -421,6 +421,7 @@ export class Student extends User {
   public async getReader(): Promise<ReaderDTO> {
     const data = await this.db.readerDetails.findFirstOrThrow({
       where: {
+        ...expand(this.instance.params),
         projectAllocations: {
           some: {
             project: { studentAllocations: { some: { userId: this.id } } },
@@ -436,6 +437,7 @@ export class Student extends User {
   public async getSupervisor(): Promise<SupervisorDTO> {
     const data = await this.db.supervisorDetails.findFirstOrThrow({
       where: {
+        ...expand(this.instance.params),
         projects: {
           some: {
             studentAllocations: { some: { student: { userId: this.id } } },
