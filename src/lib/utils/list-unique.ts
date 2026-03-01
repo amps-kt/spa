@@ -82,3 +82,13 @@ export function nubsById<T extends { id: string }>(
 ) {
   return nubs(item, idx, self, (a, b) => a.id === b.id);
 }
+
+export function uniqueBy<T>(lst: T[], getKey: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return lst.filter((item) => {
+    const key = getKey(item);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}

@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 
 import { FileDiffIcon, RotateCcwIcon } from "lucide-react";
 
+import { type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,32 +20,26 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { ReviewChangesDialog } from "./review-changes-dialog";
-import { type PendingChanges, useSubmissions } from "./submissions-context";
+import { computeChangeCount, useSubmissions } from "./submissions-context";
 
-function countFieldChanges(changes: PendingChanges): number {
-  let count = changes.students.length;
-
-  for (const u of changes.units) {
-    if (u.submitted !== undefined) count++;
-    if (u.customDueDate !== undefined) count++;
-    if (u.customWeight !== undefined) count++;
-  }
-
-  return count;
-}
-
-export function PendingChangesBar() {
-  const { isDirty, activeFlag, getPendingChangesForFlag, resetFlag } =
+export function PendingChangesBar({
+  studentMap,
+  uoaMap,
+}: {
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}) {
+  const { isDirty, studentDeltasByFlag, activeFlag, resetFlag } =
     useSubmissions();
   const [reviewOpen, setReviewOpen] = useState(false);
 
   const pendingChanges = useMemo(
-    () => getPendingChangesForFlag(activeFlag),
-    [activeFlag, getPendingChangesForFlag],
+    () => studentDeltasByFlag[activeFlag],
+    [studentDeltasByFlag, activeFlag],
   );
 
   const totalChanges = useMemo(
-    () => countFieldChanges(pendingChanges),
+    () => pendingChanges.map(computeChangeCount).reduce((a, b) => a + b, 0),
     [pendingChanges],
   );
 
@@ -97,7 +93,12 @@ export function PendingChangesBar() {
         </div>
       </div>
 
-      <ReviewChangesDialog open={reviewOpen} onOpenChange={setReviewOpen} />
+      <ReviewChangesDialog
+        open={reviewOpen}
+        onOpenChange={setReviewOpen}
+        studentMap={studentMap}
+        uoaMap={uoaMap}
+      />
     </>
   );
 }

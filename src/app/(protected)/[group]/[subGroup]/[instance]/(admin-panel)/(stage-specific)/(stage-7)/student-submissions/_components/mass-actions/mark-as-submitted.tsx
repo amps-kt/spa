@@ -9,21 +9,28 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 
+import { StudentSelectionMode } from "../student-unit-selection";
 import { useSubmissions } from "../submissions-context";
 
 export function MarkAsSubmittedAction() {
   const {
     batchUpdateUnits,
-    visibleStudents,
-    selectedStudentIds,
-    selectionMode,
-    hasValidSelection,
+
+    studentSubmissionsByFlag,
+    activeFlag,
+    selection: {
+      state: { mode: selectionMode, studentIds: selectedStudentIds },
+      isValid: hasValidSelection,
+    },
   } = useSubmissions();
+  const visibleStudents = studentSubmissionsByFlag[activeFlag].map(
+    (f) => f.student,
+  );
 
   const [markAsSubmitted, setMarkAsSubmitted] = useState(true);
 
   const affectedCount =
-    selectionMode === "exclude"
+    selectionMode === StudentSelectionMode.EXCLUDE
       ? visibleStudents.length - selectedStudentIds.length
       : selectedStudentIds.length;
 
@@ -35,8 +42,8 @@ export function MarkAsSubmittedAction() {
     <div className="flex items-center justify-around gap-x-5 rounded-lg border bg-card p-4 min-h-26">
       <p className="text-sm basis-3/6">
         The submission status of the selected units for the selected students,
-        regardless of what it&apos;s currently set to, is about to be changed to the
-        value set here.
+        regardless of what it&apos;s currently set to, is about to be changed to
+        the value set here.
       </p>
       <div className="flex justify-between items-center gap-3 rounded-md border p-3 basis-1/6">
         <Label htmlFor="submitted-toggle" className="text-sm font-medium">

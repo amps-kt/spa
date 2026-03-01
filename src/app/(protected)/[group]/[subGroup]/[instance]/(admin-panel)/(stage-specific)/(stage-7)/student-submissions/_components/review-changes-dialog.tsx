@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState } from "react";
 
 import { format } from "date-fns";
 import {
@@ -9,7 +9,11 @@ import {
   UserIcon,
   WeightIcon,
 } from "lucide-react";
+import { toast } from "sonner";
 
+import { type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+
+import { useInstanceParams } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,73 +31,41 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
+import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
-import { keyBy } from "@/lib/utils/key-by";
 
 import {
-  StudentRowState,
+  computeChangeCount,
+  type StudentDelta,
+  type UnitDelta,
   useSubmissions,
-  type PendingChanges,
-  type PendingUnitChange,
 } from "./submissions-context";
 
-type PendingUnitChangeDisplay = PendingUnitChange & { unitTitle: string };
+function ChangeSummary() {
+  const { studentDeltasByFlag, activeFlag } = useSubmissions();
 
-interface ChangesGroupedByStudent {
-  studentId: string;
-  studentName: string;
-  /** undefined == no change */
-  newEnrollmentValue?: boolean;
-  unitChanges: PendingUnitChangeDisplay[];
-}
+  const activeStudents = studentDeltasByFlag[activeFlag];
 
-function groupChangesByStudent(
-  changes: PendingChanges,
-  findStudentName: (id: string) => string,
-  findUnitTitle: (id: string) => string,
-): ChangesGroupedByStudent[] {
-  const record = keyBy(
-    changes.students,
-    (s) => s.studentId,
-    (s) =>
-      ({
-        studentId: s.studentId,
-        studentName: findStudentName(s.studentId),
-        newEnrollmentValue: s.enrolled,
-        unitChanges: [],
-      }) as ChangesGroupedByStudent,
-  );
+  const units = activeStudents.flatMap((s) => s.units);
 
-  for (const u of changes.units) {
-    record[u.studentId] ??= {
-      studentId: u.studentId,
-      studentName: findStudentName(u.studentId),
-      unitChanges: [],
-    };
-    record[u.studentId].unitChanges.push({
-      ...u,
-      unitTitle: findUnitTitle(u.unitId),
-    });
-  }
-
-  return Object.values(record);
-}
-
-function ChangeSummary({ changes }: { changes: PendingChanges }) {
   const items = [
-    { count: changes.students.length, label: "enrolment", icon: UserIcon },
     {
-      count: changes.units.filter((u) => u.submitted !== undefined).length,
+      count: activeStudents.filter((x) => x.enrolled !== undefined).length,
+      label: "enrolment",
+      icon: UserIcon,
+    },
+    {
+      count: units.filter((u) => u.submitted !== undefined).length,
       label: "submission",
       icon: CheckCircle2Icon,
     },
     {
-      count: changes.units.filter((u) => u.customDueDate !== undefined).length,
+      count: units.filter((u) => u.customDueDate !== undefined).length,
       label: "deadline",
       icon: CalendarIcon,
     },
     {
-      count: changes.units.filter((u) => u.customWeight !== undefined).length,
+      count: units.filter((u) => u.customWeight !== undefined).length,
       label: "weight",
       icon: WeightIcon,
     },
@@ -118,18 +90,20 @@ function ChangeSummary({ changes }: { changes: PendingChanges }) {
   );
 }
 
-function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
+function StudentChangeRow({
+  delta,
+  studentMap,
+  uoaMap,
+}: {
+  delta: StudentDelta;
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}) {
   const [open, setOpen] = useState(false);
 
-  const changeCount =
-    (group.newEnrollmentValue !== undefined ? 1 : 0) +
-    group.unitChanges.reduce((sum, u) => {
-      let fields = 0;
-      if (u.submitted !== undefined) fields++;
-      if (u.customDueDate !== undefined) fields++;
-      if (u.customWeight !== undefined) fields++;
-      return sum + fields;
-    }, 0);
+  const student = studentMap[delta.studentId];
+
+  const changeCount = computeChangeCount(delta);
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -137,11 +111,9 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
         <button className="flex w-full items-center justify-between rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-muted">
           <div className="flex items-center gap-2">
             <span className="font-medium truncate max-w-64">
-              {group.studentName}
+              {student.name}
             </span>
-            <span className="text-xs text-muted-foreground">
-              {group.studentId}
-            </span>
+            <span className="text-xs text-muted-foreground">{student.id}</span>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="text-xs">
@@ -158,18 +130,16 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
       </CollapsibleTrigger>
       <CollapsibleContent>
         <div className="space-y-1 px-3 pb-2 pt-1">
-          {group.newEnrollmentValue !== undefined && (
+          {delta.enrolled !== undefined && (
             <p className="text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <UserIcon className="h-3 w-3" />
-                {group.newEnrollmentValue
-                  ? "Will be re-enrolled"
-                  : "Will be un-enrolled"}
+                {delta.enrolled ? "Will be re-enrolled" : "Will be un-enrolled"}
               </span>
             </p>
           )}
-          {group.unitChanges.map((uc) => (
-            <UnitChangeDetail key={uc.unitId} change={uc} />
+          {delta.units.map((uc) => (
+            <UnitChangeDetail key={uc.unitId} uoaMap={uoaMap} delta={uc} />
           ))}
         </div>
       </CollapsibleContent>
@@ -177,35 +147,39 @@ function StudentChangeRow({ group }: { group: ChangesGroupedByStudent }) {
   );
 }
 
-function UnitChangeDetail({ change }: { change: PendingUnitChangeDisplay }) {
+function UnitChangeDetail({
+  delta,
+  uoaMap,
+}: {
+  delta: UnitDelta;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}) {
   return (
     <div className="text-xs text-muted-foreground">
-      <p>{change.unitTitle}</p>
+      <p>{uoaMap[delta.unitId].title}</p>
       <ul className="list-disc ml-4">
-        {change.submitted !== undefined && (
+        {delta.submitted !== undefined && (
           <li>
             marked as{" "}
             <span className="font-semibold font-mono">
-              {change.submitted ? "submitted" : "not submitted"}
+              {delta.submitted ? "submitted" : "not submitted"}
             </span>
           </li>
         )}
-        {change.customDueDate !== undefined && (
+        {delta.customDueDate !== undefined && (
           <li>
             deadline changed to{" "}
             <span className="font-semibold font-mono">
-              {format(change.customDueDate, "dd/MM/yyyy")}
+              {format(delta.customDueDate, "dd/MM/yyyy")}
             </span>
           </li>
         )}
 
-        {change.customWeight !== undefined && (
+        {delta.customWeight !== undefined && (
           <li>
             weight changed to{" "}
             <span className="font-semibold font-mono">
-              {change.customWeight === "MV"
-                ? "MV"
-                : String(change.customWeight)}
+              {delta.customWeight === "MV" ? "MV" : String(delta.customWeight)}
             </span>
           </li>
         )}
@@ -216,58 +190,64 @@ function UnitChangeDetail({ change }: { change: PendingUnitChangeDisplay }) {
 
 // ----------------------------------------------------------- main dialog
 
-interface ReviewChangesDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 export function ReviewChangesDialog({
   open,
   onOpenChange,
-}: ReviewChangesDialogProps) {
-  const { getPendingChangesForFlag, activeFlag, rows, commitFlag } =
-    useSubmissions();
-  const [isCommitting, setIsCommitting] = useState(false);
+  studentMap,
+  uoaMap,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}) {
+  const params = useInstanceParams();
+  const { studentDeltasByFlag, activeFlag, resetFlag } = useSubmissions();
 
-  const changes = useMemo(
-    () => getPendingChangesForFlag(activeFlag),
-    [getPendingChangesForFlag, activeFlag],
+  const {
+    mutateAsync: api_updateStudentSubmissionInfo,
+    isPending: isCommitting,
+  } = api.teachingOffice.updateStudentSubmissionInfo.useMutation();
+
+  const activeStudents = useMemo(
+    () => studentDeltasByFlag[activeFlag],
+    [studentDeltasByFlag, activeFlag],
   );
 
-  const findStudentName = useCallback(
-    (id: string) => {
-      const nameMap = keyBy(rows, (r) => r.student.id);
-      return nameMap[id].student.name;
-    },
-    [rows],
-  );
+  const totalChanges = activeStudents
+    .map(computeChangeCount)
+    .reduce((a, b) => a + b, 0);
 
-  const findUnitTitle = useCallback(
-    (id: string) => {
-      const titleMap = keyBy(
-        rows.flatMap((r) => r.units),
-        (u) => u.unit.id,
-        (u) => u.unit.title,
-      );
-      return titleMap[id] ?? id;
-    },
-    [rows],
-  );
-
-  const grouped = useMemo(
-    () => groupChangesByStudent(changes, findStudentName, findUnitTitle),
-    [changes, findStudentName, findUnitTitle],
-  );
-
-  const totalChanges = changes.students.length + changes.units.length;
+  const utils = api.useUtils();
 
   async function handleCommit() {
-    setIsCommitting(true);
     onOpenChange(false);
+    void toast
+      .promise(
+        api_updateStudentSubmissionInfo({
+          params,
+          studentDeltas: activeStudents,
+        }),
+        {
+          loading: "Updating student details",
+          success: "Successfully updated details",
+          error: "Something went wrong",
+        },
+      )
+      .unwrap()
+      .then(() =>
+        utils.teachingOffice.getFlagStudentSubmissionInfo.invalidate({
+          params,
+          flagId: activeFlag,
+        }),
+      )
+      .then(() => {
+        resetFlag(activeFlag);
+      });
+
     // TODO: wire up tRPC mutations here
-    setIsCommitting(false);
     // TODO: this should only trigger after the tRPC mutation
-    commitFlag(activeFlag);
+    // commitFlag(activeFlag);
   }
 
   return (
@@ -277,18 +257,25 @@ export function ReviewChangesDialog({
           <DialogTitle>Review Changes</DialogTitle>
           <DialogDescription>
             You are about to save {totalChanges} change
-            {totalChanges !== 1 ? "s" : ""} across {grouped.length} student
-            {grouped.length !== 1 ? "s" : ""}. Please review before committing.
+            {totalChanges !== 1 ? "s" : ""} across {activeStudents.length}{" "}
+            student
+            {activeStudents.length !== 1 ? "s" : ""}. Please review before
+            committing.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
-          <ChangeSummary changes={changes} />
+          <ChangeSummary />
           <Separator />
           <div className="max-h-[40vh] overflow-y-auto">
             <div className="space-y-1">
-              {grouped.map((group) => (
-                <StudentChangeRow key={group.studentId} group={group} />
+              {activeStudents.map((s) => (
+                <StudentChangeRow
+                  key={s.studentId}
+                  studentMap={studentMap}
+                  uoaMap={uoaMap}
+                  delta={s}
+                />
               ))}
             </div>
           </div>

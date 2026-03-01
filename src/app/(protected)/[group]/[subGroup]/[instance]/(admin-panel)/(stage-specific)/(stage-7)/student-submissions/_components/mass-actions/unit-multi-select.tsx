@@ -14,22 +14,27 @@ import {
 
 import { cn } from "@/lib/utils";
 
+import { useSubmissions } from "../submissions-context";
+
 export function UnitMultiSelect({
-  units,
-  selected,
-  onChange,
+  uoaMap,
   className,
 }: {
-  units: UnitOfAssessmentDTO[];
-  selected: string[];
-  onChange: (ids: string[]) => void;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
   className?: ClassValue;
 }) {
+  const {
+    selection: {
+      setUnitIds,
+      state: { unitIds: selectedUnitIds },
+    },
+  } = useSubmissions();
+
   function toggle(id: string) {
-    const next = new Set(selected);
+    const next = new Set(selectedUnitIds);
     if (next.has(id)) next.delete(id);
     else next.add(id);
-    onChange(Array.from(next));
+    setUnitIds(Array.from(next));
   }
 
   return (
@@ -39,17 +44,16 @@ export function UnitMultiSelect({
         Apply a change to many units at once
       </FieldDescription>
       <FieldGroup className="gap-3">
-        {units.map((u) => (
-          // todo: if this is checked / unchecked it should select/deselect the corresponding unit rows in the data table
-          <Field key={u.id} orientation="horizontal">
+        {selectedUnitIds.map((unitId) => (
+          <Field key={unitId} orientation="horizontal">
             <Checkbox
-              id={`checkbox-${u.id}`}
-              name={`checkbox-${u.id}`}
-              checked={selected.includes(u.id)}
-              onClick={() => toggle(u.id)}
+              id={`checkbox-${unitId}`}
+              name={`checkbox-${unitId}`}
+              checked={selectedUnitIds.includes(unitId)}
+              onClick={() => toggle(unitId)}
             />
-            <FieldLabel htmlFor={`checkbox-${u.id}`} className="font-normal">
-              {u.title}
+            <FieldLabel htmlFor={`checkbox-${unitId}`} className="font-normal">
+              {uoaMap[unitId].title}
             </FieldLabel>
           </Field>
         ))}

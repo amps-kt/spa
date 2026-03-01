@@ -78,6 +78,7 @@ export class Transformers {
       draft: data.draft,
     };
   }
+
   public static toScoreDTO(
     data: DB_MarkingComponentSubmission,
   ): ComponentScoreDTO {
