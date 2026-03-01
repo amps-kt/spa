@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 
+import { produce } from "immer";
 import { createParser, useQueryState } from "nuqs";
 import { useImmer } from "use-immer";
 import type { z } from "zod";
@@ -61,6 +62,8 @@ interface SubmissionsContextType {
 
   /** Current mutable state for every row */
   studentDeltasByFlag: Record<string, StudentDelta[]>;
+
+  unitIdsByFlag: Record<string, string[]>;
 
   /** Currently active flag filter */
   activeFlag: string;
@@ -167,6 +170,24 @@ export function computeChangeCount(delta: StudentDelta): number {
     }, 0)
   );
 }
+
+function computeUnitDeltaFromPatch(
+  patch: UnitDelta,
+  truth: UnitGradeDTO,
+): UnitDelta {
+  return produce(patch, (patch) => {
+    if (patch.customDueDate === truth.customDueDate) {
+      delete patch.customDueDate;
+    }
+    if (patch.customWeight === truth.customWeight) {
+      delete patch.customWeight;
+    }
+    if (patch.submitted === truth.studentSubmitted) {
+      delete patch.submitted;
+    }
+  });
+}
+
 function createFlagParser(validFlags: string[]) {
   return createParser({
     parse: (queryValue) => {
@@ -196,6 +217,19 @@ export function SubmissionsProvider({
       availableFlags[0].id,
     ),
   );
+
+  const unitIdsByFlag = useMemo(() => {
+    const idk = availableFlags.map((f) => ({
+      flag: f.id,
+      data: studentSubmissionsByFlag[f.id][0].units.map((x) => x.unit.id),
+    }));
+
+    return keyBy(
+      idk,
+      (x) => x.flag,
+      (x) => x.data,
+    );
+  }, [availableFlags, studentSubmissionsByFlag]);
 
   const selection = useSelectionState(studentDeltasByFlag[activeFlag].length);
   const {
@@ -282,13 +316,21 @@ export function SubmissionsProvider({
           : setDiff(visibleStudentIds, selectedStudentIds, (x) => x);
 
       setStudentDeltasByFlag((prev) => {
-        prev[activeFlag] = prev[activeFlag].map((row) => {
+        prev[activeFlag] = prev[activeFlag].map((row, i) => {
           if (!affectedStudentIds.includes(row.studentId)) return row;
+
+          const studentSubmission = studentSubmissionsByFlag[activeFlag][i];
 
           return {
             ...row,
-            units: row.units.map((u) =>
-              selectedUnitIds.includes(u.unitId) ? { ...u, ...patch } : u,
+            units: row.units.map((u, j) =>
+              // need to diff with truth to decide if we need to fill in this patch
+              selectedUnitIds.includes(u.unitId)
+                ? computeUnitDeltaFromPatch(
+                    { ...u, ...patch },
+                    studentSubmission.units[j].grade,
+                  )
+                : u,
             ),
           };
         });
@@ -296,11 +338,12 @@ export function SubmissionsProvider({
     },
     [
       studentDeltasByFlag,
-      setStudentDeltasByFlag,
-      selectedUnitIds,
-      selectedStudentIds,
-      selectionMode,
       activeFlag,
+      selectionMode,
+      selectedStudentIds,
+      setStudentDeltasByFlag,
+      studentSubmissionsByFlag,
+      selectedUnitIds,
     ],
   );
 
@@ -308,10 +351,9 @@ export function SubmissionsProvider({
 
   const resetFlag = useCallback(
     (flagId: string) => {
-      setStudentDeltasByFlag(
-        (prev) =>
-          (prev[flagId] = studentSubmissionsByFlag[flagId].map(zeroDelta)),
-      );
+      setStudentDeltasByFlag((prev) => {
+        prev[flagId] = studentSubmissionsByFlag[flagId].map(zeroDelta);
+      });
     },
     [studentSubmissionsByFlag, setStudentDeltasByFlag],
   );
@@ -337,6 +379,7 @@ export function SubmissionsProvider({
     () => ({
       studentDeltasByFlag,
       studentSubmissionsByFlag,
+      unitIdsByFlag,
       availableFlags,
       activeFlag,
       setActiveFlag: setActiveFlagAndClearSelection,

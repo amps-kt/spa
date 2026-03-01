@@ -269,14 +269,16 @@ export function ReviewChangesDialog({
           <Separator />
           <div className="max-h-[40vh] overflow-y-auto">
             <div className="space-y-1">
-              {activeStudents.map((s) => (
-                <StudentChangeRow
-                  key={s.studentId}
-                  studentMap={studentMap}
-                  uoaMap={uoaMap}
-                  delta={s}
-                />
-              ))}
+              {activeStudents
+                .filter((s) => computeChangeCount(s) > 0)
+                .map((s) => (
+                  <StudentChangeRow
+                    key={s.studentId}
+                    studentMap={studentMap}
+                    uoaMap={uoaMap}
+                    delta={s}
+                  />
+                ))}
             </div>
           </div>
         </div>

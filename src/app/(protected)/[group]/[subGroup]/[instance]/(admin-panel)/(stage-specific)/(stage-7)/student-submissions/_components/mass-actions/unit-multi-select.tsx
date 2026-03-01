@@ -24,6 +24,8 @@ export function UnitMultiSelect({
   className?: ClassValue;
 }) {
   const {
+    activeFlag,
+    unitIdsByFlag,
     selection: {
       setUnitIds,
       state: { unitIds: selectedUnitIds },
@@ -37,6 +39,8 @@ export function UnitMultiSelect({
     setUnitIds(Array.from(next));
   }
 
+  const availableUnitIds = unitIdsByFlag[activeFlag];
+
   return (
     <FieldSet className={cn("mb-0", className)}>
       <FieldLegend variant="label">Units of Assessment</FieldLegend>
@@ -44,19 +48,29 @@ export function UnitMultiSelect({
         Apply a change to many units at once
       </FieldDescription>
       <FieldGroup className="gap-3">
-        {selectedUnitIds.map((unitId) => (
-          <Field key={unitId} orientation="horizontal">
-            <Checkbox
-              id={`checkbox-${unitId}`}
-              name={`checkbox-${unitId}`}
-              checked={selectedUnitIds.includes(unitId)}
-              onClick={() => toggle(unitId)}
-            />
-            <FieldLabel htmlFor={`checkbox-${unitId}`} className="font-normal">
-              {uoaMap[unitId].title}
-            </FieldLabel>
-          </Field>
-        ))}
+        {availableUnitIds
+          .filter((u) => uoaMap[u].flag.id === activeFlag)
+          .sort(
+            (a, b) =>
+              Number(uoaMap[a].studentSubmissionDeadline) -
+              Number(uoaMap[b].studentSubmissionDeadline),
+          )
+          .map((unitId) => (
+            <Field key={unitId} orientation="horizontal">
+              <Checkbox
+                id={`checkbox-${unitId}`}
+                name={`checkbox-${unitId}`}
+                checked={selectedUnitIds.includes(unitId)}
+                onClick={() => toggle(unitId)}
+              />
+              <FieldLabel
+                htmlFor={`checkbox-${unitId}`}
+                className="font-normal"
+              >
+                {uoaMap[unitId].title}
+              </FieldLabel>
+            </Field>
+          ))}
       </FieldGroup>
     </FieldSet>
   );
