@@ -1,38 +1,20 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
-import { type Control, useForm } from "react-hook-form";
+import { useCallback, useRef } from "react";
+import { useForm } from "react-hook-form";
 
 import { Grade } from "@/logic/grading";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckIcon, ChevronsUpDownIcon, SaveIcon } from "lucide-react";
+import { SaveIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { GRADES } from "@/config/grades";
-
 import {
-  type MarkingComponentDTO,
   type MarkingSubmissionDTO,
   markingSubmissionDtoSchema,
   type UnitOfAssessmentDTO,
 } from "@/dto";
 
 import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
 import {
   Form,
   FormControl,
@@ -42,19 +24,34 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { YesNoAction } from "@/components/yes-no-action";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
 import { useMarksheetContext } from "../marksheet-context";
+
+import { ComponentMarkInput } from "./component-mark-input";
+
+export function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
+  const { params, studentId, userId } = useMarksheetContext();
+
+  const { data: initialValues, status: queryStatus } =
+    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery({
+      params,
+      studentId,
+      unitId: unit.id,
+      markerId: userId,
+    });
+  if (queryStatus === "pending") {
+    return <Skeleton className="h-60 rounded-lg" />;
+  }
+  return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
+}
 
 function formatGrade(grade: number | undefined) {
   if (grade === undefined) return "-";
@@ -68,7 +65,9 @@ export function UoaMarkingForm({
   unit: UnitOfAssessmentDTO;
   initialValues?: MarkingSubmissionDTO;
 }) {
-  const { params, studentId, markerId } = useMarksheetContext();
+  const router = useAppRouter();
+
+  const { params, studentId, userId } = useMarksheetContext();
 
   const { mutateAsync: saveMarks } =
     api.msp.marker.unitOfAssessment.saveMarks.useMutation();
@@ -82,7 +81,7 @@ export function UoaMarkingForm({
     defaultValues: initialValues ?? {
       draft: true,
       recommendation: false,
-      markerId,
+      markerId: userId,
       studentId,
       unitOfAssessmentId,
     },
@@ -99,14 +98,17 @@ export function UoaMarkingForm({
         },
       );
     } else {
-      void toast.promise(
-        submitMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
-        {
-          loading: `Submitting marks...`,
-          success: `Marks submitted`,
-          error: "Something went wrong",
-        },
-      );
+      void toast
+        .promise(
+          submitMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
+          {
+            loading: `Submitting marks...`,
+            success: `Marks submitted`,
+            error: "Something went wrong",
+          },
+        )
+        .unwrap()
+        .then(() => router.refresh());
     }
   });
 
@@ -199,6 +201,7 @@ export function UoaMarkingForm({
                       checked={!field.value}
                       onCheckedChange={(v) => {
                         field.onChange(!v);
+                        void form.trigger();
                       }}
                     />
                   </FormControl>
@@ -232,124 +235,5 @@ export function UoaMarkingForm({
         </div>
       </form>
     </Form>
-  );
-}
-
-function ComponentMarkInput({
-  control,
-  component: { title, description, id },
-  computeOverall,
-}: {
-  control: Control<MarkingSubmissionDTO>;
-  component: MarkingComponentDTO;
-  computeOverall: () => void;
-}) {
-  return (
-    <Card className="row-span-1">
-      <CardHeader className="pt-4 pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>
-        <FormField
-          control={control}
-          name={`marks.${id}.mark`}
-          render={({ field }) => (
-            <FormItem className="space-2 mt-2 mb-4">
-              <FormLabel className="mr-2">Grade:</FormLabel>
-              <FormControl>
-                <GradeInput
-                  value={field.value}
-                  setValue={(v) => {
-                    field.onChange(v);
-                    computeOverall();
-                  }}
-                />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={control}
-          name={`marks.${id}.justification`}
-          render={({ field }) => (
-            <FormItem className="flex w-full flex-col gap-1">
-              <FormLabel className="text-muted-foreground">
-                Justification
-              </FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </CardContent>
-    </Card>
-  );
-}
-
-function GradeInput({
-  value,
-  setValue,
-}: {
-  value: number | undefined;
-  setValue: (newVal: number | undefined) => void;
-}) {
-  const dropDownDefaultVal = "??";
-  const [open, setOpen] = useState(false);
-
-  const hasGrade = value !== undefined;
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className={cn(
-            "justify-between text-muted-foreground",
-            hasGrade && "text-foreground",
-          )}
-        >
-          <span>
-            {hasGrade
-              ? (GRADES.find((grade) => grade.value === value)?.label ??
-                dropDownDefaultVal)
-              : dropDownDefaultVal}
-          </span>
-          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[100px] p-0">
-        <Command>
-          <CommandInput placeholder="Search grade..." />
-          <CommandList>
-            <CommandEmpty>No grade found.</CommandEmpty>
-            <CommandGroup>
-              {GRADES.map((grade) => (
-                <CommandItem
-                  key={grade.value}
-                  onSelect={() => {
-                    setValue(grade.value);
-                    setOpen(false);
-                  }}
-                >
-                  <CheckIcon
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      grade.value === value ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                  {grade.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
   );
 }
