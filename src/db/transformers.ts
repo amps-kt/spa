@@ -287,6 +287,8 @@ export class Transformers {
       status: data.status,
       method: data.method,
       studentSubmitted: data.submitted,
+      customDueDate: data.customDueDate ?? undefined,
+      customWeight: data.customWeight ?? undefined,
     };
   }
 

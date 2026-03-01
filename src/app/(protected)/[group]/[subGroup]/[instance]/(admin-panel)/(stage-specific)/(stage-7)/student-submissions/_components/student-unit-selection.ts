@@ -20,7 +20,7 @@ interface SelectionState {
 function isSelectionEmpty(s: SelectionState, maxStudents: number): boolean {
   if (s.unitIds.length === 0) return true;
   if (s.mode === StudentSelectionMode.EXCLUDE) {
-    return s.studentIds.length !== maxStudents;
+    return s.studentIds.length === maxStudents;
   } else {
     // assert(s.mode === StudentSelectionMode.INCLUDE)
     return s.studentIds.length === 0;
