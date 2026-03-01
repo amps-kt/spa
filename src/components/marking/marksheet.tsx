@@ -7,8 +7,6 @@ import {
   type UnitGradingLifecycleState,
 } from "@/dto";
 
-import { MarkerType } from "@/db/types";
-
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -37,8 +35,7 @@ export async function Marksheet({
   reader: ReaderDTO;
 }) {
   const user = await api.user.get();
-  const userMarkerType =
-    supervisor.id === user.id ? MarkerType.SUPERVISOR : MarkerType.READER;
+  const isAdmin = await api.ac.isAdminInInstance({ params });
 
   return (
     <div>
@@ -50,7 +47,8 @@ export async function Marksheet({
         supervisor={supervisor}
         params={params}
         studentId={student.id}
-        markerId={user.id}
+        userId={user.id}
+        isAdmin={isAdmin}
       >
         <Accordion type="multiple" className="space-y-5">
           {units.map((data) => (
