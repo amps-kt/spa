@@ -1,8 +1,5 @@
 "use client";
 
-import { type ReactNode } from "react";
-
-import { Grade } from "@/logic/grading";
 import { differenceInDays, format, addDays } from "date-fns";
 
 import {
@@ -13,27 +10,27 @@ import {
   StudentGradingLifecycleState,
 } from "@/dto";
 
-import { ConsensusStage, MarkerType } from "@/db/types";
+import { MarkerType } from "@/db/types";
 
 import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { UnitGradingLifecycleBadge } from "@/components/ui/badges/unit-grading-lifecycle-badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 
-import { api } from "@/lib/trpc/client";
+import { UoaMarkingLoader } from "../forms/uoa-marking-form";
+import { MarksheetRole, useMarksheetContext } from "../marksheet-context";
 
-import { ConsensusMethodBadge } from "../consensus-method-badge";
-import { useMarksheetContext } from "../marksheet-context";
-import { UoaStatusIndicator } from "../uoa-status-indicator";
+import { ConsensusWrapper } from "./wrappers/consensus-wrapper";
+import { ModerationWrapper } from "./wrappers/moderation-wrapper";
+import { NegotiationWrapper } from "./wrappers/negotiation-wrapper";
+import { PendingWrapper } from "./wrappers/pending-wrapper";
 
 import { ClosedCard } from "./closed-card";
 import { DoubleMarkDisplay, SingleMarkDisplay } from "./mark-display";
 import { NonSubmissionCard } from "./non-submission-card";
-import { UoaMarkingForm } from "./uoa-marking-form";
 
 function getDueDate(unit: UnitOfAssessmentDTO, grade?: UnitGradeDTO): Date {
   if (!grade?.customDueDate) return unit.markerSubmissionDeadline;
@@ -56,6 +53,7 @@ export function UOACard({
   status: UnitGradingLifecycleState;
 }) {
   const dueDate = getDueDate(unit, grade);
+
   return (
     <Card className="overflow-hidden">
       <AccordionItem
@@ -75,16 +73,16 @@ export function UOACard({
                 </strong>
               </div>
             )}
-            <UoaStatusIndicator status={status} />
+            <UnitGradingLifecycleBadge status={status} />
           </AccordionTrigger>
         </CardHeader>
         <AccordionContent className="p-0">
           <CardContent className="p-4">
             {unit.allowedMarkerTypes.length == 1 ? (
               <SingleMarkerUnit
-                markerType={unit.allowedMarkerTypes[0]}
                 unit={unit}
                 status={status}
+                markerType={unit.allowedMarkerTypes[0]}
               />
             ) : (
               <DoubleMarkUnit unit={unit} status={status} />
@@ -106,11 +104,11 @@ function SingleMarkerUnit({
   markerType: MarkerType;
 }) {
   const realStatus = unitToOverall(status);
+  const { viewerRole } = useMarksheetContext();
 
   // Pin [#e11d48] Rework with match utility?
   if (realStatus === StudentGradingLifecycleState.PENDING) {
-    // Singly marked units cannot be pending
-    throw new Error("cannot be pending");
+    throw new Error("Singly marked units cannot be pending");
   }
 
   if (realStatus === StudentGradingLifecycleState.DONE) {
@@ -130,55 +128,28 @@ function SingleMarkerUnit({
   }
 
   if (realStatus === StudentGradingLifecycleState.ACTION_REQUIRED) {
-    <UoaMarkingLoader unit={unit} />;
+    if (marksRequired(markerType, viewerRole)) {
+      return <UoaMarkingLoader unit={unit} />;
+    } else {
+      return (
+        <ConsensusWrapper unit={unit}>
+          <SingleMarkDisplay markerType={markerType} unit={unit} />
+        </ConsensusWrapper>
+      );
+    }
   }
 }
 
-function ConsensusWrapper({
-  unit,
-  children,
-}: {
-  unit: UnitOfAssessmentDTO;
-  children: ReactNode;
-}) {
-  const { params, studentId } = useMarksheetContext();
+function marksRequired(allowedMarker: MarkerType, role: MarksheetRole) {
+  const dict: Record<MarksheetRole, boolean> = {
+    [MarksheetRole.ADMIN]: false,
+    [MarksheetRole.READER]: allowedMarker === MarkerType.READER,
+    [MarksheetRole.READER_ADMIN]: allowedMarker === MarkerType.READER,
+    [MarksheetRole.SUPERVISOR]: allowedMarker === MarkerType.SUPERVISOR,
+    [MarksheetRole.SUPERVISOR_ADMIN]: allowedMarker === MarkerType.SUPERVISOR,
+  };
 
-  const { status, data } =
-    api.msp.marker.unitOfAssessment.getConsensus.useQuery({
-      params,
-      studentId,
-      unitId: unit.id,
-    });
-
-  if (status !== "success") {
-    return <Skeleton className="rounded-lg h-20" />;
-  }
-
-  if (data.status !== ConsensusStage.RESOLVED) {
-    throw new Error(
-      "ConsensusWrapper should not be called if ConsensusStage != RESOLVED",
-    );
-  }
-
-  return (
-    <div>
-      {children}
-
-      <Separator orientation="horizontal" />
-      <div>
-        <div className="flex flex-row justify-between">
-          <h1 className="text-lg font-semibold my-4">Consensus:</h1>
-          <ConsensusMethodBadge method={data.method} />
-        </div>
-        <div className="flex flex-row items-start gap-5">
-          <p className="font-semibold text-secondary text-3xl">
-            {Grade.toLetter(data.grade)}
-          </p>
-          <p className="text-muted-foreground">{data.comment}</p>
-        </div>
-      </div>
-    </div>
-  );
+  return dict[role];
 }
 
 function DoubleMarkUnit({
@@ -188,8 +159,7 @@ function DoubleMarkUnit({
   unit: UnitOfAssessmentDTO;
   status: UnitGradingLifecycleState;
 }) {
-  // ! not done
-  const markerType = "READER";
+  const { viewerRole } = useMarksheetContext();
 
   // Pin [#e11d48] Rework with match utility?
   if (
@@ -215,7 +185,7 @@ function DoubleMarkUnit({
 
   if (status === UnitGradingLifecycleState.IN_NEGOTIATION) {
     return (
-      <NegotiationWrapper markerType={markerType}>
+      <NegotiationWrapper unit={unit}>
         <DoubleMarkDisplay unit={unit} />
       </NegotiationWrapper>
     );
@@ -223,9 +193,9 @@ function DoubleMarkUnit({
 
   if (status === UnitGradingLifecycleState.IN_MODERATION) {
     return (
-      <MarkerModerationWrapper>
+      <ModerationWrapper unit={unit}>
         <DoubleMarkDisplay unit={unit} />
-      </MarkerModerationWrapper>
+      </ModerationWrapper>
     );
   }
 
@@ -238,76 +208,14 @@ function DoubleMarkUnit({
   }
 
   if (status === UnitGradingLifecycleState.REQUIRES_MARKING) {
-    <UoaMarkingLoader unit={unit} />;
+    if (viewerRole === MarksheetRole.ADMIN) {
+      return (
+        <PendingWrapper>
+          <DoubleMarkDisplay unit={unit} />
+        </PendingWrapper>
+      );
+    } else {
+      return <UoaMarkingLoader unit={unit} />;
+    }
   }
-}
-
-function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
-  const { params, studentId, markerId } = useMarksheetContext();
-
-  const { data: initialValues, status: queryStatus } =
-    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery({
-      params,
-      studentId,
-      unitId: unit.id,
-      markerId,
-    });
-  if (queryStatus === "pending") {
-    return <Skeleton className="h-60 rounded-lg" />;
-  }
-  return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
-}
-
-function NegotiationWrapper({
-  children,
-  markerType,
-}: {
-  children: ReactNode;
-  markerType: MarkerType;
-}) {
-  return (
-    <div>
-      {children}
-      <Separator orientation="horizontal" />
-      {markerType === MarkerType.READER ? (
-        <div>
-          <h3>
-            This unit requires negotiation. Please contact the supervisor to
-            discuss and agree a grade.
-          </h3>
-        </div>
-      ) : (
-        <div>Form goes here</div>
-      )}
-    </div>
-  );
-}
-
-function MarkerModerationWrapper({ children }: { children: ReactNode }) {
-  return (
-    <div>
-      {children}
-      <Separator orientation="horizontal" />
-      <div>
-        <h3>
-          This unit requires moderation. The project coordinator will contact
-          you with further details
-        </h3>
-      </div>
-    </div>
-  );
-}
-
-function PendingWrapper({ children }: { children: ReactNode }) {
-  return (
-    <div>
-      {children}
-      <Separator orientation="horizontal" />
-      <div>
-        <h3>
-          The second marker must input their grades for this unit to progress
-        </h3>
-      </div>
-    </div>
-  );
 }
