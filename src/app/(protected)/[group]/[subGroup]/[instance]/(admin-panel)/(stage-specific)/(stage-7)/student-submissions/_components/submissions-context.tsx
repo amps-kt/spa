@@ -2,93 +2,65 @@
 
 import {
   createContext,
-  type Dispatch,
-  type SetStateAction,
   useCallback,
   useContext,
   useMemo,
-  useState,
   type ReactNode,
 } from "react";
 
-import { useQueryState, createParser } from "nuqs";
-import { z } from "zod";
+import { createParser, useQueryState } from "nuqs";
+import { useImmer } from "use-immer";
+import type { z } from "zod";
 
-import { type FlagDTO, type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+import {
+  type FlagDTO,
+  type StudentDTO,
+  type UnitGradeDTO__NEW as UnitGradeDTO,
+  type UnitOfAssessmentDTO,
+} from "@/dto";
+import { type customWeightValueSchema } from "@/dto/marking/student-submissions";
 
-import { nubsById } from "@/lib/utils/list-unique";
+import { setDiff } from "@/lib/utils/general/set-difference";
+import { setIntersection } from "@/lib/utils/general/set-intersection";
+import { keyBy } from "@/lib/utils/key-by";
 
-export const customWeightValueSchema = z.coerce
-  .number<number>()
-  .positive()
-  .or(z.literal("MV"));
+import {
+  StudentSelectionMode,
+  useSelectionState,
+} from "./student-unit-selection";
 
 export type WeightValue = z.infer<typeof customWeightValueSchema>;
-
-export type SelectionMode = "include" | "exclude";
 
 // Data table rows contain general information about the student, all captured in the StudentDTO
 // and information about the specific uoas they have to be graded on
 // This is just the shape of the data as it gets returned from the server
 export interface StudentSubmissionsRow {
   student: StudentDTO;
-  unitsOfAssessment: {
-    unit: UnitOfAssessmentDTO;
-    submitted: boolean;
-    customDueDate?: Date;
-    customWeight?: WeightValue;
-  }[];
+  units: { unit: UnitOfAssessmentDTO; grade: UnitGradeDTO }[];
 }
 
 // local mutable copy of student-level state - enrolled is lifted out of the DTO
 // so we can update it without reconstructing the entire StudentDTO on every change
-export interface StudentRowState {
-  student: StudentDTO;
-  enrolled: boolean;
-  units: UnitState[];
-}
-
-// local mutable copy of unit-level state
-export interface UnitState {
-  unit: UnitOfAssessmentDTO;
-  submitted: boolean;
-  customDueDate?: Date;
-  customWeight?: WeightValue;
-}
-
-// ---------------------------------------------------------
-
-// Separating student-level and unit-level changes makes writing mutations easier:
-// - PendingStudentChange[] maps to a studentDetails.updateMany (or two)
-// - PendingUnitChange[] will require more granular changes (our mass upsert pattern)
-export interface PendingChanges {
-  students: PendingStudentChange[];
-  units: PendingUnitChange[];
-}
-
-export interface PendingStudentChange {
+export interface StudentDelta {
   studentId: string;
   enrolled?: boolean;
+  units: UnitDelta[];
 }
 
-export interface PendingUnitChange {
-  studentId: string;
+// same thing but for units
+export interface UnitDelta {
   unitId: string;
   submitted?: boolean;
   customDueDate?: Date;
   customWeight?: WeightValue;
 }
 
-// ----------------------------------------------------------
-
 interface SubmissionsContextType {
+  /* Ground truth from server */
+  studentSubmissionsByFlag: Record<string, StudentSubmissionsRow[]>;
+
   /** Current mutable state for every row */
-  rows: StudentRowState[];
-
-  // --- flag filtering
-
-  /** All distinct flags present in the data */
-  availableFlags: FlagDTO[];
+  studentDeltasByFlag: Record<string, StudentDelta[]>;
 
   /** Currently active flag filter */
   activeFlag: string;
@@ -99,44 +71,7 @@ interface SubmissionsContextType {
   /** Which flag tabs currently have pending changes */
   dirtyFlags: Set<string>;
 
-  // --- derived from active filter
-
-  /** Rows that match the current flag filter */
-  visibleRows: StudentRowState[];
-
-  /** Distinct UoA IDs across all visible rows */
-  visibleUnitIds: string[];
-
-  /** Distinct UoAs across all visible rows */
-  visibleUnits: UnitOfAssessmentDTO[];
-
-  /** Visible students */
-  visibleStudents: StudentDTO[];
-
-  // --- selection (shared between filters and quick actions)
-
-  /** Currently selected unit IDs */
-  selectedUnitIds: string[];
-
-  /** Set selected unit IDs */
-  setSelectedUnitIds: (ids: string[]) => void;
-
-  /** Currently selected student IDs */
-  selectedStudentIds: string[];
-
-  /** Set selected student IDs */
-  setSelectedStudentIds: Dispatch<SetStateAction<string[]>>;
-
-  /** Current selection mode */
-  selectionMode: SelectionMode;
-
-  /** Set selection mode (clears student selection on change) */
-  setSelectionMode: (mode: SelectionMode) => void;
-
-  /** Whether the current selection is valid for a quick action */
-  hasValidSelection: boolean;
-
-  // --- single-row updaters
+  selection: ReturnType<typeof useSelectionState>;
 
   /** Update the enrolled status for a student */
   updateEnrolled: (studentId: string, enrolled: boolean) => void;
@@ -145,24 +80,14 @@ interface SubmissionsContextType {
   updateUnit: (
     studentId: string,
     unitId: string,
-    patch: Partial<Omit<UnitState, "unit">>,
+    patch: Partial<Omit<UnitDelta, "unitId">>,
   ) => void;
-
-  // --- batch updaters
 
   /**
    * Apply a patch to specific units across multiple students.
    * Targets all visible students minus the excluded set.
    */
-  batchUpdateUnits: (patch: Partial<Omit<UnitState, "unit">>) => void;
-
-  // --- change tracking (per flag)
-
-  /** Compute the set of fields that differ from the original server data */
-  getPendingChangesForFlag: (flagId: string) => PendingChanges;
-
-  /** Update the baseline data for the flag with the data just committed */
-  commitFlag: (flagId: string) => void;
+  batchUpdateUnits: (patch: Partial<Omit<UnitDelta, "unitId">>) => void;
 
   /** Whether any row has been modified */
   isDirty: boolean;
@@ -183,352 +108,255 @@ export function useSubmissions() {
   return ctx;
 }
 
-// ? maybe we should error if the find fails so we don't have to deal with the undefined case everywhere?
-export function useRowState(studentId: string): StudentRowState | undefined {
-  const { rows } = useSubmissions();
-  return rows.find((r) => r.student.id === studentId);
+export function useRowState(studentId: string): StudentDelta {
+  const { studentDeltasByFlag, activeFlag } = useSubmissions();
+  const studentDelta = studentDeltasByFlag[activeFlag].find(
+    (r) => r.studentId === studentId,
+  );
+
+  if (!studentDelta) throw Error(`No StudentDelta for student: ${studentId}`);
+  return studentDelta;
 }
 
 // ------------------------------------------------------------ provider
 
-function buildInitialState(data: StudentSubmissionsRow[]): StudentRowState[] {
-  return data.map((row) => ({
-    student: row.student,
-    enrolled: row.student.enrolled,
-    units: row.unitsOfAssessment.map((u) => ({
-      unit: u.unit,
-      submitted: u.submitted,
-      customDueDate: u.customDueDate,
-      customWeight: u.customWeight,
-    })),
+function buildInitialState(
+  data: Record<string, StudentSubmissionsRow[]>,
+): Record<string, StudentDelta[]> {
+  const byflags = Object.keys(data).map((flagId) => ({
+    flagId,
+    data: data[flagId].map(zeroDelta),
   }));
+
+  return keyBy(
+    byflags,
+    (x) => x.flagId,
+    (x) => x.data,
+  );
 }
 
-function hasPendingChangesForFlag(
-  flagId: string,
-  rows: StudentRowState[],
-  originalData: StudentSubmissionsRow[],
-): boolean {
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    const originalRow = originalData[i];
-    if (!originalRow || row.student.flag.id !== flagId) continue;
+function zeroDelta(s: StudentSubmissionsRow): StudentDelta {
+  return {
+    studentId: s.student.id,
+    units: s.units.map((u) => ({ unitId: u.unit.id })),
+  };
+}
 
-    // student-level: enrolled
-    if (row.enrolled !== originalRow.student.enrolled) return true;
+function hasPendingChanges(rows: StudentDelta[]): boolean {
+  return rows.some(
+    (r) =>
+      r.enrolled !== undefined ||
+      r.units.some(
+        (u) =>
+          u.customDueDate !== undefined ||
+          u.customWeight !== undefined ||
+          u.submitted !== undefined,
+      ),
+  );
+}
 
-    // unit-level
-    for (let j = 0; j < row.units.length; j++) {
-      const u = row.units[j];
-      const ou = originalRow.unitsOfAssessment[j];
-      if (!ou) continue;
-      if (u.submitted !== ou.submitted) return true;
-      if (u.customDueDate !== ou.customDueDate) return true;
-      if (u.customWeight !== ou.customWeight) return true;
-    }
-  }
-
-  return false;
+export function computeChangeCount(delta: StudentDelta): number {
+  return (
+    (delta.enrolled !== undefined ? 1 : 0) +
+    delta.units.reduce((sum, u) => {
+      let fields = 0;
+      if (u.submitted !== undefined) fields++;
+      if (u.customDueDate !== undefined) fields++;
+      if (u.customWeight !== undefined) fields++;
+      return sum + fields;
+    }, 0)
+  );
+}
+function createFlagParser(validFlags: string[]) {
+  return createParser({
+    parse: (queryValue) => {
+      const cleanVal = queryValue.trim().toLowerCase();
+      return validFlags.includes(cleanVal) ? cleanVal : null;
+    },
+    serialize: (value) => value,
+  });
 }
 
 export function SubmissionsProvider({
-  data,
+  studentSubmissionsByFlag,
+  availableFlags,
   children,
 }: {
-  data: StudentSubmissionsRow[];
+  studentSubmissionsByFlag: Record<string, StudentSubmissionsRow[]>;
+  availableFlags: FlagDTO[];
   children: ReactNode;
 }) {
-  const [rows, setRows] = useState<StudentRowState[]>(() =>
-    buildInitialState(data),
-  );
+  const [studentDeltasByFlag, setStudentDeltasByFlag] = useImmer<
+    Record<string, StudentDelta[]>
+  >(() => buildInitialState(studentSubmissionsByFlag));
 
-  // stable reference to original data for diffing
-  const [originalData, setOriginalData] =
-    useState<StudentSubmissionsRow[]>(data);
-
-  // --- flag filtering
-
-  const availableFlags = useMemo(
-    () => data.map((x) => x.student.flag).filter(nubsById),
-    [data],
-  );
   const [activeFlag, setActiveFlag] = useQueryState<string>(
     "flag",
-    parseFlagId(availableFlags.map((f) => f.id)).withDefault(
+    createFlagParser(availableFlags.map((f) => f.id)).withDefault(
       availableFlags[0].id,
     ),
   );
 
-  // --- derived visible data
-
-  const visibleRows = useMemo(
-    () => rows.filter((r) => r.student.flag.id === activeFlag),
-    [rows, activeFlag],
-  );
-
-  const visibleUnits = useMemo(
-    // because we only allow one flag at a time we only need to check one row
-    () => visibleRows[0]?.units.map((x) => x.unit) ?? [],
-    [visibleRows],
-  );
-
-  const visibleUnitIds = useMemo(
-    () => visibleUnits.map((u) => u.id),
-    [visibleUnits],
-  );
-
-  const visibleStudents = useMemo(
-    () => visibleRows.map((r) => r.student),
-    [visibleRows],
-  );
-
-  // --- selection state
-
-  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
-  const [selectedStudentIds, setSelectedStudentIds] = useState<string[]>([]);
-  const [selectionMode, setSelectionModeRaw] =
-    useState<SelectionMode>("exclude");
-
-  // clear student selection when mode changes to avoid stale selections
-  const setSelectionMode = useCallback((mode: SelectionMode) => {
-    setSelectionModeRaw(mode);
-    setSelectedStudentIds([]);
-  }, []);
+  const selection = useSelectionState(studentDeltasByFlag[activeFlag].length);
+  const {
+    clearSelection,
+    state: {
+      unitIds: selectedUnitIds,
+      studentIds: selectedStudentIds,
+      mode: selectionMode,
+    },
+  } = selection;
 
   // clear selection when flag changes since the visible students/units change
   const setActiveFlagAndClearSelection = useCallback(
     (flagId: string) => {
       void setActiveFlag(flagId);
-      setSelectedUnitIds([]);
-      setSelectedStudentIds([]);
+      clearSelection();
     },
-    [setActiveFlag],
+    [clearSelection, setActiveFlag],
   );
-
-  const hasValidSelection = useMemo(() => {
-    if (selectedUnitIds.length === 0) return false;
-    if (selectionMode === "include" && selectedStudentIds.length === 0) {
-      return false;
-    }
-    return true;
-  }, [selectedUnitIds, selectedStudentIds, selectionMode]);
 
   // --- single-row updaters
 
-  const updateEnrolled = useCallback((studentId: string, enrolled: boolean) => {
-    setRows((prev) =>
-      prev.map((row) =>
-        row.student.id === studentId ? { ...row, enrolled } : row,
-      ),
-    );
-  }, []);
+  const updateEnrolled = useCallback(
+    (studentId: string, enrolled: boolean) => {
+      setStudentDeltasByFlag((prev) => {
+        const activeStudents = prev[activeFlag];
+        const rowId = activeStudents.findIndex(
+          (row) => row.studentId === studentId,
+        );
+
+        if (rowId === -1) {
+          throw new Error("Tried to update unknown student");
+        }
+
+        activeStudents[rowId].enrolled = enrolled;
+      });
+    },
+    [setStudentDeltasByFlag, activeFlag],
+  );
 
   const updateUnit = useCallback(
     (
       studentId: string,
       unitId: string,
-      patch: Partial<Omit<UnitState, "unit">>,
+      patch: Partial<Omit<UnitDelta, "unitId">>,
     ) => {
-      setRows((prev) =>
-        prev.map((row) => {
-          if (row.student.id !== studentId) return row;
-          return {
-            ...row,
-            units: row.units.map((u) =>
-              u.unit.id === unitId ? { ...u, ...patch } : u,
-            ),
-          };
-        }),
-      );
+      setStudentDeltasByFlag((prevRec) => {
+        const activeStudents = prevRec[activeFlag];
+        const studentRowId = activeStudents.findIndex(
+          (row) => row.studentId === studentId,
+        );
+
+        if (studentRowId === -1) {
+          throw new Error("Tried to update unknown student");
+        }
+
+        const units = activeStudents[studentRowId].units;
+        const unitRowId = units.findIndex((u) => u.unitId === unitId);
+
+        if (unitRowId === -1) {
+          throw new Error("Tried to update unknown unit");
+        }
+
+        activeStudents[studentRowId].units[unitRowId] = {
+          ...units[unitRowId],
+          ...patch,
+        };
+      });
     },
-    [],
+    [setStudentDeltasByFlag, activeFlag],
   );
 
   // --- batch updater (now uses shared selection state)
 
   const batchUpdateUnits = useCallback(
-    (patch: Partial<Omit<UnitState, "unit">>) => {
-      const unitIdSet = new Set(selectedUnitIds);
-      const studentIdSet = new Set(selectedStudentIds);
-      const visibleStudentIdSet = new Set(visibleStudents.map((s) => s.id));
+    (patch: Partial<Omit<UnitDelta, "unitId">>) => {
+      const visibleStudentIds = studentDeltasByFlag[activeFlag].map(
+        (s) => s.studentId,
+      );
 
       const affectedStudentIds =
-        selectionMode === "include"
-          ? visibleStudentIdSet.intersection(studentIdSet)
-          : visibleStudentIdSet.difference(studentIdSet);
+        selectionMode === StudentSelectionMode.INCLUDE
+          ? setIntersection(visibleStudentIds, selectedStudentIds, (x) => x)
+          : setDiff(visibleStudentIds, selectedStudentIds, (x) => x);
 
-      setRows((prev) =>
-        prev.map((row) => {
-          if (!affectedStudentIds.has(row.student.id)) return row;
+      setStudentDeltasByFlag((prev) => {
+        prev[activeFlag] = prev[activeFlag].map((row) => {
+          if (!affectedStudentIds.includes(row.studentId)) return row;
 
           return {
             ...row,
             units: row.units.map((u) =>
-              unitIdSet.has(u.unit.id) ? { ...u, ...patch } : u,
+              selectedUnitIds.includes(u.unitId) ? { ...u, ...patch } : u,
             ),
           };
-        }),
-      );
+        });
+      });
     },
-    [selectedUnitIds, selectedStudentIds, selectionMode, visibleStudents],
+    [
+      studentDeltasByFlag,
+      setStudentDeltasByFlag,
+      selectedUnitIds,
+      selectedStudentIds,
+      selectionMode,
+      activeFlag,
+    ],
   );
 
   // --- per-flag operations
 
-  const getPendingChangesForFlag = useCallback(
-    (flagId: string): PendingChanges => {
-      const students: PendingStudentChange[] = [];
-      const units: PendingUnitChange[] = [];
-
-      rows.forEach((row, rowIdx) => {
-        if (row.student.flag.id !== flagId) return;
-        const originalRow = originalData[rowIdx];
-        if (!originalRow) return;
-
-        if (row.enrolled !== originalRow.student.enrolled) {
-          students.push({ studentId: row.student.id, enrolled: row.enrolled });
-        }
-
-        row.units.forEach((u, unitIdx) => {
-          const originalUnit = originalRow.unitsOfAssessment[unitIdx];
-          if (!originalUnit) return;
-
-          const changes: Partial<PendingUnitChange> = {};
-          let hasDiff = false;
-
-          if (u.submitted !== originalUnit.submitted) {
-            changes.submitted = u.submitted;
-            hasDiff = true;
-          }
-          if (u.customDueDate !== originalUnit.customDueDate) {
-            changes.customDueDate = u.customDueDate;
-            hasDiff = true;
-          }
-          if (u.customWeight !== originalUnit.customWeight) {
-            changes.customWeight = u.customWeight;
-            hasDiff = true;
-          }
-
-          if (hasDiff) {
-            units.push({
-              studentId: row.student.id,
-              unitId: u.unit.id,
-              ...changes,
-            });
-          }
-        });
-      });
-
-      return { students, units };
-    },
-    [rows, originalData],
-  );
-
-  const commitFlag = useCallback(
-    (flagId: string) => {
-      setOriginalData((prev) =>
-        prev.map((orig, i) => {
-          const row = rows[i];
-          if (row.student.flag.id !== flagId) return orig;
-
-          return {
-            student: { ...row.student, enrolled: row.enrolled },
-            unitsOfAssessment: row.units.map((u) => ({
-              unit: u.unit,
-              submitted: u.submitted,
-              customDueDate: u.customDueDate,
-              customWeight: u.customWeight,
-            })),
-          };
-        }),
-      );
-    },
-    [rows],
-  );
-
   const resetFlag = useCallback(
     (flagId: string) => {
-      setRows((prev) =>
-        prev.map((row, i) => {
-          if (row.student.flag.id !== flagId) return row;
-          const orig = originalData[i];
-          return {
-            student: orig.student,
-            enrolled: orig.student.enrolled,
-            units: orig.unitsOfAssessment.map((u) => ({
-              unit: u.unit,
-              submitted: u.submitted,
-              customDueDate: u.customDueDate,
-              customWeight: u.customWeight,
-            })),
-          };
-        }),
+      setStudentDeltasByFlag(
+        (prev) =>
+          (prev[flagId] = studentSubmissionsByFlag[flagId].map(zeroDelta)),
       );
     },
-    [originalData],
+    [studentSubmissionsByFlag, setStudentDeltasByFlag],
   );
 
-  const isDirty = useMemo(() => {
-    const { students, units } = getPendingChangesForFlag(activeFlag);
-    return students.length > 0 || units.length > 0;
-  }, [getPendingChangesForFlag, activeFlag]);
+  const isDirty = useMemo(
+    () => hasPendingChanges(studentDeltasByFlag[activeFlag]),
+    [studentDeltasByFlag, activeFlag],
+  );
 
   const dirtyFlags = useMemo(
     () =>
       new Set(
         availableFlags
           .map((f) => f.id)
-          .filter((id) => hasPendingChangesForFlag(id, rows, originalData)),
+          .filter((id) => hasPendingChanges(studentDeltasByFlag[id])),
       ),
-    [availableFlags, rows, originalData],
+    [availableFlags, studentDeltasByFlag],
   );
 
   // --- context value
 
   const value = useMemo<SubmissionsContextType>(
     () => ({
-      rows,
+      studentDeltasByFlag,
+      studentSubmissionsByFlag,
       availableFlags,
       activeFlag,
       setActiveFlag: setActiveFlagAndClearSelection,
       dirtyFlags,
-      getPendingChangesForFlag,
-      commitFlag,
       resetFlag,
-      visibleRows,
-      visibleUnitIds,
-      visibleUnits,
-      visibleStudents,
-      selectedUnitIds,
-      setSelectedUnitIds,
-      selectedStudentIds,
-      setSelectedStudentIds,
-      selectionMode,
-      setSelectionMode,
-      hasValidSelection,
+      selection,
       updateEnrolled,
       updateUnit,
       batchUpdateUnits,
       isDirty,
     }),
     [
-      rows,
+      studentDeltasByFlag,
+      studentSubmissionsByFlag,
       availableFlags,
       activeFlag,
       setActiveFlagAndClearSelection,
       dirtyFlags,
-      getPendingChangesForFlag,
-      commitFlag,
       resetFlag,
-      visibleRows,
-      visibleUnitIds,
-      visibleUnits,
-      visibleStudents,
-      selectedUnitIds,
-      selectedStudentIds,
-      selectionMode,
-      setSelectionMode,
-      hasValidSelection,
+      selection,
       updateEnrolled,
       updateUnit,
       batchUpdateUnits,
@@ -542,14 +370,3 @@ export function SubmissionsProvider({
     </SubmissionsContext.Provider>
   );
 }
-
-const parseFlagId = (validFlags: string[]) =>
-  createParser({
-    parse(queryValue) {
-      const cleanVal = queryValue.trim().toLowerCase();
-      return validFlags.includes(cleanVal) ? cleanVal : null;
-    },
-    serialize(value) {
-      return value;
-    },
-  });

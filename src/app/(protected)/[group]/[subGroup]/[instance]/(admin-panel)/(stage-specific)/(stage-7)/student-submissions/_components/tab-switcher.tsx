@@ -40,7 +40,9 @@ const TABS: {
 ];
 
 export function QuickActionsTabSwitcher() {
-  const { hasValidSelection } = useSubmissions();
+  const {
+    selection: { isValid: hasValidSelection },
+  } = useSubmissions();
   const [activeTab, setActiveTab] = useState<TabId | null>(null);
 
   const activeDefinition = TABS.find((t) => t.id === activeTab) ?? null;

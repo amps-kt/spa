@@ -130,6 +130,69 @@ export const unitGradeDtoSchema = z.object({
 
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 
+// <tmp>
+
+const ConsensusStage = {
+  UNRESOLVED: "UNRESOLVED",
+  RESOLVED: "RESOLVED",
+  MODERATE: "MODERATE",
+  NEGOTIATE: "NEGOTIATE",
+} as const;
+
+const ConsensusMethod = {
+  AUTO: "AUTO",
+  OVERRIDE: "OVERRIDE",
+  NEGOTIATED: "NEGOTIATED",
+  MODERATED: "MODERATED",
+} as const;
+
+export const consensusStageSchema = z.enum([
+  ConsensusStage.RESOLVED,
+  ConsensusStage.UNRESOLVED,
+  ConsensusStage.MODERATE,
+  ConsensusStage.NEGOTIATE,
+]);
+
+export const consensusMethodSchema = z.enum([
+  ConsensusMethod.AUTO,
+  ConsensusMethod.OVERRIDE,
+  ConsensusMethod.NEGOTIATED,
+  ConsensusMethod.MODERATED,
+]);
+
+export const resolvedUnitGradeDtoSchema = z.object({
+  grade: z.number(),
+  comment: z.string(),
+  status: z.literal(ConsensusStage.RESOLVED),
+  method: consensusMethodSchema,
+  studentSubmitted: z.boolean(),
+  customDueDate: z.date().optional(),
+  customWeight: z.number().optional(),
+});
+
+export const unresolvedUnitGradeDtoSchema = z.object({
+  grade: z.number().optional(),
+  comment: z.string().optional(),
+  status: z.enum([
+    ConsensusStage.MODERATE,
+    ConsensusStage.NEGOTIATE,
+    ConsensusStage.UNRESOLVED,
+  ]),
+  method: consensusMethodSchema.optional(),
+  studentSubmitted: z.boolean(),
+  customDueDate: z.date().optional(),
+  customWeight: z.number().optional(),
+});
+
+export const unitGradeDtoSchema__NEW = z.discriminatedUnion("status", [
+  resolvedUnitGradeDtoSchema,
+  unresolvedUnitGradeDtoSchema,
+]);
+
+export type UnitGradeDTO__NEW = z.infer<typeof unitGradeDtoSchema__NEW>;
+
+// </tmp>
+
 export const UnitGradingLifecycleState = {
   CLOSED: "CLOSED",
   NOT_SUBMITTED: "NOT_SUBMITTED",

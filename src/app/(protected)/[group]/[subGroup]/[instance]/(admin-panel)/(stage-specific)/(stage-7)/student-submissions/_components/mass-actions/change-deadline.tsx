@@ -16,23 +16,26 @@ import { Separator } from "@/components/ui/separator";
 
 import { cn } from "@/lib/utils";
 
+import { StudentSelectionMode } from "../student-unit-selection";
 import { useSubmissions } from "../submissions-context";
 
 export function ChangeDeadlineAction() {
   const {
     batchUpdateUnits,
-    visibleStudents,
-    selectedStudentIds,
-    selectionMode,
-    hasValidSelection,
+    selection: {
+      state: { mode: selectedMode, studentIds: selectedStudentIds },
+      isValid: hasValidSelection,
+    },
+    studentDeltasByFlag,
+    activeFlag,
   } = useSubmissions();
 
   const [newDate, setNewDate] = useState<Date | undefined>();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const affectedCount =
-    selectionMode === "exclude"
-      ? visibleStudents.length - selectedStudentIds.length
+    selectedMode === StudentSelectionMode.EXCLUDE
+      ? studentDeltasByFlag[activeFlag].length - selectedStudentIds.length
       : selectedStudentIds.length;
 
   function handleConfirm() {

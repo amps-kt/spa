@@ -1,5 +1,7 @@
 "use client";
 
+import { type FlagDTO } from "@/dto";
+
 import { Button } from "@/components/ui/button";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
@@ -7,9 +9,14 @@ import { cn } from "@/lib/utils";
 
 import { useSubmissions } from "./submissions-context";
 
-export function FlagTabFilter({ className }: { className?: string }) {
-  const { availableFlags, activeFlag, setActiveFlag, dirtyFlags } =
-    useSubmissions();
+export function FlagTabFilter({
+  availableFlags,
+  className,
+}: {
+  availableFlags: FlagDTO[];
+  className?: string;
+}) {
+  const { activeFlag, setActiveFlag, dirtyFlags } = useSubmissions();
 
   if (availableFlags.length <= 1) return null;
 
