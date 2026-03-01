@@ -1,4 +1,4 @@
-import { StudentDelta } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-7)/student-submissions/_components/submissions-context";
+import { type StudentDelta } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-7)/student-submissions/_components/submissions-context";
 
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
@@ -1061,7 +1061,17 @@ export class AllocationInstance extends DataObject {
       include: {
         students: {
           include: {
-            studentFlag: true,
+            studentFlag: {
+              include: {
+                unitsOfAssessment: {
+                  include: { flag: true, markingComponents: true },
+                  orderBy: [
+                    { defaultStudentSubmissionDeadline: "asc" },
+                    { title: "asc" },
+                  ],
+                },
+              },
+            },
             userInInstance: { include: { user: true } },
             unitGrades: {
               include: {
@@ -1078,10 +1088,24 @@ export class AllocationInstance extends DataObject {
     return studentData.flatMap((f) =>
       f.students.map((s) => ({
         student: T.toStudentDTO(s),
-        units: s.unitGrades.map((u) => ({
-          unit: T.toUnitOfAssessmentDTO(u.unitOfAssessment),
-          grade: T.toUnitGradeDTO(u),
-        })),
+        units: s.studentFlag.unitsOfAssessment.map((u) => {
+          const rawGrade = s.unitGrades.find(
+            (x) => x.unitOfAssessmentId == u.id,
+          );
+
+          return {
+            unit: T.toUnitOfAssessmentDTO(u),
+            grade: rawGrade
+              ? T.toUnitGradeDTO(rawGrade)
+              : {
+                  grade: -1,
+                  comment: "",
+                  status: "UNRESOLVED",
+                  method: "AUTO",
+                  studentSubmitted: false,
+                },
+          };
+        }),
       })),
     );
   }
@@ -1786,53 +1810,49 @@ export class AllocationInstance extends DataObject {
     await this.db.$transaction([
       ...deltas
         .filter((d) => d.enrolled !== undefined)
-        .map(
-          (d) =>
-            this.db.studentDetails.update({
+        .map((d) =>
+          this.db.studentDetails.update({
+            where: {
+              studentDetailsId: { ...expand(this.params), userId: d.studentId },
+            },
+            data: { enrolled: d.enrolled },
+          }),
+        ),
+
+      ...deltas.flatMap((d) =>
+        d.units
+          .filter(
+            (u) =>
+              u.customDueDate !== undefined ||
+              u.customWeight !== undefined ||
+              u.submitted !== undefined,
+          )
+          .map((u) =>
+            this.db.unitOfAssessmentGrade.upsert({
               where: {
-                studentDetailsId: {
-                  ...expand(this.params),
-                  userId: d.studentId,
+                uoaGradeId: {
+                  studentId: d.studentId,
+                  unitOfAssessmentId: u.unitId,
                 },
               },
-              data: { enrolled: d.enrolled },
+              update: {
+                customDueDate: u.customDueDate,
+                customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                submitted: u.submitted,
+              },
+              create: {
+                ...expand(this.params),
+                studentId: d.studentId,
+                unitOfAssessmentId: u.unitId,
+                customDueDate: u.customDueDate,
+                customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                submitted: u.submitted,
+                grade: -1,
+                comment: "",
+              },
             }),
-
-          ...deltas.flatMap((d) =>
-            d.units
-              .filter(
-                (u) =>
-                  u.customDueDate !== undefined ||
-                  u.customWeight !== undefined ||
-                  u.submitted !== undefined,
-              )
-              .map((u) =>
-                this.db.unitOfAssessmentGrade.upsert({
-                  where: {
-                    uoaGradeId: {
-                      studentId: d.studentId,
-                      unitOfAssessmentId: u.unitId,
-                    },
-                  },
-                  update: {
-                    customDueDate: u.customDueDate,
-                    customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
-                    submitted: u.submitted,
-                  },
-                  create: {
-                    ...expand(this.params),
-                    studentId: d.studentId,
-                    unitOfAssessmentId: u.unitId,
-                    customDueDate: u.customDueDate,
-                    customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
-                    submitted: u.submitted,
-                    grade: -1,
-                    comment: "",
-                  },
-                }),
-              ),
           ),
-        ),
+      ),
     ]);
   }
 }
