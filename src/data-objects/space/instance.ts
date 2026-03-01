@@ -1,3 +1,5 @@
+import { StudentDelta } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-7)/student-submissions/_components/submissions-context";
+
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -16,6 +18,7 @@ import {
   type UserDTO,
   type StudentDTO,
   type ReaderDTO,
+  type UnitGradeDTO__NEW as UnitGradeDTO,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -78,6 +81,23 @@ export class AllocationInstance extends DataObject {
     });
 
     return data.map((x) => T.toAssessmentCriterionDTO(x));
+  }
+
+  public async getFlagUoAs(flagId: string): Promise<UnitOfAssessmentDTO[]> {
+    const flagData = await this.db.flag.findFirstOrThrow({
+      where: { ...expand(this.params), id: flagId },
+      include: {
+        unitsOfAssessment: {
+          include: { flag: true, markingComponents: true },
+          orderBy: [
+            { defaultStudentSubmissionDeadline: "asc" },
+            { title: "asc" },
+          ],
+        },
+      },
+    });
+
+    return flagData.unitsOfAssessment.map((x) => T.toUnitOfAssessmentDTO(x));
   }
 
   public async getFlagsWithAssessmentDetails(): Promise<
@@ -1016,6 +1036,56 @@ export class AllocationInstance extends DataObject {
     return students.map((s) => T.toStudentDTO(s));
   }
 
+  public async getStudentsByFlag(flagId: string): Promise<StudentDTO[]> {
+    const studentData = await this.db.studentDetails.findMany({
+      where: { ...expand(this.params), studentFlag: { id: flagId } },
+      include: {
+        studentFlag: true,
+        userInInstance: { include: { user: true } },
+      },
+    });
+
+    return studentData.map((s) => T.toStudentDTO(s));
+  }
+
+  public async getStudentUnitSubmissionsByFlag(
+    flagId: string,
+  ): Promise<
+    {
+      student: StudentDTO;
+      units: { unit: UnitOfAssessmentDTO; grade: UnitGradeDTO }[];
+    }[]
+  > {
+    const studentData = await this.db.flag.findMany({
+      where: { ...expand(this.params), id: flagId },
+      include: {
+        students: {
+          include: {
+            studentFlag: true,
+            userInInstance: { include: { user: true } },
+            unitGrades: {
+              include: {
+                unitOfAssessment: {
+                  include: { flag: true, markingComponents: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return studentData.flatMap((f) =>
+      f.students.map((s) => ({
+        student: T.toStudentDTO(s),
+        units: s.unitGrades.map((u) => ({
+          unit: T.toUnitOfAssessmentDTO(u.unitOfAssessment),
+          grade: T.toUnitGradeDTO(u),
+        })),
+      })),
+    );
+  }
+
   // --- side panel tab methods
   public async getAdminTabs() {
     const { stage } = await this.get();
@@ -1708,5 +1778,61 @@ export class AllocationInstance extends DataObject {
 
       return { reader: T.toReaderDTO(r), numPreferred, numVetoed };
     });
+  }
+
+  public async updateStudentSubmissionInfo(
+    deltas: StudentDelta[],
+  ): Promise<void> {
+    await this.db.$transaction([
+      ...deltas
+        .filter((d) => d.enrolled !== undefined)
+        .map(
+          (d) =>
+            this.db.studentDetails.update({
+              where: {
+                studentDetailsId: {
+                  ...expand(this.params),
+                  userId: d.studentId,
+                },
+              },
+              data: { enrolled: d.enrolled },
+            }),
+
+          ...deltas.flatMap((d) =>
+            d.units
+              .filter(
+                (u) =>
+                  u.customDueDate !== undefined ||
+                  u.customWeight !== undefined ||
+                  u.submitted !== undefined,
+              )
+              .map((u) =>
+                this.db.unitOfAssessmentGrade.upsert({
+                  where: {
+                    uoaGradeId: {
+                      studentId: d.studentId,
+                      unitOfAssessmentId: u.unitId,
+                    },
+                  },
+                  update: {
+                    customDueDate: u.customDueDate,
+                    customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                    submitted: u.submitted,
+                  },
+                  create: {
+                    ...expand(this.params),
+                    studentId: d.studentId,
+                    unitOfAssessmentId: u.unitId,
+                    customDueDate: u.customDueDate,
+                    customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                    submitted: u.submitted,
+                    grade: -1,
+                    comment: "",
+                  },
+                }),
+              ),
+          ),
+        ),
+    ]);
   }
 }

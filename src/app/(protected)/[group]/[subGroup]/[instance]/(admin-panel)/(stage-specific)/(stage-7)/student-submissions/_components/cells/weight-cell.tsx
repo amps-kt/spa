@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { CheckIcon, PencilIcon, XIcon } from "lucide-react";
 
+import { customWeightValueSchema } from "@/dto/marking/student-submissions";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,9 +17,7 @@ import {
 
 import { cn } from "@/lib/utils";
 
-import { customWeightValueSchema } from "../submissions-context";
-
-type WeightValue = number | "MV";
+import { type WeightValue } from "../submissions-context";
 
 export function WeightCell({
   value,
@@ -67,7 +67,7 @@ export function WeightCell({
     if (e.key === "Escape") cancel();
   }
 
-  const displayValue = (value === "MV" || value === 0) ? "MV" : String(value);
+  const displayValue = value === "MV" || value === 0 ? "MV" : String(value);
 
   if (editing) {
     return (

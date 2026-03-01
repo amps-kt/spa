@@ -1,6 +1,15 @@
 import { z } from "zod";
 
-import { studentDtoSchema, unitOfAssessmentDtoSchema } from "@/dto";
+import {
+  studentDtoSchema,
+  unitOfAssessmentDtoSchema,
+  unitGradeDtoSchema__NEW,
+  type UnitGradeDTO__NEW,
+} from "@/dto";
+import {
+  studentDeltaSchema,
+  studentSubmissionsRowDtoSchema,
+} from "@/dto/marking/student-submissions";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
@@ -13,12 +22,10 @@ export const teachingOfficeRouter = createTRPCRouter({
       z.array(
         z.object({
           student: studentDtoSchema.extend({ enrolled: z.boolean() }),
-          unitsOfAssessment: z.array(
+          units: z.array(
             z.object({
               unit: unitOfAssessmentDtoSchema,
-              submitted: z.boolean(),
-              customDueDate: z.date().optional(),
-              customWeight: z.number().optional(),
+              grade: unitGradeDtoSchema__NEW,
             }),
           ),
         }),
@@ -32,14 +39,35 @@ export const teachingOfficeRouter = createTRPCRouter({
 
       return students.map((student) => ({
         student,
-        unitsOfAssessment: flagsById[student.flag.id].unitsOfAssessment.map(
-          (unit) => ({
-            unit,
+        units: flagsById[student.flag.id].unitsOfAssessment.map((unit) => ({
+          unit,
+          grade: {
             submitted: true,
             customDueDate: unit.studentSubmissionDeadline,
             customWeight: unit.weight,
-          }),
-        ),
+          } as unknown as UnitGradeDTO__NEW,
+        })),
       }));
     }),
+
+  getFlagStudentSubmissionInfo: procedure.instance.subGroupAdmin
+    .input(z.object({ flagId: z.string() }))
+    .output(
+      z.object({
+        flagId: z.string(),
+        data: z.array(studentSubmissionsRowDtoSchema),
+      }),
+    )
+    .query(async ({ ctx: { instance }, input: { flagId } }) => ({
+      flagId,
+      data: await instance.getStudentUnitSubmissionsByFlag(flagId),
+    })),
+
+  updateStudentSubmissionInfo: procedure.instance.subGroupAdmin
+    .input(z.object({ studentDeltas: z.array(studentDeltaSchema) }))
+    .output(z.void())
+    .mutation(
+      async ({ ctx: { instance }, input: { studentDeltas } }) =>
+        await instance.updateStudentSubmissionInfo(studentDeltas),
+    ),
 });

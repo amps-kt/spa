@@ -1,21 +1,26 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 
-import { type ColumnDef } from "@tanstack/react-table";
+import { type Row, type ColumnDef } from "@tanstack/react-table";
 import { CircleQuestionMarkIcon } from "lucide-react";
 
+import { type StudentDTO, type UnitOfAssessmentDTO, type FlagDTO } from "@/dto";
+
+import { useInstanceParams } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 import { FlagCell } from "@/components/ui/data-table/cells/flag-cell";
 import { StudentCell } from "@/components/ui/data-table/cells/student-cell";
-import DataTable, {
-  type CustomRowType,
-} from "@/components/ui/data-table/data-table";
+import DataTable from "@/components/ui/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
+import { Skeleton } from "@/components/ui/skeleton";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
+import { keyBy } from "@/lib/utils/key-by";
+import { zip } from "@/lib/utils/zip";
 
 import { DueDateCell } from "./cells/due-date-cell";
 import { EnrolledCell } from "./cells/enrolled-cell";
@@ -32,6 +37,10 @@ import {
   type StudentSubmissionsRow,
 } from "./submissions-context";
 import { QuickActionsTabSwitcher } from "./tab-switcher";
+import {
+  StudentTargetStatus,
+  useSelectionIndicators,
+} from "./use-selection-indicators";
 
 const columnWidths = {
   student: "min-w-[160px] max-w-[200px]",
@@ -140,13 +149,22 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
   },
 ];
 
-const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
+const CustomRow = ({
+  row,
+  studentMap,
+  uoaMap,
+}: {
+  row: Row<StudentSubmissionsRow>;
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}): ReactNode => {
   const studentId = row.original.student.id;
+
   const state = useRowState(studentId);
   const { updateEnrolled, updateUnit } = useSubmissions();
 
   const unitIds = useMemo(
-    () => state?.units.map((u) => u.unit.id) ?? [],
+    () => state.units.map((u) => u.unitId) ?? [],
     [state],
   );
 
@@ -155,192 +173,184 @@ const CustomRow: CustomRowType<StudentSubmissionsRow> = ({ row }) => {
     unitIds,
   );
 
-  if (!state) return null;
+  let student = studentMap[state.studentId];
+  if (state.enrolled !== undefined) {
+    student = { ...student, enrolled: state.enrolled };
+  }
 
   return (
     <>
       <TableRow
         className={cn(
           "h-16",
-          studentStatus === "targeted" && "border-l-[3px] border-l-indigo-400",
-          studentStatus === "excluded" && "border-l-[3px] border-l-rose-400",
-          studentStatus === "none" && "border-l-[3px] border-l-transparent",
+          studentStatus === StudentTargetStatus.TARGETED &&
+            "border-l-[3px] border-l-indigo-400",
+          studentStatus === StudentTargetStatus.EXCLUDED &&
+            "border-l-[3px] border-l-rose-400",
+          studentStatus === StudentTargetStatus.NONE &&
+            "border-l-[3px] border-l-transparent",
         )}
       >
         <TableCell className={columnWidths.student}>
-          <StudentCell student={state.student} />
+          <StudentCell student={student} />
         </TableCell>
         <TableCell className={columnWidths.units}>
-          <FlagCell flag={state.student.flag} className="justify-start" />
+          <FlagCell flag={student.flag} className="justify-start" />
         </TableCell>
         <TableCell className={columnWidths.weight} />
         <TableCell className={columnWidths.dueDate} />
         <TableCell className={columnWidths.submitted} />
         <TableCell className={columnWidths.enrolled}>
           <EnrolledCell
-            student={{ ...state.student, enrolled: state.enrolled }}
+            student={student}
             onChange={(enrolled) => updateEnrolled(studentId, enrolled)}
           />
         </TableCell>
       </TableRow>
 
-      {state.units.map((unitState) => {
-        const displayWeight = unitState.customWeight ?? unitState.unit.weight;
-        const displayDate =
-          unitState.customDueDate ?? unitState.unit.studentSubmissionDeadline;
+      {zip(state.units, row.original.units).map(
+        ([unitState, groundTruthUnit]) => {
+          const unit = uoaMap[unitState.unitId];
 
-        // a unit sub-row is highlighted if BOTH the unit is selected
-        // AND the student is targeted
-        const isUnitTargeted =
-          studentStatus === "targeted" &&
-          targetedUnitIds.has(unitState.unit.id);
+          const displayWeight =
+            unitState.customWeight ??
+            groundTruthUnit.grade.customWeight ??
+            unit.weight;
 
-        return (
-          <TableRow
-            key={unitState.unit.id}
-            className={cn(
-              "h-16 bg-muted/30",
-              isUnitTargeted
-                ? "border-l-[3px] border-l-indigo-400"
-                : "border-l-[3px] border-l-transparent",
-            )}
-          >
-            <TableCell className={columnWidths.student} />
-            <TableCell
+          const displayDate =
+            unitState.customDueDate ??
+            groundTruthUnit.grade.customDueDate ??
+            unit.studentSubmissionDeadline;
+
+          // a unit sub-row is highlighted if BOTH the unit is selected
+          // AND the student is targeted
+          const isUnitTargeted =
+            studentStatus === StudentTargetStatus.TARGETED &&
+            targetedUnitIds.has(unitState.unitId);
+
+          return (
+            <TableRow
+              key={unitState.unitId}
               className={cn(
-                columnWidths.units,
-                "whitespace-normal font-medium",
+                "h-16 bg-muted/30",
+                isUnitTargeted
+                  ? "border-l-[3px] border-l-indigo-400"
+                  : "border-l-[3px] border-l-transparent",
               )}
             >
-              {unitState.unit.title}
-            </TableCell>
-            <TableCell className={columnWidths.weight}>
-              <WeightCell
-                value={displayWeight}
-                onChange={(value) =>
-                  updateUnit(studentId, unitState.unit.id, {
-                    customWeight: value,
-                  })
-                }
-              />
-            </TableCell>
-            <TableCell className={columnWidths.dueDate}>
-              <DueDateCell
-                value={displayDate}
-                onChange={(date) =>
-                  updateUnit(studentId, unitState.unit.id, {
-                    customDueDate: date,
-                  })
-                }
-              />
-            </TableCell>
-            <TableCell className={columnWidths.submitted}>
-              <SubmittedCell
-                submitted={unitState.submitted}
-                onChange={(value) =>
-                  updateUnit(studentId, unitState.unit.id, { submitted: value })
-                }
-              />
-            </TableCell>
-            <TableCell className={columnWidths.enrolled} />
-          </TableRow>
-        );
-      })}
+              <TableCell className={columnWidths.student} />
+              <TableCell
+                className={cn(
+                  columnWidths.units,
+                  "whitespace-normal font-medium",
+                )}
+              >
+                {unit.title}
+              </TableCell>
+              <TableCell className={columnWidths.weight}>
+                <WeightCell
+                  value={displayWeight}
+                  onChange={(value) =>
+                    updateUnit(studentId, unit.id, { customWeight: value })
+                  }
+                />
+              </TableCell>
+              <TableCell className={columnWidths.dueDate}>
+                <DueDateCell
+                  value={displayDate}
+                  onChange={(date) =>
+                    updateUnit(studentId, unit.id, { customDueDate: date })
+                  }
+                />
+              </TableCell>
+              <TableCell className={columnWidths.submitted}>
+                <SubmittedCell
+                  submitted={
+                    unitState.submitted ??
+                    groundTruthUnit.grade.studentSubmitted
+                  }
+                  onChange={(value) =>
+                    updateUnit(studentId, unit.id, { submitted: value })
+                  }
+                />
+              </TableCell>
+              <TableCell className={columnWidths.enrolled} />
+            </TableRow>
+          );
+        },
+      )}
     </>
   );
 };
 
-type StudentTargetStatus = "targeted" | "excluded" | "none";
-
-// ? this feels like it's too much of a presentation util to be moved to the context file, but open to feedback
-function useSelectionIndicators(studentId: string, unitIds: string[]) {
-  const {
-    selectedUnitIds,
-    selectedStudentIds,
-    selectionMode,
-    visibleStudents,
-  } = useSubmissions();
-
-  return useMemo(() => {
-    const selectedUnitSet = new Set(selectedUnitIds);
-    const selectedStudentSet = new Set(selectedStudentIds);
-    const isVisible = visibleStudents.some((s) => s.id === studentId);
-
-    const targetedUnitIds = new Set(
-      unitIds.filter((id) => selectedUnitSet.has(id)),
-    );
-
-    let status: StudentTargetStatus = "none";
-
-    if (selectedUnitSet.size > 0 && isVisible) {
-      // ? I didn't make enums before cause these both felt really minor,
-      // ? but now that we have a bunch of magic strings everywhere maybe I should?
-      if (selectionMode === "exclude") {
-        status = selectedStudentSet.has(studentId) ? "excluded" : "targeted";
-      } else {
-        // include mode
-        status = selectedStudentSet.has(studentId) ? "targeted" : "none";
-      }
-    }
-
-    return { studentStatus: status, targetedUnitIds };
-  }, [
-    studentId,
-    unitIds,
-    selectedUnitIds,
-    selectedStudentIds,
-    selectionMode,
-    visibleStudents,
-  ]);
-}
-
 // Inner component that reads the filtered data from context and passes it to DataTable
 // Separated so that the context is available
 // the provider wraps this in the public component below, don't know how else to get it working
-function InnerDataTable() {
-  const { visibleRows } = useSubmissions();
-
-  // because the filtering source of truth is in the context we're actually not making use of the Tanstack table filtering
-  // and I have to manually filter the data every time the `activeFlag` changes.
-  // Which means I have to convert my internal state representation back to the row shape that DataTable/columns expect
-  const tableData = useMemo<StudentSubmissionsRow[]>(
-    () =>
-      visibleRows.map((row) => ({
-        student: { ...row.student, enrolled: row.enrolled },
-        unitsOfAssessment: row.units.map((u) => ({
-          unit: u.unit,
-          submitted: u.submitted,
-          customDueDate: u.customDueDate,
-          customWeight: u.customWeight,
-        })),
-      })),
-    [visibleRows],
-  );
+function InnerDataTable({
+  studentMap,
+  uoaMap,
+}: {
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
+}) {
+  const { activeFlag, studentSubmissionsByFlag } = useSubmissions();
 
   return (
     <DataTable
       className="w-full"
       columns={columns}
-      data={tableData}
-      CustomRow={CustomRow}
+      data={studentSubmissionsByFlag[activeFlag]}
+      CustomRow={({ row }) => (
+        <CustomRow row={row} studentMap={studentMap} uoaMap={uoaMap} />
+      )}
       hideViewOptions={true}
     />
   );
 }
 
 export function StudentSubmissionsDataTable({
-  data,
+  rowData,
+  availableFlags,
+  studentMap,
+  uoaMap,
 }: {
-  data: StudentSubmissionsRow[];
+  rowData: { flagId: string; data: StudentSubmissionsRow[] }[];
+  availableFlags: FlagDTO[];
+  studentMap: Record<string, StudentDTO>;
+  uoaMap: Record<string, UnitOfAssessmentDTO>;
 }) {
+  const params = useInstanceParams();
+
+  const rowsPerFlag = api.useQueries((t) =>
+    rowData.map((data) =>
+      t.teachingOffice.getFlagStudentSubmissionInfo(
+        { params, flagId: data.flagId },
+        { initialData: data },
+      ),
+    ),
+  );
+
+  if (!rowsPerFlag.every((s) => s.status === "success")) {
+    return <Skeleton />;
+  }
+
+  const studentsByFlag = keyBy(
+    rowsPerFlag.map((s) => s.data),
+    (x) => x.flagId,
+    (x) => x.data,
+  );
+
   return (
-    <SubmissionsProvider data={data}>
+    <SubmissionsProvider
+      availableFlags={availableFlags}
+      studentSubmissionsByFlag={studentsByFlag}
+    >
       <div className="flex flex-col gap-8">
-        <FlagTabFilter />
-        <ApplyToControls />
+        <FlagTabFilter availableFlags={availableFlags} />
+        <ApplyToControls studentMap={studentMap} uoaMap={uoaMap} />
         <QuickActionsTabSwitcher />
-        <InnerDataTable />
-        <PendingChangesBar />
+        <InnerDataTable studentMap={studentMap} uoaMap={uoaMap} />
+        <PendingChangesBar studentMap={studentMap} uoaMap={uoaMap} />
       </div>
     </SubmissionsProvider>
   );

@@ -5,6 +5,7 @@ import { Heading } from "@/components/heading";
 import { PanelWrapper } from "@/components/panel-wrapper";
 
 import { api } from "@/lib/trpc/server";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { StudentSubmissionsDataTable } from "./_components/student-submissions-table";
@@ -22,11 +23,38 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const data = await api.teachingOffice.getStudentSubmissionInfo({ params });
+  const flags = await api.institution.instance.getFlags({ params });
+
+  const studentSubmissions = await Promise.all(
+    flags.map((flag) =>
+      api.teachingOffice.getFlagStudentSubmissionInfo({
+        params,
+        flagId: flag.id,
+      }),
+    ),
+  );
+
+  const studentMap = keyBy(
+    studentSubmissions.flatMap((x) => x.data),
+    (x) => x.student.id,
+    (x) => x.student,
+  );
+
+  const uoaMap = keyBy(
+    studentSubmissions.flatMap((x) => x.data[0].units),
+    (x) => x.unit.id,
+    (x) => x.unit,
+  );
+
   return (
     <PanelWrapper>
       <Heading>{PAGES.studentSubmissions.title}</Heading>
-      <StudentSubmissionsDataTable data={data} />
+      <StudentSubmissionsDataTable
+        rowData={studentSubmissions}
+        availableFlags={flags}
+        studentMap={studentMap}
+        uoaMap={uoaMap}
+      />
     </PanelWrapper>
   );
 }

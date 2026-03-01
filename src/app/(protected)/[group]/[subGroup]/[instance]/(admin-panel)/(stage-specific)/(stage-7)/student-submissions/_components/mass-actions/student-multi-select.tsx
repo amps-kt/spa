@@ -1,4 +1,4 @@
-import { type Dispatch, type SetStateAction, useState } from "react";
+import { useState } from "react";
 
 import { type ClassValue } from "clsx";
 import { CheckIcon, RotateCcwIcon } from "lucide-react";
@@ -24,22 +24,29 @@ import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
 
-import { useSubmissions, type SelectionMode } from "../submissions-context";
+import { StudentSelectionMode } from "../student-unit-selection";
+import { useSubmissions } from "../submissions-context";
 
 export function StudentMultiSelect({
-  selectedStudentIds,
-  onSelectedStudentIdsChange,
-  selectionMode,
-  onSelectionModeChange,
+  studentMap,
   className,
 }: {
-  selectedStudentIds: string[];
-  onSelectedStudentIdsChange: Dispatch<SetStateAction<string[]>>;
-  selectionMode: SelectionMode;
-  onSelectionModeChange: (mode: SelectionMode) => void;
+  studentMap: Record<string, StudentDTO>;
   className?: ClassValue;
 }) {
-  const { visibleStudents } = useSubmissions();
+  const {
+    studentSubmissionsByFlag,
+    activeFlag,
+    selection: {
+      setStudentIds,
+      setMode,
+      state: { studentIds: selectedStudentIds, mode: selectedMode },
+    },
+  } = useSubmissions();
+
+  const visibleStudents = studentSubmissionsByFlag[activeFlag].map(
+    (f) => f.student,
+  );
 
   return (
     <div className={cn("space-y-1.5", className)}>
@@ -47,10 +54,10 @@ export function StudentMultiSelect({
         <label className="text-sm font-medium">Students</label>
         <div className="inline-flex items-center gap-1 rounded-md bg-muted p-0.5">
           <button
-            onClick={() => onSelectionModeChange("exclude")}
+            onClick={() => setMode(StudentSelectionMode.EXCLUDE)}
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
-              selectionMode === "exclude"
+              selectedMode === StudentSelectionMode.EXCLUDE
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
             )}
@@ -58,10 +65,10 @@ export function StudentMultiSelect({
             Exclude
           </button>
           <button
-            onClick={() => onSelectionModeChange("include")}
+            onClick={() => setMode(StudentSelectionMode.INCLUDE)}
             className={cn(
               "rounded px-2 py-1 text-xs font-medium transition-colors",
-              selectionMode === "include"
+              selectedMode === StudentSelectionMode.INCLUDE
                 ? "bg-background text-foreground shadow-sm"
                 : "text-muted-foreground hover:text-foreground",
             )}
@@ -72,7 +79,7 @@ export function StudentMultiSelect({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {selectionMode === "exclude"
+        {selectedMode === StudentSelectionMode.EXCLUDE
           ? "Changes apply to all visible students except those listed below."
           : "Changes apply only to the students listed below."}
       </p>
@@ -80,23 +87,21 @@ export function StudentMultiSelect({
       <StudentCombobox
         students={visibleStudents}
         selected={selectedStudentIds}
-        onChange={onSelectedStudentIdsChange}
-        mode={selectionMode}
+        onChange={setStudentIds}
+        mode={selectedMode}
       />
 
       {selectedStudentIds.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {selectedStudentIds.map((id) => {
-            const student = visibleStudents.find((s) => s.id === id);
-            if (!student) return null;
-            // todo: should be able to X these to remove the student from the selection
+            const student = studentMap[id];
             return (
               <StudentBadge
                 key={student.id}
                 student={student}
                 onClick={() => {
-                  onSelectedStudentIdsChange((prev) =>
-                    prev.filter((id) => id !== student.id),
+                  setStudentIds(
+                    selectedStudentIds.filter((id) => id !== student.id),
                   );
                 }}
               />
@@ -107,6 +112,7 @@ export function StudentMultiSelect({
     </div>
   );
 }
+
 function StudentCombobox({
   students,
   selected,
@@ -116,7 +122,7 @@ function StudentCombobox({
   students: StudentDTO[];
   selected: string[];
   onChange: (ids: string[]) => void;
-  mode: SelectionMode;
+  mode: StudentSelectionMode;
 }) {
   const [open, setOpen] = useState(false);
   const selectedSet = new Set(selected);
@@ -129,7 +135,7 @@ function StudentCombobox({
   }
 
   const placeholder =
-    mode === "exclude"
+    mode === StudentSelectionMode.EXCLUDE
       ? "Search students to exclude..."
       : "Search students to include...";
 
@@ -144,14 +150,16 @@ function StudentCombobox({
           >
             {selected.length === 0 ? (
               <span className="text-muted-foreground">
-                {mode === "exclude"
+                {mode === StudentSelectionMode.EXCLUDE
                   ? "No students excluded"
                   : "No students selected"}
               </span>
             ) : (
               <span>
                 {selected.length} student{selected.length !== 1 && "s"}{" "}
-                {mode === "exclude" ? "excluded" : "selected"}
+                {mode === StudentSelectionMode.EXCLUDE
+                  ? "excluded"
+                  : "selected"}
               </span>
             )}
           </Button>

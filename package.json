@@ -108,6 +108,7 @@
     "tailwind-scrollbar": "^4.0.2",
     "tailwindcss": "4.1.11",
     "tw-animate-css": "^1.3.6",
+    "use-immer": "0.11.0",
     "uuid": "^9.0.1",
     "winston": "^3.17.0",
     "zod": "4.0.5",
