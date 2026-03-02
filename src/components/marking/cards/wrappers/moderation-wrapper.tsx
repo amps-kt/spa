@@ -29,10 +29,10 @@ export function ModerationWrapper({
       <div>
         {children}
         <Separator orientation="horizontal" />
-        <div>
-          <h3>
+        <div className="my-10">
+          <h3 className="text-xl font-semibold">
             This unit requires moderation. The project coordinator will contact
-            you with further details
+            you with further details.
           </h3>
         </div>
       </div>

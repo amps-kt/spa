@@ -56,7 +56,9 @@ export type NewUnitOfAssessmentDTO = z.infer<typeof newUnitOfAssessmentSchema>;
 
 export const componentScoreDtoSchema = z.object({
   mark: z.number().int().nonnegative(),
-  justification: z.string().min(1),
+  justification: z
+    .string("You must provide a justification for this grade")
+    .min(1, "You must provide a justification for this grade"),
 });
 
 export type ComponentScoreDTO = z.infer<typeof componentScoreDtoSchema>;

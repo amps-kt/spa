@@ -40,16 +40,19 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         unitId: z.string(),
       }),
     )
-    .output(markingSubmissionDtoSchema.optional())
+    .output(markingSubmissionDtoSchema.or(z.null()))
     .query(
       async ({ ctx: { instance }, input: { studentId, markerId, unitId } }) => {
         const student = await instance.getStudent(studentId);
 
-        return await student.getMarkerMarksByUnitId({ markerId, unitId });
+        return (
+          (await student.getMarkerMarksByUnitId({ markerId, unitId })) ?? null
+        );
       },
     ),
 
-  getConsensus: procedure.unitOfAssessment.marker
+  // [#22d3ee] - revisit middleware
+  getConsensus: procedure.unitOfAssessment.user
     .input(z.object({ studentId: z.string(), unitId: z.string() }))
     .output(unitGradeDtoSchema)
     .query(
@@ -57,17 +60,17 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         ctx: { instance, user },
         input: { studentId, unitId, params },
       }) => {
-        const isAdmin = await user.isSubGroupAdminOrBetter(params);
-        const markerType = await user.getMarkerType(studentId);
-        const { allowedMarkerTypes } =
-          await instance.getUnitOfAssessment(unitId);
+        // const isAdmin = await user.isSubGroupAdminOrBetter(params);
+        // const markerType = await user.getMarkerType(studentId);
+        // const { allowedMarkerTypes } =
+        //   await instance.getUnitOfAssessment(unitId);
 
-        if (!allowedMarkerTypes.includes(markerType) && !isAdmin) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "User is not correct marker type",
-          });
-        }
+        // if (!allowedMarkerTypes.includes(markerType) && !isAdmin) {
+        //   throw new TRPCError({
+        //     code: "UNAUTHORIZED",
+        //     message: "User is not correct marker type",
+        //   });
+        // }
 
         const student = await instance.getStudent(studentId);
         const unitGrade = await student.getUnitGrade({ unitId });
