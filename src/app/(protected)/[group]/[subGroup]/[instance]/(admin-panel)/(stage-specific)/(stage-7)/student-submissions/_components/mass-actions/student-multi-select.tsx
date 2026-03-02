@@ -79,9 +79,18 @@ export function StudentMultiSelect({
       </div>
 
       <p className="text-xs text-muted-foreground">
-        {selectedMode === StudentSelectionMode.EXCLUDE
-          ? "Changes apply to all visible students except those listed below."
-          : "Changes apply only to the students listed below."}
+        {selectedMode === StudentSelectionMode.EXCLUDE ? (
+          <>
+            Changes apply to all visible students{" "}
+            <span className="font-bold underline">EXCEPT</span> those listed
+            below.
+          </>
+        ) : (
+          <>
+            Changes apply <span className="font-bold underline">ONLY</span> to
+            the students listed below.
+          </>
+        )}
       </p>
 
       <StudentCombobox
