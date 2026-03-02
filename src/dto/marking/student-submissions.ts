@@ -6,11 +6,6 @@ import {
   unitOfAssessmentDtoSchema,
 } from "..";
 
-export const customWeightValueSchema = z.coerce
-  .number<number>()
-  .positive()
-  .or(z.literal("MV"));
-
 export const studentSubmissionsRowDtoSchema = z.object({
   student: studentDtoSchema,
   units: z.array(
@@ -25,7 +20,7 @@ export const unitDeltaSchema = z.object({
   unitId: z.string(),
   submitted: z.boolean().optional(),
   customDueDate: z.date().optional(),
-  customWeight: customWeightValueSchema.optional(),
+  customWeight: z.number().nonnegative().optional(),
 });
 
 export const studentDeltaSchema = z.object({
