@@ -34,7 +34,7 @@ export function SingleMarkDisplay({
 
   const count = unit.components.length + 2;
 
-  const dataPresent = data !== undefined;
+  const dataPresent = data !== undefined && data !== null;
   const isAdmin = [
     MarksheetRole.ADMIN,
     MarksheetRole.READER_ADMIN,
@@ -57,11 +57,12 @@ export function SingleMarkDisplay({
 
       {status === "pending" && <p>loading</p>}
       {status === "error" && <p>Something went wrong</p>}
-      {status === "success" && data && !data.draft ? (
-        <MarkList unit={unit} marks={data} />
-      ) : (
-        <p>Marks not yet submitted</p>
-      )}
+      {status === "success" &&
+        (data && !data.draft ? (
+          <MarkList unit={unit} marks={data} />
+        ) : (
+          <p>Marks not yet submitted</p>
+        ))}
     </div>
   );
 }
