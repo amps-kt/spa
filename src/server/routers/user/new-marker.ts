@@ -66,14 +66,20 @@ export const newMarkerRouter = createTRPCRouter({
       const student = await instance.getStudent(studentId);
 
       const studentData = await student.get();
-      // todo: this needs some tlc
-      const markerType = isAdmin
+
+      // Admin can see all; otherwise get only for the active marker type
+      const markerTypeFilter = isAdmin
         ? undefined
         : await user
             .toMarker(instance.params)
             .then((x) => x.getMarkerType(studentId));
 
-      const units = await student.getMarkingData(markerType);
+      const userData = isMarker ? await user.toDTO() : undefined;
+
+      const units = await student.getMarkingData({
+        markerTypeFilter,
+        user: userData,
+      });
 
       return { student: studentData, units };
     }),

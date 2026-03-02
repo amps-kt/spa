@@ -11,6 +11,7 @@ import {
   type UnitGradingLifecycleState,
   type DraftMarkingSubmissionDTO,
   type MarkingSubmissionDTO,
+  type UserDTO,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
@@ -450,9 +451,13 @@ export class Student extends User {
     return T.toSupervisorDTO(data);
   }
 
-  public async getMarkingData(
-    markerType?: MarkerType,
-  ): Promise<
+  public async getMarkingData({
+    user,
+    markerTypeFilter,
+  }: {
+    user?: UserDTO;
+    markerTypeFilter?: MarkerType;
+  }): Promise<
     {
       unit: UnitOfAssessmentDTO;
       grade?: UnitGradeDTO;
@@ -468,7 +473,9 @@ export class Student extends User {
           include: {
             unitsOfAssessment: {
               include: { flag: true, markingComponents: true },
-              where: markerType && { allowedMarkerTypes: { has: markerType } },
+              where: markerTypeFilter && {
+                allowedMarkerTypes: { has: markerTypeFilter },
+              },
             },
           },
         },
@@ -476,6 +483,13 @@ export class Student extends User {
     });
 
     type UnitId = string;
+
+    // Will replace with:
+    // keyBy(
+    //   data.unitGrades,
+    //  x => x.unitOfAssessmentId,
+    //  T.toUnitGradeDTO
+    // )
 
     const gradesDict: Record<UnitId, UnitGradeDTO> = data.unitGrades.reduce(
       (acc, val) => ({
@@ -503,7 +517,7 @@ export class Student extends User {
       const grade = gradesDict[data.id];
       const submissions = submissionsDict[data.id] ?? [];
 
-      const status = Grade.getUnitStatus(unit, grade, submissions);
+      const status = Grade.getUnitStatus(unit, grade, submissions, user);
 
       return { unit, grade, status };
     });
