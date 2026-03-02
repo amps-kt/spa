@@ -1,10 +1,23 @@
 import { useState } from "react";
 
-import { format } from "date-fns";
-import { CalendarIcon, PencilIcon } from "lucide-react";
+import { format, set } from "date-fns";
+import {
+  CalendarIcon,
+  Clock2Icon,
+  PencilIcon,
+  RotateCcwIcon,
+  SaveIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
 import {
   Popover,
   PopoverContent,
@@ -18,6 +31,7 @@ import {
 } from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
+import { updateDateOnly } from "@/lib/utils/date/update-date-only";
 
 export function DueDateCell({
   value,
@@ -31,15 +45,30 @@ export function DueDateCell({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Date>(value);
 
-  function handleSelect(date: Date | undefined) {
+  function handleDaySelect(date: Date | undefined) {
     if (!date) return;
-    setSelected(date);
-    onChange(date);
+    setSelected(updateDateOnly(selected, date));
+  }
+
+  function handleTimeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const [hours, minutes] = e.target.value.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return;
+    setSelected(set(selected, { hours, minutes }));
+  }
+
+  function handleSave() {
+    onChange(selected);
     setOpen(false);
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) setSelected(value);
+        setOpen(next);
+      }}
+    >
       <TooltipProvider delayDuration={150}>
         <Tooltip>
           <TooltipTrigger asChild>
@@ -50,10 +79,10 @@ export function DueDateCell({
                   "text-sm transition-colors hover:bg-accent",
                   className,
                 )}
-                aria-label={`Due date: ${format(selected, "dd/MM/yyyy")}. Click to change.`}
+                aria-label={`Due date: ${format(value, "dd/MM/yyyy HH:mm")}. Click to change.`}
               >
                 <span className="tabular-nums">
-                  {format(selected, "dd/MM/yyyy")}
+                  {format(value, "dd/MM/yyyy HH:mm")}
                 </span>
                 <PencilIcon className="h-3 w-3 text-muted-foreground" />
               </button>
@@ -81,12 +110,40 @@ export function DueDateCell({
             Reset
           </Button>
         </div>
+
         <Calendar
           mode="single"
           selected={selected}
-          onSelect={handleSelect}
+          onSelect={handleDaySelect}
           initialFocus
         />
+
+        <div className="border-t px-3 py-3">
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="due-time">Time</FieldLabel>
+              <InputGroup>
+                <InputGroupInput
+                  id="due-time"
+                  type="time"
+                  value={format(selected, "HH:mm")}
+                  onChange={handleTimeChange}
+                  className="appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+                <InputGroupAddon>
+                  <Clock2Icon className="text-muted-foreground" />
+                </InputGroupAddon>
+              </InputGroup>
+            </Field>
+          </FieldGroup>
+        </div>
+
+        <div className="border-t px-3 py-2">
+          <Button size="sm" className="w-full" onClick={handleSave}>
+            <SaveIcon className="size-4 mr-2" />
+            Save
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );
