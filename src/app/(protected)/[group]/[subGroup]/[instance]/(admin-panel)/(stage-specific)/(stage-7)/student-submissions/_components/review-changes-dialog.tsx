@@ -67,7 +67,7 @@ function ChangeSummary() {
     },
     {
       count: units.filter((u) => u.customWeight !== undefined).length,
-      label: "weight",
+      label: "MV",
       icon: WeightIcon,
     },
   ].filter((item) => item.count > 0);
@@ -180,9 +180,8 @@ function UnitChangeDetail({
 
         {delta.customWeight !== undefined && (
           <li>
-            weight changed to{" "}
             <span className="font-semibold font-mono">
-              {delta.customWeight === "MV" ? "MV" : String(delta.customWeight)}
+              {delta.customWeight === 0 ? "MV applied" : "MV removed"}
             </span>
           </li>
         )}
