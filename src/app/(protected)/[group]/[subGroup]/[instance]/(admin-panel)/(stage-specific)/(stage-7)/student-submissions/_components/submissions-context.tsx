@@ -11,6 +11,7 @@ import {
 import { produce } from "immer";
 import { createParser, useQueryState } from "nuqs";
 import { useImmer } from "use-immer";
+
 import {
   type FlagDTO,
   type StudentDTO,
@@ -261,10 +262,14 @@ export function SubmissionsProvider({
           throw new Error("Tried to update unknown student");
         }
 
-        activeStudents[rowId].enrolled = enrolled;
+        const truth =
+          studentSubmissionsByFlag[activeFlag][rowId].student.enrolled;
+
+        activeStudents[rowId].enrolled =
+          enrolled === truth ? undefined : enrolled;
       });
     },
-    [setStudentDeltasByFlag, activeFlag],
+    [setStudentDeltasByFlag, activeFlag, studentSubmissionsByFlag],
   );
 
   const updateUnit = useCallback(
@@ -391,6 +396,7 @@ export function SubmissionsProvider({
     [
       studentDeltasByFlag,
       studentSubmissionsByFlag,
+      unitIdsByFlag,
       availableFlags,
       activeFlag,
       setActiveFlagAndClearSelection,
