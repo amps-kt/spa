@@ -1,17 +1,10 @@
 import { useState } from "react";
 
 import { format, set } from "date-fns";
-import {
-  CalendarIcon,
-  Clock2Icon,
-  PencilIcon,
-  RotateCcwIcon,
-  SaveIcon,
-} from "lucide-react";
+import { CalendarIcon, Clock2Icon, PencilIcon, SaveIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
@@ -45,7 +38,7 @@ export function DueDateCell({
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<Date>(value);
 
-  function handleDaySelect(date: Date | undefined) {
+  function handleDayChange(date: Date | undefined) {
     if (!date) return;
     setSelected(updateDateOnly(selected, date));
   }
@@ -114,7 +107,7 @@ export function DueDateCell({
         <Calendar
           mode="single"
           selected={selected}
-          onSelect={handleDaySelect}
+          onSelect={handleDayChange}
           initialFocus
         />
 
