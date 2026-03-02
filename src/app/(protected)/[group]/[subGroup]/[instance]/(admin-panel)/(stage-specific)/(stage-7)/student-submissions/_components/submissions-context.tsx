@@ -161,14 +161,16 @@ function hasPendingChanges(rows: StudentDelta[]): boolean {
 export function computeChangeCount(delta: StudentDelta): number {
   return (
     (delta.enrolled !== undefined ? 1 : 0) +
-    delta.units.reduce((sum, u) => {
-      let fields = 0;
-      if (u.submitted !== undefined) fields++;
-      if (u.customDueDate !== undefined) fields++;
-      if (u.customWeight !== undefined) fields++;
-      return sum + fields;
-    }, 0)
+    delta.units.reduce((sum, u) => sum + computeUnitChangeCount(u), 0)
   );
+}
+
+export function computeUnitChangeCount(delta: UnitDelta): number {
+  let fields = 0;
+  if (delta.submitted !== undefined) fields++;
+  if (delta.customDueDate !== undefined) fields++;
+  if (delta.customWeight !== undefined) fields++;
+  return fields;
 }
 
 function computeUnitDeltaFromPatch(
