@@ -11,15 +11,12 @@ import {
 import { produce } from "immer";
 import { createParser, useQueryState } from "nuqs";
 import { useImmer } from "use-immer";
-import type { z } from "zod";
-
 import {
   type FlagDTO,
   type StudentDTO,
   type UnitGradeDTO__NEW as UnitGradeDTO,
   type UnitOfAssessmentDTO,
 } from "@/dto";
-import { type customWeightValueSchema } from "@/dto/marking/student-submissions";
 
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { setIntersection } from "@/lib/utils/general/set-intersection";
@@ -29,8 +26,6 @@ import {
   StudentSelectionMode,
   useSelectionState,
 } from "./student-unit-selection";
-
-export type WeightValue = z.infer<typeof customWeightValueSchema>;
 
 // Data table rows contain general information about the student, all captured in the StudentDTO
 // and information about the specific uoas they have to be graded on
@@ -53,7 +48,7 @@ export interface UnitDelta {
   unitId: string;
   submitted?: boolean;
   customDueDate?: Date;
-  customWeight?: WeightValue;
+  customWeight?: number;
 }
 
 interface SubmissionsContextType {

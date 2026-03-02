@@ -45,7 +45,7 @@ import {
 const columnWidths = {
   student: "min-w-[160px] max-w-[200px]",
   units: "min-w-[150px] max-w-[190px]",
-  weight: "min-w-[120px] max-w-[160px]",
+  weight: "min-w-[80px] max-w-[115px]",
   dueDate: "min-w-[140px] max-w-[180px]",
   submitted: "min-w-[80px] max-w-[115px]",
   enrolled: "min-w-[110px] max-w-[145px]",
@@ -79,35 +79,6 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
     enableSorting: false,
   },
   {
-    id: "weight",
-    header: () => (
-      <div
-        className={cn(
-          columnWidths.weight,
-          "flex justify-start items-center gap-5",
-        )}
-      >
-        <p>Weight</p>
-        <WithTooltip
-          tip={
-            <p className="w-44 font-normal">
-              Weight can be any positive integer or{" "}
-              <code className="font-bold">MV</code>
-            </p>
-          }
-        >
-          <Button
-            variant="ghost"
-            className="grid h-max place-items-center rounded-full p-1"
-          >
-            <CircleQuestionMarkIcon className="size-4" />
-          </Button>
-        </WithTooltip>
-      </div>
-    ),
-    enableSorting: false,
-  },
-  {
     id: "dueDate",
     header: () => (
       <div
@@ -135,6 +106,36 @@ const columns: ColumnDef<StudentSubmissionsRow>[] = [
     ),
     enableSorting: false,
   },
+  {
+    id: "weight",
+    header: () => (
+      <div
+        className={cn(
+          columnWidths.weight,
+          "flex items-center justify-start gap-5",
+        )}
+      >
+        <p>MV?</p>
+        <WithTooltip
+          tip={
+            <p className="w-52 font-normal">
+              Ticked boxes mean this unit is marked as medically void for this
+              student
+            </p>
+          }
+        >
+          <Button
+            variant="ghost"
+            className="grid h-max place-items-center rounded-full p-1"
+          >
+            <CircleQuestionMarkIcon className="size-4" />
+          </Button>
+        </WithTooltip>
+      </div>
+    ),
+    enableSorting: false,
+  },
+
   {
     id: "submitted",
     header: () => <p className={columnWidths.submitted}>Submitted?</p>,
@@ -247,19 +248,21 @@ const CustomRow = ({
               >
                 {unit.title}
               </TableCell>
-              <TableCell className={columnWidths.weight}>
-                <WeightCell
-                  value={displayWeight}
-                  onChange={(value) =>
-                    updateUnit(studentId, unit.id, { customWeight: value })
-                  }
-                />
-              </TableCell>
               <TableCell className={columnWidths.dueDate}>
                 <DueDateCell
                   value={displayDate}
                   onChange={(date) =>
                     updateUnit(studentId, unit.id, { customDueDate: date })
+                  }
+                />
+              </TableCell>
+              <TableCell className={columnWidths.weight}>
+                <WeightCell
+                  isMV={displayWeight === 0}
+                  onChange={(mv) =>
+                    updateUnit(studentId, unit.id, {
+                      customWeight: mv ? 0 : undefined,
+                    })
                   }
                 />
               </TableCell>
