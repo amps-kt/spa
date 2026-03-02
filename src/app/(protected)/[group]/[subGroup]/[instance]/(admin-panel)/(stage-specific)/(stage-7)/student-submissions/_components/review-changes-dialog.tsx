@@ -36,6 +36,7 @@ import { cn } from "@/lib/utils";
 
 import {
   computeChangeCount,
+  computeUnitChangeCount,
   type StudentDelta,
   type UnitDelta,
   useSubmissions,
@@ -138,9 +139,11 @@ function StudentChangeRow({
               </span>
             </p>
           )}
-          {delta.units.map((uc) => (
-            <UnitChangeDetail key={uc.unitId} uoaMap={uoaMap} delta={uc} />
-          ))}
+          {delta.units
+            .filter((u) => computeUnitChangeCount(u) > 0)
+            .map((uc) => (
+              <UnitChangeDetail key={uc.unitId} uoaMap={uoaMap} delta={uc} />
+            ))}
         </div>
       </CollapsibleContent>
     </Collapsible>
@@ -210,7 +213,8 @@ export function ReviewChangesDialog({
   } = api.teachingOffice.updateStudentSubmissionInfo.useMutation();
 
   const activeStudents = useMemo(
-    () => studentDeltasByFlag[activeFlag],
+    () =>
+      studentDeltasByFlag[activeFlag].filter((s) => computeChangeCount(s) > 0),
     [studentDeltasByFlag, activeFlag],
   );
 
@@ -244,10 +248,6 @@ export function ReviewChangesDialog({
       .then(() => {
         resetFlag(activeFlag);
       });
-
-    // TODO: wire up tRPC mutations here
-    // TODO: this should only trigger after the tRPC mutation
-    // commitFlag(activeFlag);
   }
 
   return (
@@ -269,16 +269,14 @@ export function ReviewChangesDialog({
           <Separator />
           <div className="max-h-[40vh] overflow-y-auto">
             <div className="space-y-1">
-              {activeStudents
-                .filter((s) => computeChangeCount(s) > 0)
-                .map((s) => (
-                  <StudentChangeRow
-                    key={s.studentId}
-                    studentMap={studentMap}
-                    uoaMap={uoaMap}
-                    delta={s}
-                  />
-                ))}
+              {activeStudents.map((s) => (
+                <StudentChangeRow
+                  key={s.studentId}
+                  studentMap={studentMap}
+                  uoaMap={uoaMap}
+                  delta={s}
+                />
+              ))}
             </div>
           </div>
         </div>
