@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { useForm } from "react-hook-form";
 
 import { Grade } from "@/logic/grading";
@@ -50,7 +50,9 @@ export function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
   if (queryStatus === "pending") {
     return <Skeleton className="h-60 rounded-lg" />;
   }
-  return <UoaMarkingForm unit={unit} initialValues={initialValues} />;
+  return (
+    <UoaMarkingForm unit={unit} initialValues={initialValues ?? undefined} />
+  );
 }
 
 function formatGrade(grade: number | undefined) {
@@ -129,11 +131,9 @@ export function UoaMarkingForm({
   const grade = form.watch("grade");
   const draft = form.watch("draft");
 
-  const formRef = useRef<HTMLFormElement>(null);
-
   return (
     <Form {...form}>
-      <form ref={formRef} onSubmit={handleSubmit} className="grid gap-2">
+      <form onSubmit={handleSubmit} className="grid gap-2">
         {components.map((c) => (
           <ComponentMarkInput
             key={c.id}
@@ -191,9 +191,7 @@ export function UoaMarkingForm({
                     "hover:bg-white flex flex-row items-center gap-2 ",
                   )}
                 >
-                  <FormLabel className="mt-2 w-28">
-                    {draft ? "Draft" : "Final"}
-                  </FormLabel>
+                  <FormLabel className="mt-2">Draft</FormLabel>
                   <FormControl>
                     <Switch
                       className="mb-0"
@@ -205,13 +203,15 @@ export function UoaMarkingForm({
                       }}
                     />
                   </FormControl>
+                  <FormLabel className="mt-2">Final</FormLabel>
                 </FormItem>
               )}
             />
 
             {draft ? (
               <Button type="submit">
-                Save <SaveIcon className="size-4 ml-2" />
+                <SaveIcon className="size-4 mr-2" />
+                Save
               </Button>
             ) : (
               <YesNoAction
