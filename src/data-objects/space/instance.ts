@@ -1837,7 +1837,7 @@ export class AllocationInstance extends DataObject {
               },
               update: {
                 customDueDate: u.customDueDate,
-                customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                customWeight: u.customWeight,
                 submitted: u.submitted,
               },
               create: {
@@ -1845,7 +1845,7 @@ export class AllocationInstance extends DataObject {
                 studentId: d.studentId,
                 unitOfAssessmentId: u.unitId,
                 customDueDate: u.customDueDate,
-                customWeight: u.customWeight === "MV" ? 0 : u.customWeight,
+                customWeight: u.customWeight,
                 submitted: u.submitted,
                 grade: -1,
                 comment: "",
