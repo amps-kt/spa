@@ -173,7 +173,7 @@ function UnitChangeDetail({
           <li>
             deadline changed to{" "}
             <span className="font-semibold font-mono">
-              {format(delta.customDueDate, "dd/MM/yyyy")}
+              {format(delta.customDueDate, "dd/MM/yyyy - HH:mm")}
             </span>
           </li>
         )}
