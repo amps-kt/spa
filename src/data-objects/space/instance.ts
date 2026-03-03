@@ -1,3 +1,4 @@
+// this probably means the Delta type defs need to move to @/dto or something
 import { type StudentDelta } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-7)/student-submissions/_components/submissions-context";
 
 import { PAGES } from "@/config/pages";
@@ -1845,7 +1846,7 @@ export class AllocationInstance extends DataObject {
                 studentId: d.studentId,
                 unitOfAssessmentId: u.unitId,
                 customDueDate: u.customDueDate,
-                customWeight: u.customWeight,
+                customWeight: u.customWeight ?? null,
                 submitted: u.submitted,
                 grade: -1,
                 comment: "",

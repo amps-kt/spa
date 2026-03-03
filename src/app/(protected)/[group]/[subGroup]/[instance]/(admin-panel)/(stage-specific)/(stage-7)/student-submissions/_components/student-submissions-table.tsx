@@ -214,9 +214,9 @@ const CustomRow = ({
           const unit = uoaMap[unitState.unitId];
 
           const displayWeight =
-            unitState.customWeight ??
-            groundTruthUnit.grade.customWeight ??
-            unit.weight;
+            unitState.customWeight === undefined
+              ? (groundTruthUnit.grade.customWeight ?? unit.weight)
+              : (unitState.customWeight ?? unit.weight);
 
           const displayDate =
             unitState.customDueDate ??
@@ -259,11 +259,26 @@ const CustomRow = ({
               <TableCell className={columnWidths.weight}>
                 <WeightCell
                   isMV={displayWeight === 0}
-                  onChange={(mv) =>
-                    updateUnit(studentId, unit.id, {
-                      customWeight: mv ? 0 : undefined,
-                    })
-                  }
+                  onChange={(mv) => {
+                    const truthWeight =
+                      groundTruthUnit.grade.customWeight ??
+                      uoaMap[unit.id].weight;
+                    const isTruthMV = truthWeight === 0;
+
+                    let customWeight: number | null | undefined;
+                    if (mv === isTruthMV) {
+                      // revert to committed truth — no delta needed
+                      customWeight = undefined;
+                    } else if (mv) {
+                      // setting MV (truth was not MV)
+                      customWeight = 0;
+                    } else {
+                      // unsetting MV (truth was MV) — clear the override
+                      customWeight = null;
+                    }
+
+                    updateUnit(studentId, unit.id, { customWeight });
+                  }}
                 />
               </TableCell>
               <TableCell className={columnWidths.submitted}>
