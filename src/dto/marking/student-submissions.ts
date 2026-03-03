@@ -20,7 +20,7 @@ export const unitDeltaSchema = z.object({
   unitId: z.string(),
   submitted: z.boolean().optional(),
   customDueDate: z.date().optional(),
-  customWeight: z.number().nonnegative().optional(),
+  customWeight: z.number().nonnegative().optional().nullable(),
 });
 
 export const studentDeltaSchema = z.object({
