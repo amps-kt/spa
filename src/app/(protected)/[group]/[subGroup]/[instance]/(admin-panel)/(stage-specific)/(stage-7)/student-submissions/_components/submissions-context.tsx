@@ -49,7 +49,7 @@ export interface UnitDelta {
   unitId: string;
   submitted?: boolean;
   customDueDate?: Date;
-  customWeight?: number;
+  customWeight?: number | null;
 }
 
 interface SubmissionsContextType {
