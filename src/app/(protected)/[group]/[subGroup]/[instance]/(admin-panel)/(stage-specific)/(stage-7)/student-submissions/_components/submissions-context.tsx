@@ -12,12 +12,12 @@ import { produce } from "immer";
 import { createParser, useQueryState } from "nuqs";
 import { useImmer } from "use-immer";
 
+import { type FlagDTO, type UnitGradeDTO__NEW as UnitGradeDTO } from "@/dto";
 import {
-  type FlagDTO,
-  type StudentDTO,
-  type UnitGradeDTO__NEW as UnitGradeDTO,
-  type UnitOfAssessmentDTO,
-} from "@/dto";
+  type UnitDelta,
+  type StudentDelta,
+  type StudentSubmissionsRow,
+} from "@/dto/marking/student-submissions";
 
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { setIntersection } from "@/lib/utils/general/set-intersection";
@@ -31,27 +31,6 @@ import {
 // Data table rows contain general information about the student, all captured in the StudentDTO
 // and information about the specific uoas they have to be graded on
 // This is just the shape of the data as it gets returned from the server
-export interface StudentSubmissionsRow {
-  student: StudentDTO;
-  units: { unit: UnitOfAssessmentDTO; grade: UnitGradeDTO }[];
-}
-
-// local mutable copy of student-level state - enrolled is lifted out of the DTO
-// so we can update it without reconstructing the entire StudentDTO on every change
-export interface StudentDelta {
-  studentId: string;
-  enrolled?: boolean;
-  units: UnitDelta[];
-}
-
-// same thing but for units
-export interface UnitDelta {
-  unitId: string;
-  submitted?: boolean;
-  customDueDate?: Date;
-  customWeight?: number | null;
-}
-
 interface SubmissionsContextType {
   /* Ground truth from server */
   studentSubmissionsByFlag: Record<string, StudentSubmissionsRow[]>;

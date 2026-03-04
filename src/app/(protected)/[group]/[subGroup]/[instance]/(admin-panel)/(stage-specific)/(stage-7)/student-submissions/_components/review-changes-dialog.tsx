@@ -12,6 +12,10 @@ import {
 import { toast } from "sonner";
 
 import { type StudentDTO, type UnitOfAssessmentDTO } from "@/dto";
+import {
+  type StudentDelta,
+  type UnitDelta,
+} from "@/dto/marking/student-submissions";
 
 import { useInstanceParams } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
@@ -37,8 +41,6 @@ import { cn } from "@/lib/utils";
 import {
   computeChangeCount,
   computeUnitChangeCount,
-  type StudentDelta,
-  type UnitDelta,
   useSubmissions,
 } from "./submissions-context";
 

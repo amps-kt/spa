@@ -6,6 +6,7 @@ import { type Row, type ColumnDef } from "@tanstack/react-table";
 import { CircleQuestionMarkIcon } from "lucide-react";
 
 import { type StudentDTO, type UnitOfAssessmentDTO, type FlagDTO } from "@/dto";
+import { type StudentSubmissionsRow } from "@/dto/marking/student-submissions";
 
 import { useInstanceParams } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
@@ -34,7 +35,6 @@ import {
   SubmissionsProvider,
   useSubmissions,
   useRowState,
-  type StudentSubmissionsRow,
 } from "./submissions-context";
 import { QuickActionsTabSwitcher } from "./tab-switcher";
 import {

@@ -1,6 +1,3 @@
-// this probably means the Delta type defs need to move to @/dto or something
-import { type StudentDelta } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-7)/student-submissions/_components/submissions-context";
-
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -21,6 +18,7 @@ import {
   type ReaderDTO,
   type UnitGradeDTO__NEW as UnitGradeDTO,
 } from "@/dto";
+import { type StudentDelta } from "@/dto/marking/student-submissions";
 
 import { Transformers as T } from "@/db/transformers";
 import { DB_ReaderPreferenceType } from "@/db/types";
