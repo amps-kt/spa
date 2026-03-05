@@ -227,10 +227,7 @@ export function markingStatusCompare(
 export function markingStatusMin(
   s: StudentGradingLifecycleState[],
 ): StudentGradingLifecycleState {
-  return s.reduce(
-    markingStatusCompare,
-    StudentGradingLifecycleState.ACTION_REQUIRED,
-  );
+  return s.reduce(markingStatusCompare, StudentGradingLifecycleState.CLOSED);
 }
 
 export const markOverrideDtoSchema = z.object({
