@@ -157,6 +157,6 @@ model FinalGrade {
   allocationInstance       AllocationInstance       @relation(fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade, map: "final_grade_instance")
   studentProjectAllocation StudentProjectAllocation @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "final_grade_spa")
 
-  @@unique([studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId])
+  @@unique([studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "finalGradeUnique", map: "final_grade_unique")
   @@map("final_grade")
 }

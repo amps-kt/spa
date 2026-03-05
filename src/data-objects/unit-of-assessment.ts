@@ -1,3 +1,5 @@
+import { Grade } from "@/logic/grading";
+
 import {
   type UnitGradeDTO,
   type DraftMarkingSubmissionDTO,
@@ -198,5 +200,40 @@ export class UnitOfAssessment extends DataObject {
           ]
         : []),
     ]);
+
+    if (newData.status === ConsensusStage.RESOLVED) {
+      const allGrades = await this.db.unitOfAssessmentGrade.findMany({
+        where: { studentId, ...expand(this.instance.params) },
+        include: {
+          gradeEntries: { orderBy: { timestamp: "desc" }, take: 1 },
+          unitOfAssessment: true,
+        },
+      });
+
+      if (
+        allGrades.every(
+          (g) => g.status === "RESOLVED" && g.gradeEntries[0].grade,
+        )
+      ) {
+        const data = allGrades.map((g) => ({
+          score: g.gradeEntries[0].grade,
+          weight: g.customWeight ?? g.unitOfAssessment.defaultWeight,
+        }));
+
+        const finalGrade = Grade.weightedAverage(data);
+
+        await this.db.finalGrade.upsert({
+          where: {
+            finalGradeUnique: { studentId, ...expand(this.instance.params) },
+          },
+          create: {
+            ...expand(this.instance.params),
+            studentId,
+            grade: finalGrade,
+          },
+          update: { grade: finalGrade },
+        });
+      }
+    }
   }
 }

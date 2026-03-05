@@ -52,6 +52,7 @@ export class Marker extends User {
             { readerAllocations: { some: { readerId: this.id } } }, // is reader
           ],
         },
+        student: { enrolled: true },
       },
       include: {
         project: {
@@ -124,6 +125,13 @@ export class Marker extends User {
 
         return { unit, status };
       });
+
+      console.log("------------------------------------------");
+      console.log(student.userInInstance.user.name);
+      console.log(units.map((x) => x.status));
+      console.log(units.map((x) => unitToOverall(x.status)));
+      console.log(markingStatusMin(units.map((x) => unitToOverall(x.status))));
+      console.log("------------------------------------------");
 
       const status = markingStatusMin(
         units.map((x) => unitToOverall(x.status)),
