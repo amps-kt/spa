@@ -34,6 +34,7 @@ export type {
   MatchingResult as DB_MatchingResult,
   Project as DB_Project,
   UnitOfAssessmentGrade as DB_UnitOfAssessmentGrade,
+  GradeEntry as DB_GradeEntry,
   ReaderDetails as DB_ReaderDetails,
   ReaderProjectAllocation as DB_ReaderProjectAllocation,
   StudentDetails as DB_StudentDetails,
@@ -169,8 +170,9 @@ export const allocationMethodSchema = z.enum([
 export const consensusStageSchema = z.enum([
   ConsensusStage.RESOLVED,
   ConsensusStage.UNRESOLVED,
-  ConsensusStage.MODERATE,
   ConsensusStage.NEGOTIATE,
+  ConsensusStage.MODERATE,
+  ConsensusStage.MODERATE_AFTER_NEGOTIATION,
 ]);
 
 export const consensusMethodSchema = z.enum([
@@ -178,6 +180,7 @@ export const consensusMethodSchema = z.enum([
   ConsensusMethod.OVERRIDE,
   ConsensusMethod.NEGOTIATED,
   ConsensusMethod.MODERATED,
+  ConsensusMethod.NEGOTIATED_MODERATED,
 ]);
 
 export {

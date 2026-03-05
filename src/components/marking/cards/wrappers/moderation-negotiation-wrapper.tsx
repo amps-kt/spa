@@ -2,9 +2,14 @@
 
 import { type ReactNode } from "react";
 
-import { type UnitOfAssessmentDTO } from "@/dto";
+import { Grade } from "@/logic/grading";
 
+import { type GradeEntryDTO, type UnitOfAssessmentDTO } from "@/dto";
+
+import { ConsensusMethodBadge } from "@/components/ui/badges/consensus-method-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
@@ -12,7 +17,7 @@ import { api } from "@/lib/trpc/client";
 import { UnitOverrideForm } from "../../forms/unit-override-form";
 import { MarksheetRole, useMarksheetContext } from "../../marksheet-context";
 
-export function ModerationWrapper({
+export function ModerationNegotiationWrapper({
   unit,
   children,
 }: {
@@ -25,6 +30,22 @@ export function ModerationWrapper({
   const { mutateAsync: api_resolveModeration } =
     api.msp.admin.unitOfAssessment.resolveModeration.useMutation();
 
+  const {
+    status,
+    data,
+    refetch: refetch_consensus,
+  } = api.msp.marker.unitOfAssessment.getConsensus.useQuery({
+    params,
+    studentId,
+    unitId: unit.id,
+  });
+
+  if (status !== "success") {
+    return <Skeleton className="rounded-lg h-20" />;
+  }
+
+  const entry = data.grades[0];
+
   if (
     viewerRole === MarksheetRole.READER ||
     viewerRole === MarksheetRole.SUPERVISOR
@@ -33,6 +54,7 @@ export function ModerationWrapper({
       <div>
         {children}
         <Separator orientation="horizontal" />
+        <NegotiationMarks entry={entry} />
         <div className="my-10">
           <h3 className="text-xl font-semibold">
             This unit requires moderation. The project coordinator will contact
@@ -46,6 +68,8 @@ export function ModerationWrapper({
     <div>
       {children}
       <Separator orientation="horizontal" />
+      <NegotiationMarks entry={entry} />
+
       <UnitOverrideForm
         title="Resolve Moderation"
         description="This unit must be moderated. Once moderation is complete, please enter the resolution in the form below"
@@ -55,11 +79,32 @@ export function ModerationWrapper({
             params,
             studentId,
             unitId: unit.id,
-          }).then(() => {
+          }).then(async () => {
             router.refresh();
+            await refetch_consensus();
           })
         }
       />
     </div>
+  );
+}
+
+function NegotiationMarks({ entry }: { entry: GradeEntryDTO }) {
+  return (
+    <Card className="mt-4">
+      <CardHeader className="pt-4 pb-2 flex flex-row justify-between">
+        <CardTitle className="text-lg">Negotiation result:</CardTitle>
+
+        <ConsensusMethodBadge method={entry.method} />
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-row items-start gap-5">
+          <p className="font-semibold text-secondary text-3xl">
+            {Grade.toLetter(entry.grade)}
+          </p>
+          <p className="text-muted-foreground">{entry.comment}</p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

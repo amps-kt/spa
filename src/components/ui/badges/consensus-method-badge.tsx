@@ -23,6 +23,10 @@ const consensusMethodData: Record<
     label: "Overridden",
     tip: "The admin overwrote the grade for this unit",
   },
+  [ConsensusMethod.NEGOTIATED_MODERATED]: {
+    label: "Moderated",
+    tip: "This unit has been moderated",
+  },
 };
 
 export function ConsensusMethodBadge({ method }: { method: ConsensusMethod }) {

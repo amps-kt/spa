@@ -217,7 +217,9 @@ export const unitOfAssessmentRouter = createTRPCRouter({
 
       if (result.status === MarkSubmissionEvent.MODERATE) {
         await unit.updateFinalMark(studentId, {
-          status: ConsensusStage.MODERATE,
+          status: ConsensusStage.MODERATE_AFTER_NEGOTIATION,
+          grade: data.grade,
+          comment: data.justification,
         });
         // mailer.notifyModeration();
 
