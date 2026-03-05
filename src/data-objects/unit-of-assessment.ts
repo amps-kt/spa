@@ -7,7 +7,7 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { ConsensusStage, type DB } from "@/db/types";
+import { ConsensusMethod, ConsensusStage, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { keyBy } from "@/lib/utils/general/key-by";
@@ -50,6 +50,7 @@ export class UnitOfAssessment extends DataObject {
           where: {
             student: { ...expand(this.instance.params), userId: studentId },
           },
+          include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
         },
         markerSubmissions: {
           where: {
@@ -149,19 +150,53 @@ export class UnitOfAssessment extends DataObject {
         },
         update: { status: ConsensusStage.UNRESOLVED },
       }),
+
+      this.db.gradeEntry.deleteMany({
+        where: { unitOfAssessmentId, studentId },
+      }),
     ]);
   }
 
   public async updateFinalMark(studentId: string, newData: FinalMarkingResult) {
-    await this.db.unitOfAssessmentGrade.upsert({
-      where: { uoaGradeId: { unitOfAssessmentId: this.id, studentId } },
-      create: {
-        ...expand(this.instance.params),
-        unitOfAssessmentId: this.id,
-        studentId,
-        ...newData,
-      },
-      update: newData,
-    });
+    await this.db.$transaction([
+      this.db.unitOfAssessmentGrade.upsert({
+        where: { uoaGradeId: { unitOfAssessmentId: this.id, studentId } },
+        create: {
+          ...expand(this.instance.params),
+          unitOfAssessmentId: this.id,
+          studentId,
+          status: newData.status,
+        },
+        update: { status: newData.status },
+      }),
+
+      ...(newData.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION
+        ? [
+            this.db.gradeEntry.create({
+              data: {
+                comment: newData.comment,
+                grade: newData.grade,
+                method: ConsensusMethod.NEGOTIATED,
+                unitOfAssessmentId: this.id,
+                studentId,
+              },
+            }),
+          ]
+        : []),
+
+      ...(newData.status === ConsensusStage.RESOLVED
+        ? [
+            this.db.gradeEntry.create({
+              data: {
+                comment: newData.comment,
+                grade: newData.grade,
+                method: newData.method,
+                unitOfAssessmentId: this.id,
+                studentId,
+              },
+            }),
+          ]
+        : []),
+    ]);
   }
 }

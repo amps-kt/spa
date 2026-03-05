@@ -40,8 +40,9 @@ export async function Marksheet({
   return (
     <div>
       <Heading className="mb-10">
-        Marksheet for {student.name} ({student.id})
+        Marksheet for {student.name} ({student.id}) - {student.flag.displayName}
       </Heading>
+
       <MarksheetContextProvider
         reader={reader}
         supervisor={supervisor}

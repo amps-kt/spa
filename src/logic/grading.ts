@@ -167,16 +167,22 @@ export class Grade {
       return UnitGradingLifecycleState.CLOSED;
     } else if (grade?.status === ConsensusStage.MODERATE) {
       return UnitGradingLifecycleState.IN_MODERATION;
+    } else if (grade?.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION) {
+      return UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION;
     } else if (grade?.status === ConsensusStage.NEGOTIATE) {
       return UnitGradingLifecycleState.IN_NEGOTIATION;
     } else if (grade?.status === ConsensusStage.RESOLVED) {
-      if (grade.method === ConsensusMethod.AUTO) {
+      const entry = grade.grades[0];
+      if (entry.method === ConsensusMethod.AUTO) {
         return UnitGradingLifecycleState.AUTO_RESOLVED;
-      } else if (grade.method === ConsensusMethod.MODERATED) {
+      } else if (
+        entry.method === ConsensusMethod.MODERATED ||
+        entry.method === ConsensusMethod.NEGOTIATED_MODERATED
+      ) {
         return UnitGradingLifecycleState.RESOLVED_BY_MODERATION;
-      } else if (grade.method === ConsensusMethod.NEGOTIATED) {
+      } else if (entry.method === ConsensusMethod.NEGOTIATED) {
         return UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION;
-      } else if (grade.method === "OVERRIDE") {
+      } else if (entry.method === "OVERRIDE") {
         return UnitGradingLifecycleState.DONE;
       }
     }
