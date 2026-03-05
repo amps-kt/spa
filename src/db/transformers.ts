@@ -17,7 +17,7 @@ import {
   type UnitGradeDTO,
   type MarkingSubmissionDTO,
   markingSubmissionDtoSchema,
-  unitGradeDtoSchema,
+  type GradeEntryDTO,
 } from "@/dto";
 
 import {
@@ -42,6 +42,7 @@ import {
   type DB_UnitOfAssessmentSubmission,
   type DB_MarkingComponentSubmission,
   type DB_UnitOfAssessmentGrade,
+  type DB_GradeEntry,
 } from "./types";
 
 export class Transformers {
@@ -282,17 +283,29 @@ export class Transformers {
     };
   }
 
-  public static toUnitGradeDTO(
+  public static toGradeEntryDTO(
     this: void,
-    data: DB_UnitOfAssessmentGrade,
-  ): UnitGradeDTO {
-    return unitGradeDtoSchema.parse({
+    data: DB_GradeEntry,
+  ): GradeEntryDTO {
+    return {
       grade: data.grade,
       comment: data.comment,
-      status: data.status,
       method: data.method,
+      timestamp: data.timestamp,
+    };
+  }
+
+  public static toUnitGradeDTO(
+    this: void,
+    data: DB_UnitOfAssessmentGrade & { gradeEntries: DB_GradeEntry[] },
+  ): UnitGradeDTO {
+    return {
       studentSubmitted: data.submitted,
-    });
+      customDueDate: data.customDueDate ?? undefined,
+      customWeight: data.customWeight ?? undefined,
+      status: data.status,
+      grades: data.gradeEntries.map((e) => Transformers.toGradeEntryDTO(e)),
+    };
   }
 
   public static toGroupDTO(this: void, group: DB_AllocationGroup): GroupDTO {

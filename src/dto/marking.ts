@@ -1,6 +1,11 @@
 import { z } from "zod";
 
-import { ConsensusStage, MarkerType, consensusMethodSchema } from "@/db/types";
+import {
+  ConsensusStage,
+  MarkerType,
+  consensusMethodSchema,
+  consensusStageSchema,
+} from "@/db/types";
 
 import { flagDtoSchema } from "./flag-tag";
 
@@ -106,34 +111,22 @@ export const markingSubmissionDtoSchema = z.discriminatedUnion("draft", [
 
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
-export const resolvedUnitGradeDtoSchema = z.object({
+export const gradeEntryDtoSchema = z.object({
   grade: z.number(),
   comment: z.string().optional(),
-  status: z.literal(ConsensusStage.RESOLVED),
   method: consensusMethodSchema,
+  timestamp: z.date(),
+});
+
+export type GradeEntryDTO = z.infer<typeof gradeEntryDtoSchema>;
+
+export const unitGradeDtoSchema = z.object({
+  status: consensusStageSchema,
   studentSubmitted: z.boolean(),
   customDueDate: z.date().optional(),
   customWeight: z.number().optional(),
+  grades: z.array(gradeEntryDtoSchema),
 });
-
-export const unresolvedUnitGradeDtoSchema = z.object({
-  grade: z.number().optional(),
-  comment: z.string().optional(),
-  status: z.enum([
-    ConsensusStage.MODERATE,
-    ConsensusStage.NEGOTIATE,
-    ConsensusStage.UNRESOLVED,
-  ]),
-  method: consensusMethodSchema.optional(),
-  studentSubmitted: z.boolean(),
-  customDueDate: z.date().optional(),
-  customWeight: z.number().optional(),
-});
-
-export const unitGradeDtoSchema = z.discriminatedUnion("status", [
-  resolvedUnitGradeDtoSchema,
-  unresolvedUnitGradeDtoSchema,
-]);
 
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 // --- new:
@@ -144,6 +137,7 @@ export const UnitGradingLifecycleState = {
   REQUIRES_MARKING: "REQUIRES_MARKING",
   IN_NEGOTIATION: "IN_NEGOTIATION",
   IN_MODERATION: "IN_MODERATION",
+  IN_MODERATION_AFTER_NEGOTIATION: "IN_MODERATION_AFTER_NEGOTIATION",
   PENDING_2ND_MARKER: "PENDING_2ND_MARKER",
   DONE: "DONE",
   AUTO_RESOLVED: "AUTO_RESOLVED",
@@ -159,6 +153,7 @@ export const unitGradingLifecycleStateSchema = z.enum([
   UnitGradingLifecycleState.REQUIRES_MARKING,
   UnitGradingLifecycleState.IN_NEGOTIATION,
   UnitGradingLifecycleState.IN_MODERATION,
+  UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION,
   UnitGradingLifecycleState.PENDING_2ND_MARKER,
   UnitGradingLifecycleState.DONE,
   UnitGradingLifecycleState.AUTO_RESOLVED,
@@ -197,6 +192,8 @@ export function unitToOverall(
     [UnitGradingLifecycleState.IN_NEGOTIATION]:
       StudentGradingLifecycleState.ACTION_REQUIRED,
     [UnitGradingLifecycleState.IN_MODERATION]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION]:
       StudentGradingLifecycleState.PENDING,
     [UnitGradingLifecycleState.PENDING_2ND_MARKER]:
       StudentGradingLifecycleState.PENDING,
@@ -247,6 +244,11 @@ export const finalMarkingResult = z.discriminatedUnion("status", [
   z.object({ status: z.literal(ConsensusStage.UNRESOLVED) }),
   z.object({ status: z.literal(ConsensusStage.NEGOTIATE) }),
   z.object({ status: z.literal(ConsensusStage.MODERATE) }),
+  z.object({
+    status: z.literal(ConsensusStage.MODERATE_AFTER_NEGOTIATION),
+    grade: z.number(),
+    comment: z.string(),
+  }),
   z.object({
     status: z.literal(ConsensusStage.RESOLVED),
     method: consensusMethodSchema,

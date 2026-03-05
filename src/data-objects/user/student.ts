@@ -467,7 +467,9 @@ export class Student extends User {
     const data = await this.db.studentDetails.findFirstOrThrow({
       where: { ...expand(this.instance.params), userId: this.id },
       include: {
-        unitGrades: true,
+        unitGrades: {
+          include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+        },
         unitSubmissions: true,
         studentFlag: {
           include: {
@@ -574,6 +576,7 @@ export class Student extends User {
   }): Promise<UnitGradeDTO> {
     const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
       where: { uoaGradeId: { studentId: this.id, unitOfAssessmentId: unitId } },
+      include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
     });
 
     // if (grade === null) return undefined;

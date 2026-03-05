@@ -24,6 +24,7 @@ import { UoaMarkingLoader } from "../forms/uoa-marking-form";
 import { MarksheetRole, useMarksheetContext } from "../marksheet-context";
 
 import { ConsensusWrapper } from "./wrappers/consensus-wrapper";
+import { ModerationNegotiationWrapper } from "./wrappers/moderation-negotiation-wrapper";
 import { ModerationWrapper } from "./wrappers/moderation-wrapper";
 import { NegotiationWrapper } from "./wrappers/negotiation-wrapper";
 import { PendingWrapper } from "./wrappers/pending-wrapper";
@@ -196,6 +197,14 @@ function DoubleMarkUnit({
       <ModerationWrapper unit={unit}>
         <DoubleMarkDisplay unit={unit} />
       </ModerationWrapper>
+    );
+  }
+
+  if (status === UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION) {
+    return (
+      <ModerationNegotiationWrapper unit={unit}>
+        <DoubleMarkDisplay unit={unit} />
+      </ModerationNegotiationWrapper>
     );
   }
 

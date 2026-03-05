@@ -63,7 +63,9 @@ export class Marker extends User {
         student: {
           include: {
             unitSubmissions: true,
-            unitGrades: true,
+            unitGrades: {
+              include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+            },
             userInInstance: { include: { user: true } },
             studentFlag: {
               include: {
