@@ -23,6 +23,19 @@ export const unitOfAssessmentRouter = createTRPCRouter({
       return;
     }),
 
+  // TODO hook this up
+  // Low priority feature
+  overrideMark: procedure.unitOfAssessment.subGroupAdmin
+    .input(z.object({ data: markOverrideDtoSchema }))
+    .mutation(async ({ ctx: { unit }, input: { studentId, data } }) => {
+      await unit.updateFinalMark(studentId, {
+        status: ConsensusStage.RESOLVED,
+        method: ConsensusMethod.OVERRIDE,
+        comment: data.justification,
+        grade: data.grade,
+      });
+    }),
+
   resetMarks: procedure.unitOfAssessment.subGroupAdmin
     .input(z.object({ markerId: z.string(), studentId: z.string() }))
     .mutation(async ({ ctx: { unit }, input: { markerId, studentId } }) => {

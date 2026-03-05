@@ -16,6 +16,12 @@ export const MarksheetRole = {
 
 export type MarksheetRole = keyof typeof MarksheetRole;
 
+export const ADMIN_ROLES = [
+  MarksheetRole.ADMIN,
+  MarksheetRole.READER_ADMIN,
+  MarksheetRole.SUPERVISOR_ADMIN,
+] as const;
+
 interface MarksheetContextType {
   reader: ReaderDTO;
   supervisor: SupervisorDTO;

@@ -174,28 +174,44 @@ export class UnitOfAssessment extends DataObject {
 
       ...(newData.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION
         ? [
-            this.db.gradeEntry.create({
-              data: {
+            this.db.gradeEntry.upsert({
+              where: {
+                unitOfAssessmentId_studentId_method: {
+                  method: ConsensusMethod.NEGOTIATED,
+                  unitOfAssessmentId: this.id,
+                  studentId,
+                },
+              },
+              create: {
                 comment: newData.comment,
                 grade: newData.grade,
                 method: ConsensusMethod.NEGOTIATED,
                 unitOfAssessmentId: this.id,
                 studentId,
               },
+              update: { comment: newData.comment, grade: newData.grade },
             }),
           ]
         : []),
 
       ...(newData.status === ConsensusStage.RESOLVED
         ? [
-            this.db.gradeEntry.create({
-              data: {
+            this.db.gradeEntry.upsert({
+              where: {
+                unitOfAssessmentId_studentId_method: {
+                  method: newData.method,
+                  unitOfAssessmentId: this.id,
+                  studentId,
+                },
+              },
+              create: {
                 comment: newData.comment,
                 grade: newData.grade,
                 method: newData.method,
                 unitOfAssessmentId: this.id,
                 studentId,
               },
+              update: { comment: newData.comment, grade: newData.grade },
             }),
           ]
         : []),
