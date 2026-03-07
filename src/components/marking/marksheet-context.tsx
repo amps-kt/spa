@@ -93,7 +93,5 @@ function getViewerRole({
   }
   if (isAdmin) return MarksheetRole.ADMIN;
 
-  console.log(supervisor, reader);
-
   throw new Error("User who is not marker or admin can see marksheet page");
 }

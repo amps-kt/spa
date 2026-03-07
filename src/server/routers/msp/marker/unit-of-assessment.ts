@@ -46,6 +46,7 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         const student = await instance.getStudent(studentId);
 
         return (
+          // I don't like this, let's wrap it in a bobject spacesuit
           (await student.getMarkerMarksByUnitId({ markerId, unitId })) ?? null
         );
       },
