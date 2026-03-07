@@ -132,7 +132,7 @@ model UnitOfAssessmentGrade {
 model GradeEntry {
   unitOfAssessmentId String                @map("unit_of_assessment_id")
   studentId          String                @map("student_id")
-  parent             UnitOfAssessmentGrade @relation(fields: [unitOfAssessmentId, studentId], references: [unitOfAssessmentId, studentId], map: "uoa_grade_entry")
+  parent             UnitOfAssessmentGrade @relation(fields: [unitOfAssessmentId, studentId], references: [unitOfAssessmentId, studentId], map: "uoa_grade_entry", onDelete: Cascade)
   // ---
   grade              Int
   comment            String

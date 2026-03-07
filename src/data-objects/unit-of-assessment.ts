@@ -159,6 +159,10 @@ export class UnitOfAssessment extends DataObject {
     ]);
   }
 
+  // sorry - this probably has to be an interactive transaction OR you use Prisma Typed SQL or die??
+  // players choice
+  // ig if you want to leave it like this then make sure to emit enough logs / events that if something goes south you know what happened.
+  // but you should probably just make it an interactive transaction soz
   public async updateFinalMark(studentId: string, newData: FinalMarkingResult) {
     await this.db.$transaction([
       this.db.unitOfAssessmentGrade.upsert({
