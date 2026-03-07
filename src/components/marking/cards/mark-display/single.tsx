@@ -32,8 +32,6 @@ export function SingleMarkDisplay({
       markerId: marker.id,
     });
 
-  const count = unit.components.length + 2;
-
   const dataPresent = data !== undefined && data !== null;
   const isAdmin = [
     MarksheetRole.ADMIN,
@@ -41,10 +39,12 @@ export function SingleMarkDisplay({
     MarksheetRole.SUPERVISOR_ADMIN,
   ].includes(viewerRole);
 
+  /* label + number of units + overall */
+  const rowCount = unit.components.length + 2;
   return (
     <div
       className="grid grid-rows-subgrid col-span-1 p-4 py-0 gap-2"
-      style={{ gridRow: `span ${count} / span ${count}` }}
+      style={{ gridRow: `span ${rowCount} / span ${rowCount}` }}
     >
       <h3 className="text-lg mb-4 row-span-1 flex flex-row items-baseline gap-2">
         {/* TODO IF admin, name is link */}

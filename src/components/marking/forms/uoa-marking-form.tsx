@@ -47,9 +47,11 @@ export function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
       unitId: unit.id,
       markerId: userId,
     });
+
   if (queryStatus === "pending") {
     return <Skeleton className="h-60 rounded-lg" />;
   }
+
   return (
     <UoaMarkingForm unit={unit} initialValues={initialValues ?? undefined} />
   );
@@ -188,10 +190,10 @@ export function UoaMarkingForm({
                 <FormItem
                   className={cn(
                     buttonVariants({ variant: "outline" }),
-                    "hover:bg-white flex flex-row items-center gap-2 ",
+                    "hover:bg-white flex flex-row items-center gap-2",
                   )}
                 >
-                  <FormLabel className="mt-2">Draft</FormLabel>
+                  <p className="mb-0 font-medium">Draft</p>
                   <FormControl>
                     <Switch
                       className="mb-0"
@@ -203,7 +205,7 @@ export function UoaMarkingForm({
                       }}
                     />
                   </FormControl>
-                  <FormLabel className="mt-2">Final</FormLabel>
+                  <p className="mb-0 font-medium">Final</p>
                 </FormItem>
               )}
             />

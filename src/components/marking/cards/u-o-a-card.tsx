@@ -113,11 +113,8 @@ function SingleMarkerUnit({
   }
 
   if (realStatus === StudentGradingLifecycleState.DONE) {
-    return (
-      <ConsensusWrapper unit={unit}>
-        <SingleMarkDisplay markerType={markerType} unit={unit} />
-      </ConsensusWrapper>
-    );
+    // todo: might be necessary if the grade is changed by admin
+    return <SingleMarkDisplay markerType={markerType} unit={unit} />;
   }
 
   if (realStatus === StudentGradingLifecycleState.NOT_SUBMITTED) {
@@ -132,11 +129,7 @@ function SingleMarkerUnit({
     if (marksRequired(markerType, viewerRole)) {
       return <UoaMarkingLoader unit={unit} />;
     } else {
-      return (
-        <ConsensusWrapper unit={unit}>
-          <SingleMarkDisplay markerType={markerType} unit={unit} />
-        </ConsensusWrapper>
-      );
+      return <SingleMarkDisplay markerType={markerType} unit={unit} />;
     }
   }
 }
