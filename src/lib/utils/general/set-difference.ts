@@ -20,10 +20,15 @@
 export function setDiff<T>(
   setA: T[],
   setB: T[],
-  getKey: (a: T) => string,
+  getKey?: (a: T) => string,
 ): T[] {
-  const keysB = new Set(setB.map(getKey));
-  return setA.filter((a) => !keysB.has(getKey(a)));
+  if (getKey === undefined) {
+    const keysB = new Set(setB);
+    return setA.filter((a) => !keysB.has(a));
+  } else {
+    const keysB = new Set(setB.map(getKey));
+    return setA.filter((a) => !keysB.has(getKey(a)));
+  }
 }
 
 /**
