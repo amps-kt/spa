@@ -130,36 +130,6 @@ export const unitGradeDtoSchema = z.object({
 
 export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
 
-// <tmp>
-
-const ConsensusStage = {
-  UNRESOLVED: "UNRESOLVED",
-  RESOLVED: "RESOLVED",
-  MODERATE: "MODERATE",
-  NEGOTIATE: "NEGOTIATE",
-} as const;
-
-const ConsensusMethod = {
-  AUTO: "AUTO",
-  OVERRIDE: "OVERRIDE",
-  NEGOTIATED: "NEGOTIATED",
-  MODERATED: "MODERATED",
-} as const;
-
-export const consensusStageSchema = z.enum([
-  ConsensusStage.RESOLVED,
-  ConsensusStage.UNRESOLVED,
-  ConsensusStage.MODERATE,
-  ConsensusStage.NEGOTIATE,
-]);
-
-export const consensusMethodSchema = z.enum([
-  ConsensusMethod.AUTO,
-  ConsensusMethod.OVERRIDE,
-  ConsensusMethod.NEGOTIATED,
-  ConsensusMethod.MODERATED,
-]);
-
 export const resolvedUnitGradeDtoSchema = z.object({
   grade: z.number(),
   comment: z.string(),
