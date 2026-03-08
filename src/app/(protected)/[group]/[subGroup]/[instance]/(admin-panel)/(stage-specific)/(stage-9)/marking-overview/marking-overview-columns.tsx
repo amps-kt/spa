@@ -1,8 +1,7 @@
 "use client";
 
+import { Grade } from "@/logic/grading";
 import { type ColumnDef } from "@tanstack/react-table";
-
-import { Grade } from "@/config/grades";
 
 import { cn } from "@/lib/utils";
 

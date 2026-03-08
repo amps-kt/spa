@@ -3,9 +3,9 @@ import { type ReactElement } from "react";
 import { PAUL_EMAIL, tag_coordinator } from "@/config/emails";
 
 import {
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type ComponentScoreDTO,
-  type MarkingSubmissionDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
   type StudentDTO,
@@ -100,8 +100,8 @@ export class Mailer {
     project: ProjectDTO;
     student: StudentDTO;
     unit: UnitOfAssessmentDTO;
-    criteria: AssessmentCriterionDTO[];
-    submission: MarkingSubmissionDTO;
+    criteria: MarkingComponentDTO[];
+    submission: FullMarkingSubmissionDTO;
     marker: UserDTO;
   }) {
     const message = (
@@ -254,9 +254,9 @@ export class Mailer {
     reader: ReaderDTO;
     project: ProjectDTO;
     student: StudentDTO;
-    criteria: AssessmentCriterionDTO[];
-    supervisorSubmission: MarkingSubmissionDTO;
-    readerSubmission: MarkingSubmissionDTO;
+    criteria: MarkingComponentDTO[];
+    supervisorSubmission: FullMarkingSubmissionDTO;
+    readerSubmission: FullMarkingSubmissionDTO;
     unit: UnitOfAssessmentDTO;
     params: InstanceParams;
     deadline: Date;
@@ -333,9 +333,9 @@ export class Mailer {
     unit: UnitOfAssessmentDTO;
     supervisor: SupervisorDTO;
     deadline: Date;
-    criteria: AssessmentCriterionDTO[];
-    supervisorSubmission: MarkingSubmissionDTO;
-    readerSubmission: MarkingSubmissionDTO;
+    criteria: MarkingComponentDTO[];
+    supervisorSubmission: FullMarkingSubmissionDTO;
+    readerSubmission: FullMarkingSubmissionDTO;
     negotiationResult?: ComponentScoreDTO;
   }) {
     const subject = "Grading Negotiation Required";

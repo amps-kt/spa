@@ -1,4 +1,4 @@
-import { Grade } from "@/config/grades";
+import { Grade } from "@/logic/grading";
 
 import { MarkerType } from "@/db/types";
 
@@ -90,8 +90,7 @@ export function prepCSV(data: ProjectMarkingOverview[]): CSVRow[] {
 
     const requiredModeration =
       dissStatus.status === "MODERATE" ||
-      ((!!dissGrade &&
-        Grade.checkExtremes(Grade.toLetter(dissGrade)).status === "MODERATE") ??
+      ((!!dissGrade && Grade.checkExtremes(dissGrade).status === "MODERATE") ??
         false);
 
     return {

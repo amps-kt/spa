@@ -1,6 +1,6 @@
 import { addWeeks } from "date-fns";
 
-import { type MarkingSubmissionDTO } from "@/dto";
+import { type FullMarkingSubmissionDTO } from "@/dto";
 
 export const fakeProject = {
   id: "",
@@ -174,7 +174,7 @@ export const fakeDissertationCriteria = [
 ];
 
 // Supervisor Submissions
-export const fakeSupervisorConductSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorConductSubmission: FullMarkingSubmissionDTO = {
   grade: 18,
   unitOfAssessmentId: "conduct-unit-id",
   studentId: "3858475d",
@@ -192,7 +192,7 @@ export const fakeSupervisorConductSubmission: MarkingSubmissionDTO = {
   draft: false,
 };
 
-export const fakeSupervisorPresentationSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorPresentationSubmission: FullMarkingSubmissionDTO = {
   grade: 16,
   unitOfAssessmentId: "presentation-unit-id",
   studentId: "3858475d",
@@ -225,7 +225,7 @@ export const fakeSupervisorPresentationSubmission: MarkingSubmissionDTO = {
   draft: false,
 };
 
-export const fakeSupervisorMissingPresentationSubmission: MarkingSubmissionDTO =
+export const fakeSupervisorMissingPresentationSubmission: FullMarkingSubmissionDTO =
   {
     grade: 0,
     unitOfAssessmentId: "presentation-unit-id",
@@ -254,7 +254,7 @@ export const fakeSupervisorMissingPresentationSubmission: MarkingSubmissionDTO =
     draft: false,
   };
 
-export const fakeSupervisorDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 17,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",
@@ -288,7 +288,7 @@ export const fakeSupervisorDissertationSubmission: MarkingSubmissionDTO = {
 };
 
 // Reader Submissions (only for dissertation)
-export const fakeReaderDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeReaderDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 16,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",
@@ -322,7 +322,7 @@ export const fakeReaderDissertationSubmission: MarkingSubmissionDTO = {
 };
 
 // Third Marker Submissions (only for dissertation)
-export const fakeThirdMarkerDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeThirdMarkerDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 15,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",

@@ -127,6 +127,7 @@
     "@types/uuid": "^9.0.8",
     "eslint": "9.22.0",
     "eslint-config-next": "15.2.2",
+    "fast-check": "^4.5.3",
     "jiti": "^2.4.2",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prisma": "^6.10.1",
@@ -135,6 +136,7 @@
     "tsx": "^4.20.3",
     "typescript": "5.8.2",
     "typescript-eslint": "^8.37.0",
+    "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.0"
   },
   "packageManager": "pnpm@9.15.1"

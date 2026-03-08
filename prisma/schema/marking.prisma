@@ -8,6 +8,7 @@ enum ConsensusStage {
   RESOLVED
   MODERATE
   NEGOTIATE
+  MODERATE_AFTER_NEGOTIATION
 
   @@map("consensus_stage")
 }
@@ -17,6 +18,7 @@ enum ConsensusMethod {
   OVERRIDE
   NEGOTIATED
   MODERATED
+  NEGOTIATED_MODERATED
 
   @@map("consensus_method")
 }
@@ -45,8 +47,8 @@ model MarkingComponentSubmission {
   markerId             String                     @map("marker_id") // marker type?
   studentId            String                     @map("student_id")
   unitOfAssessmentId   String                     @map("unit_of_assessment_id")
-  grade                Int
-  justification        String
+  grade                Int?
+  justification        String?
   // ---
   markingComponentId   String                     @map("marking_component_id")
   allocationGroupId    String                     @map("allocation_group_id")
@@ -86,8 +88,8 @@ model UnitOfAssessment {
 }
 
 model UnitOfAssessmentSubmission {
-  grade                Int
-  summary              String
+  grade                Int?
+  summary              String?
   recommendedForPrize  Boolean                      @default(false) @map("recommended_for_prize")
   draft                Boolean
   markerId             String                       @map("marker_id")
@@ -111,10 +113,7 @@ model UnitOfAssessmentGrade {
   unitOfAssessment     UnitOfAssessment @relation(fields: [unitOfAssessmentId], references: [id], onDelete: Cascade, map: "final_unit_grade_unit")
   studentId            String           @map("student_id")
   // ---
-  grade                Int
-  comment              String
   status               ConsensusStage   @default(UNRESOLVED)
-  method               ConsensusMethod  @default(AUTO)
   // ---
   allocationGroupId    String           @map("allocation_group_id")
   allocationSubGroupId String           @map("allocation_sub_group_id")
@@ -124,9 +123,24 @@ model UnitOfAssessmentGrade {
   customDueDate        DateTime?        @map("custom_due_date")
   customWeight         Int?             @map("custom_weight")
   student              StudentDetails   @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], map: "component_submission_student")
+  gradeEntries         GradeEntry[]
 
   @@id([studentId, unitOfAssessmentId], name: "uoaGradeId")
   @@map("unit_of_assessment_grade")
+}
+
+model GradeEntry {
+  unitOfAssessmentId String                @map("unit_of_assessment_id")
+  studentId          String                @map("student_id")
+  parent             UnitOfAssessmentGrade @relation(fields: [unitOfAssessmentId, studentId], references: [unitOfAssessmentId, studentId], map: "uoa_grade_entry", onDelete: Cascade)
+  // ---
+  grade              Int
+  comment            String
+  method             ConsensusMethod
+  timestamp          DateTime              @updatedAt
+
+  @@id([unitOfAssessmentId, studentId, method], map: "grade_entry_id")
+  @@map("grade_entry")
 }
 
 model FinalGrade {
@@ -143,6 +157,6 @@ model FinalGrade {
   allocationInstance       AllocationInstance       @relation(fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade, map: "final_grade_instance")
   studentProjectAllocation StudentProjectAllocation @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "final_grade_spa")
 
-  @@unique([studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId])
+  @@unique([studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "finalGradeUnique", map: "final_grade_unique")
   @@map("final_grade")
 }

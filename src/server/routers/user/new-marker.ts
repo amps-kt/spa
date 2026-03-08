@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -8,6 +9,9 @@ import {
 import {
   studentGradingLifecycleStateSchema,
   unitGradingLifecycleStateSchema,
+  fullMarkingSubmissionDtoSchema,
+  unitGradeDtoSchema,
+  draftMarkingSubmissionDtoSchema,
 } from "@/dto/marking";
 
 import { markerTypeSchema } from "@/db/types";
@@ -34,4 +38,71 @@ export const newMarkerRouter = createTRPCRouter({
         .array(),
     )
     .query(async ({ ctx: { user } }) => await user.getAssignedMarking()),
+
+  // [#22d3ee] - revisit middleware
+  // Help name
+  getStudentMarkingData: procedure.instance.user
+    .input(z.object({ studentId: z.string() }))
+    .output(
+      z.object({
+        student: studentDtoSchema,
+        units: z.array(
+          z.object({
+            unit: unitOfAssessmentDtoSchema,
+            grade: unitGradeDtoSchema.optional(),
+            status: unitGradingLifecycleStateSchema,
+          }),
+        ),
+      }),
+    )
+    .query(async ({ ctx: { instance, user }, input: { studentId } }) => {
+      const isMarker = await user.isStudentMarker(instance.params, studentId);
+      const isAdmin = await user.isSubGroupAdminOrBetter(instance.params);
+
+      if (!(isMarker || isAdmin)) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const student = await instance.getStudent(studentId);
+
+      const studentData = await student.get();
+
+      // Admin can see all; otherwise get only for the active marker type
+      const markerTypeFilter = isAdmin
+        ? undefined
+        : await user
+            .toMarker(instance.params)
+            .then((x) => x.getMarkerType(studentId));
+
+      const userData = isMarker ? await user.toDTO() : undefined;
+
+      const units = await student.getMarkingData({
+        markerTypeFilter,
+        user: userData,
+      });
+
+      return { student: studentData, units };
+    }),
+
+  // msp/marker/unit getMarksByMarkerId
+  getStudentMarkerMarksByUnitId: procedure.instance.user
+    .input(
+      z.object({
+        studentId: z.string(),
+        markerId: z.string(),
+        unitId: z.string(),
+      }),
+    )
+    .output(
+      draftMarkingSubmissionDtoSchema
+        .or(fullMarkingSubmissionDtoSchema)
+        .optional(),
+    )
+    .query(
+      async ({ ctx: { instance }, input: { studentId, markerId, unitId } }) => {
+        const student = await instance.getStudent(studentId);
+
+        return await student.getMarkerMarksByUnitId({ markerId, unitId });
+      },
+    ),
 });

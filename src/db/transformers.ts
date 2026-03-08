@@ -1,6 +1,5 @@
 import {
-  type AssessmentCriterionDTO,
-  type MarkingSubmissionDTO,
+  type MarkingComponentDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
   type AlgorithmDTO,
@@ -16,6 +15,9 @@ import {
   type TagDTO,
   type ComponentScoreDTO,
   type UnitGradeDTO,
+  type MarkingSubmissionDTO,
+  markingSubmissionDtoSchema,
+  type GradeEntryDTO,
 } from "@/dto";
 
 import {
@@ -40,6 +42,7 @@ import {
   type DB_UnitOfAssessmentSubmission,
   type DB_MarkingComponentSubmission,
   type DB_UnitOfAssessmentGrade,
+  type DB_GradeEntry,
 } from "./types";
 
 export class Transformers {
@@ -61,11 +64,12 @@ export class Transformers {
       criterionScores?: DB_MarkingComponentSubmission[];
     },
   ): MarkingSubmissionDTO {
-    return {
+    return markingSubmissionDtoSchema.parse({
       markerId: data.markerId,
       studentId: data.studentId,
-      grade: data.grade,
+      grade: data.grade ?? undefined,
       unitOfAssessmentId: data.unitOfAssessmentId,
+      // ? Does this mean you sometimes won't fetch everything?
       marks: (data.criterionScores ?? []).reduce(
         (acc, val) => ({
           ...acc,
@@ -73,16 +77,19 @@ export class Transformers {
         }),
         {},
       ),
-      finalComment: data.summary,
+      finalComment: data.summary ?? undefined,
       recommendation: data.recommendedForPrize,
       draft: data.draft,
-    };
+    });
   }
 
   public static toScoreDTO(
     data: DB_MarkingComponentSubmission,
-  ): ComponentScoreDTO {
-    return { mark: data.grade, justification: data.justification };
+  ): Partial<ComponentScoreDTO> {
+    return {
+      mark: data.grade ?? undefined,
+      justification: data.justification ?? undefined,
+    };
   }
 
   public static toAllocationGroupDTO(
@@ -244,7 +251,7 @@ export class Transformers {
   public static toAssessmentCriterionDTO(
     this: void,
     data: DB_MarkingComponent,
-  ): AssessmentCriterionDTO {
+  ): MarkingComponentDTO {
     return {
       id: data.id,
       unitOfAssessmentId: data.unitOfAssessmentId,
@@ -277,18 +284,28 @@ export class Transformers {
     };
   }
 
-  public static toUnitGradeDTO(
+  public static toGradeEntryDTO(
     this: void,
-    data: DB_UnitOfAssessmentGrade,
-  ): UnitGradeDTO {
+    data: DB_GradeEntry,
+  ): GradeEntryDTO {
     return {
       grade: data.grade,
       comment: data.comment,
-      status: data.status,
       method: data.method,
+      timestamp: data.timestamp,
+    };
+  }
+
+  public static toUnitGradeDTO(
+    this: void,
+    data: DB_UnitOfAssessmentGrade & { gradeEntries: DB_GradeEntry[] },
+  ): UnitGradeDTO {
+    return {
       studentSubmitted: data.submitted,
       customDueDate: data.customDueDate ?? undefined,
       customWeight: data.customWeight ?? undefined,
+      status: data.status,
+      grades: data.gradeEntries.map((e) => Transformers.toGradeEntryDTO(e)),
     };
   }
 
