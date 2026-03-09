@@ -7,7 +7,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { MarkingOverviewTable } from "./marking-overview-table";
+import { Main } from "./_components/main";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
   const { displayName } = await api.institution.instance.get({ params });
@@ -18,12 +18,11 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  const data = await api.marking.byProjectMarkingSummary({ params });
-
+  const flags = await api.institution.instance.getFlags({ params });
   return (
     <PanelWrapper className="gap-10">
       <Heading>{PAGES.markingOverview.title}</Heading>
-      <MarkingOverviewTable data={data} />
+      <Main flags={flags} />
     </PanelWrapper>
   );
 }

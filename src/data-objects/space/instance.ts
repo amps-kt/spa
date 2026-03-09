@@ -17,6 +17,9 @@ import {
   type StudentDTO,
   type ReaderDTO,
   type UnitGradeDTO__NEW as UnitGradeDTO,
+  type StudentGradingLifecycleState,
+  type UnitGradingLifecycleState,
+  markingStatusMin,
 } from "@/dto";
 import { type StudentDelta } from "@/dto/marking/student-submissions";
 
@@ -1853,5 +1856,55 @@ export class AllocationInstance extends DataObject {
           ),
       ),
     ]);
+  }
+
+  public async getMarkingStatusInfo(
+    flagId: string,
+  ): Promise<
+    {
+      project: ProjectDTO;
+      student: StudentDTO;
+      supervisor: SupervisorDTO;
+      reader: ReaderDTO;
+      status: StudentGradingLifecycleState;
+      units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
+    }[]
+  > {
+    const data = await this.db.studentProjectAllocation.findMany({
+      where: { ...expand(this.params), student: { flagId } },
+      include: {
+        student: {
+          include: {
+            studentFlag: true,
+            userInInstance: { include: { user: true } },
+          },
+        },
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
+            supervisor: {
+              include: { userInInstance: { include: { user: true } } },
+            },
+            readerAllocations: {
+              include: {
+                reader: {
+                  include: { userInInstance: { include: { user: true } } },
+                },
+              },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    return data.map(({ project, student }) => ({
+      project: T.toProjectDTO(project),
+      student: T.toStudentDTO(student),
+      supervisor: T.toSupervisorDTO(project.supervisor),
+      reader: T.toReaderDTO(project.readerAllocations[0].reader),
+      status: markingStatusMin(),
+    }));
   }
 }
