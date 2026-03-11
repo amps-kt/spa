@@ -12,11 +12,12 @@ import { produce } from "immer";
 import { createParser, useQueryState } from "nuqs";
 import { useImmer } from "use-immer";
 
-import { type FlagDTO, type UnitGradeDTO__NEW as UnitGradeDTO } from "@/dto";
+import { type FlagDTO } from "@/dto";
 import {
   type UnitDelta,
   type StudentDelta,
   type StudentSubmissionsRow,
+  type StudentSubmissionInfoDTO,
 } from "@/dto/marking/student-submissions";
 
 import { setDiff } from "@/lib/utils/general/set-difference";
@@ -150,7 +151,7 @@ export function computeUnitChangeCount(delta: UnitDelta): number {
 
 function computeUnitDeltaFromPatch(
   patch: UnitDelta,
-  truth: UnitGradeDTO,
+  truth: StudentSubmissionInfoDTO,
 ): UnitDelta {
   return produce(patch, (patch) => {
     if (patch.customDueDate === truth.customDueDate) {
@@ -309,7 +310,7 @@ export function SubmissionsProvider({
               selectedUnitIds.includes(u.unitId)
                 ? computeUnitDeltaFromPatch(
                     { ...u, ...patch },
-                    studentSubmission.units[j].grade,
+                    studentSubmission.units[j].submissionInfo,
                   )
                 : u,
             ),
