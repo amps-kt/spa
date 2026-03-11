@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { type ClipboardEvent, useState } from "react";
 
 import { type ClassValue } from "clsx";
 import { CheckIcon, RotateCcwIcon } from "lucide-react";
@@ -23,6 +23,7 @@ import {
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
+import { uniqueBy } from "@/lib/utils/list-unique";
 
 import { StudentSelectionMode } from "../student-unit-selection";
 import { useSubmissions } from "../submissions-context";
@@ -135,12 +136,28 @@ function StudentCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const selectedSet = new Set(selected);
+  const validIds = new Set(students.map((s) => s.id));
 
   function toggle(id: string) {
     const next = new Set(selected);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     onChange(Array.from(next));
+  }
+
+  function handlePaste(e: ClipboardEvent<HTMLInputElement>) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    const tokens = e.clipboardData
+      .getData("text/plain")
+      .split(/\s+/)
+      .map((t) => t.trim())
+      .filter((t) => validIds.has(t));
+
+    if (tokens.length === 0) return;
+
+    onChange(uniqueBy([...selected, ...tokens], (id) => id));
   }
 
   const placeholder =
@@ -186,7 +203,7 @@ function StudentCombobox({
       </div>
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command>
-          <CommandInput placeholder={placeholder} />
+          <CommandInput placeholder={placeholder} onPaste={handlePaste} />
           <CommandList>
             <CommandEmpty>No students found.</CommandEmpty>
             <CommandGroup>
