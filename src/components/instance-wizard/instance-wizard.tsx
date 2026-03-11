@@ -40,6 +40,7 @@ export const flagsAssessmentSchema = z
         ),
       displayName: z.string(),
       description: z.string(),
+      layoutIndex: z.number().int().nonnegative(),
     }),
   )
   .min(1);

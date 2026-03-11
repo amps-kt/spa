@@ -1335,7 +1335,7 @@ export class AllocationInstance extends DataObject {
       InstanceDTO,
       "stage" | "supervisorAllocationAccess" | "studentAllocationAccess"
     >;
-    flags: Omit<FlagDTO, "layoutIndex">[];
+    flags: FlagDTO[];
     tags: New<TagDTO>[];
   }) {
     const currentInstanceFlags = await this.db.flag.findMany({
