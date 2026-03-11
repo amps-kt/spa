@@ -215,12 +215,12 @@ const CustomRow = ({
 
           const displayWeight =
             unitState.customWeight === undefined
-              ? (groundTruthUnit.grade.customWeight ?? unit.weight)
+              ? (groundTruthUnit.submissionInfo.customWeight ?? unit.weight)
               : (unitState.customWeight ?? unit.weight);
 
           const displayDate =
             unitState.customDueDate ??
-            groundTruthUnit.grade.customDueDate ??
+            groundTruthUnit.submissionInfo.customDueDate ??
             unit.studentSubmissionDeadline;
 
           // a unit sub-row is highlighted if BOTH the unit is selected
@@ -261,7 +261,7 @@ const CustomRow = ({
                   isMV={displayWeight === 0}
                   onChange={(mv) => {
                     const truthWeight =
-                      groundTruthUnit.grade.customWeight ??
+                      groundTruthUnit.submissionInfo.customWeight ??
                       uoaMap[unit.id].weight;
                     const isTruthMV = truthWeight === 0;
 
@@ -285,7 +285,7 @@ const CustomRow = ({
                 <SubmittedCell
                   submitted={
                     unitState.submitted ??
-                    groundTruthUnit.grade.studentSubmitted
+                    groundTruthUnit.submissionInfo.studentSubmitted
                   }
                   onChange={(value) =>
                     updateUnit(studentId, unit.id, { submitted: value })

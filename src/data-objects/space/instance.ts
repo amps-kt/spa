@@ -16,9 +16,12 @@ import {
   type UserDTO,
   type StudentDTO,
   type ReaderDTO,
-  type UnitGradeDTO__NEW as UnitGradeDTO,
 } from "@/dto";
-import { type StudentDelta } from "@/dto/marking/student-submissions";
+import {
+  type StudentSubmissionsRow,
+  type StudentDelta,
+  type StudentSubmissionInfoDTO,
+} from "@/dto/marking/student-submissions";
 
 import { Transformers as T } from "@/db/transformers";
 import { DB_ReaderPreferenceType } from "@/db/types";
@@ -1049,12 +1052,7 @@ export class AllocationInstance extends DataObject {
 
   public async getStudentUnitSubmissionsByFlag(
     flagId: string,
-  ): Promise<
-    {
-      student: StudentDTO;
-      units: { unit: UnitOfAssessmentDTO; grade: UnitGradeDTO }[];
-    }[]
-  > {
+  ): Promise<StudentSubmissionsRow[]> {
     const studentData = await this.db.flag.findMany({
       where: { ...expand(this.params), id: flagId },
       include: {
@@ -1074,6 +1072,7 @@ export class AllocationInstance extends DataObject {
             userInInstance: { include: { user: true } },
             unitGrades: {
               include: {
+                gradeEntries: true,
                 unitOfAssessment: {
                   include: { flag: true, markingComponents: true },
                 },
@@ -1083,6 +1082,10 @@ export class AllocationInstance extends DataObject {
         },
       },
     });
+
+    const defaultSubmissionInfo: StudentSubmissionInfoDTO = {
+      studentSubmitted: false,
+    };
 
     return studentData.flatMap((f) =>
       f.students.map((s) => ({
@@ -1094,15 +1097,9 @@ export class AllocationInstance extends DataObject {
 
           return {
             unit: T.toUnitOfAssessmentDTO(u),
-            grade: rawGrade
-              ? T.toUnitGradeDTO(rawGrade)
-              : {
-                  grade: -1,
-                  comment: "",
-                  status: "UNRESOLVED",
-                  method: "AUTO",
-                  studentSubmitted: false,
-                },
+            submissionInfo: rawGrade
+              ? T.toSubmissionInfo(rawGrade)
+              : defaultSubmissionInfo,
           };
         }),
       })),
@@ -1846,8 +1843,6 @@ export class AllocationInstance extends DataObject {
                 customDueDate: u.customDueDate,
                 customWeight: u.customWeight ?? null,
                 submitted: u.submitted,
-                grade: -1,
-                comment: "",
               },
             }),
           ),

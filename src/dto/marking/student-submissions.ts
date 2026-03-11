@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import {
   studentDtoSchema,
-  unitGradeDtoSchema__NEW,
+  unitGradeDtoSchema,
   unitOfAssessmentDtoSchema,
 } from "..";
 
@@ -13,12 +13,21 @@ export const customWeightValueSchema = z.coerce
 
 export type WeightValue = z.infer<typeof customWeightValueSchema>;
 
+const studentSubmissionInfoDtoSchema = unitGradeDtoSchema.omit({
+  grades: true,
+  status: true,
+});
+
+export type StudentSubmissionInfoDTO = z.infer<
+  typeof studentSubmissionInfoDtoSchema
+>;
+
 export const studentSubmissionsRowDtoSchema = z.object({
   student: studentDtoSchema,
   units: z.array(
     z.object({
       unit: unitOfAssessmentDtoSchema,
-      grade: unitGradeDtoSchema__NEW,
+      submissionInfo: studentSubmissionInfoDtoSchema,
     }),
   ),
 });

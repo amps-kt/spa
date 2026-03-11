@@ -19,6 +19,7 @@ import {
   markingSubmissionDtoSchema,
   type GradeEntryDTO,
 } from "@/dto";
+import { type StudentSubmissionInfoDTO } from "@/dto/marking/student-submissions";
 
 import {
   type DB_Algorithm,
@@ -306,6 +307,17 @@ export class Transformers {
       customWeight: data.customWeight ?? undefined,
       status: data.status,
       grades: data.gradeEntries.map((e) => Transformers.toGradeEntryDTO(e)),
+    };
+  }
+
+  public static toSubmissionInfo(
+    this: void,
+    data: DB_UnitOfAssessmentGrade,
+  ): StudentSubmissionInfoDTO {
+    return {
+      studentSubmitted: data.submitted,
+      customDueDate: data.customDueDate ?? undefined,
+      customWeight: data.customWeight ?? undefined,
     };
   }
 
