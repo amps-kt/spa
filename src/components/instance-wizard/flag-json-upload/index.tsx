@@ -81,6 +81,45 @@ export function UploadJsonArea() {
                   <p className="text-sm text-muted-foreground">
                     {flag.description}
                   </p>
+                  {flag.unitsOfAssessment.length > 0 && (
+                    <div className="mt-3 space-y-2 border-l-2 pl-4">
+                      <p className="text-xs font-semibold uppercase text-muted-foreground">
+                        Units of Assessment
+                      </p>
+                      {flag.unitsOfAssessment.map((uoa, i) => (
+                        <div key={i} className="rounded border p-3 text-sm">
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium">
+                              {uoa.displayName}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              Weight: {uoa.weight}
+                            </Badge>
+                          </div>
+                          {uoa.description && (
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              {uoa.description}
+                            </p>
+                          )}
+                          {uoa.components.length > 0 && (
+                            <div className="mt-2 space-y-1 pl-3">
+                              {uoa.components.map((comp, j) => (
+                                <div
+                                  key={j}
+                                  className="flex items-center justify-between text-xs"
+                                >
+                                  <span>{comp.displayName}</span>
+                                  <span className="text-muted-foreground">
+                                    w: {comp.weight}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

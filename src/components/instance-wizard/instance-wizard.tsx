@@ -8,6 +8,8 @@ import { z } from "zod";
 
 import { spacesLabels } from "@/config/spaces";
 
+import { MarkerType } from "@/db/types";
+
 import { DateTimePicker } from "@/components/date-time-picker";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,6 +31,24 @@ import TagInput from "./tag-input";
 
 // TODO these need reset buttons
 
+const markingComponentJsonSchema = z.object({
+  displayName: z.string(),
+  description: z.string(),
+  weight: z.number(),
+});
+
+const uoaJsonSchema = z.object({
+  displayName: z.string(),
+  description: z.string(),
+  studentSubmissionDeadline: z.coerce.date(),
+  markerSubmissionDeadline: z.coerce.date(),
+  weight: z.number(),
+  allowedMarkerTypes: z.array(
+    z.enum([MarkerType.SUPERVISOR, MarkerType.READER]),
+  ),
+  components: z.array(markingComponentJsonSchema),
+});
+
 export const flagsAssessmentSchema = z
   .array(
     z.object({
@@ -41,6 +61,7 @@ export const flagsAssessmentSchema = z
       displayName: z.string(),
       description: z.string(),
       layoutIndex: z.number().int().nonnegative(),
+      unitsOfAssessment: z.array(uoaJsonSchema).default([]),
     }),
   )
   .min(1);
@@ -570,6 +591,22 @@ function ReviewPage() {
                   <p className="text-sm text-muted-foreground">
                     {flag.description}
                   </p>
+                  {flag.unitsOfAssessment.length > 0 && (
+                    <div className="mt-2 space-y-2 pl-4">
+                      {flag.unitsOfAssessment.map((uoa, i) => (
+                        <div
+                          key={i}
+                          className="rounded border border-dashed p-2 text-sm"
+                        >
+                          <p className="font-medium">{uoa.displayName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Weight: {uoa.weight} | Components:{" "}
+                            {uoa.components.length}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

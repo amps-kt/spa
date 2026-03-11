@@ -1,6 +1,6 @@
 import {
   type InstanceDTO,
-  type FlagDTO,
+  type FlagWithAssessmentDTO,
   type TagDTO,
   builtInAlgorithms,
   type SubGroupDTO,
@@ -12,6 +12,7 @@ import { type DB, type New } from "@/db/types";
 
 import { toInstanceId, expand } from "@/lib/utils/general/instance-params";
 import { slugify } from "@/lib/utils/general/slugify";
+import { keyBy } from "@/lib/utils/key-by";
 import { uniqueById } from "@/lib/utils/list-unique";
 import { type SubGroupParams } from "@/lib/validations/params";
 
@@ -48,7 +49,7 @@ export class AllocationSubGroup extends DataObject {
     tags,
   }: {
     newInstance: Omit<InstanceDTO, "instance">;
-    flags: FlagDTO[];
+    flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
     const instanceSlug = slugify(newInstance.displayName);
@@ -71,9 +72,10 @@ export class AllocationSubGroup extends DataObject {
         skipDuplicates: true,
       });
 
-      const _flagDisplayNameToId = flagData.reduce(
-        (acc, val) => ({ ...acc, [val.displayName]: val.id }),
-        {} as Record<string, string>,
+      const flagDisplayNameToId = keyBy(
+        flagData,
+        (f) => f.displayName,
+        (f) => f.id,
       );
 
       await tx.tag.createMany({
@@ -96,39 +98,48 @@ export class AllocationSubGroup extends DataObject {
         })),
       });
 
-      // const units = await tx.unitOfAssessment.createManyAndReturn({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.map((a) => ({
-      //       ...expand(params),
-      //       flagId: flagDisplayNameToId[f.displayName],
-      //       title: a.title,
-      //       weight: a.weight,
-      //       studentSubmissionDeadline: a.studentSubmissionDeadline,
-      //       markerSubmissionDeadline: a.markerSubmissionDeadline,
-      //       allowedMarkerTypes: a.allowedMarkerTypes,
-      //     })),
-      //   ),
-      // });
+      const flagsWithUoAs = flags.filter((f) => f.unitsOfAssessment.length > 0);
 
-      // const unitTitleToId = units.reduce(
-      //   (acc, val) => ({ ...acc, [`${val.flagId}${val.title}`]: val.id }),
-      //   {} as Record<string, string>,
-      // );
+      if (flagsWithUoAs.length > 0) {
+        const units = await tx.unitOfAssessment.createManyAndReturn({
+          data: flagsWithUoAs.flatMap((f) =>
+            f.unitsOfAssessment.map((a) => ({
+              ...expand(params),
+              flagId: flagDisplayNameToId[f.displayName],
+              title: a.displayName,
+              defaultWeight: a.weight,
+              defaultStudentSubmissionDeadline: a.studentSubmissionDeadline,
+              markerSubmissionDeadline: a.markerSubmissionDeadline,
+              allowedMarkerTypes: a.allowedMarkerTypes,
+            })),
+          ),
+        });
 
-      // await tx.assessmentCriterion.createMany({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.flatMap((u) =>
-      //       u.components.map((c) => ({
-      //         unitOfAssessmentId:
-      //           unitTitleToId[`${flagTitleToId[f.displayName]}${u.title}`],
-      //         title: c.title,
-      //         description: c.description,
-      //         weight: c.weight,
-      //         layoutIndex: c.layoutIndex,
-      //       })),
-      //     ),
-      //   ),
-      // });
+        const unitKeyToId = keyBy(
+          units,
+          (u) => `${u.flagId}::${u.title}`,
+          (u) => u.id,
+        );
+
+        const componentData = flagsWithUoAs.flatMap((f) =>
+          f.unitsOfAssessment.flatMap((u) =>
+            u.components.map((c, idx) => ({
+              unitOfAssessmentId:
+                unitKeyToId[
+                  `${flagDisplayNameToId[f.displayName]}::${u.displayName}`
+                ],
+              title: c.displayName,
+              description: c.description,
+              weight: c.weight,
+              layoutIndex: idx,
+            })),
+          ),
+        );
+
+        if (componentData.length > 0) {
+          await tx.markingComponent.createMany({ data: componentData });
+        }
+      }
     });
   }
 

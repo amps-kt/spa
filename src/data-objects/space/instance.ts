@@ -7,6 +7,7 @@ import {
   type UnitOfAssessmentDTO,
   type MarkingComponentDTO,
   type FlagDTO,
+  type FlagWithAssessmentDTO,
   type InstanceDTO,
   type InstanceDisplayData,
   type AlgorithmDTO,
@@ -41,6 +42,7 @@ import {
 } from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
@@ -1335,7 +1337,7 @@ export class AllocationInstance extends DataObject {
       InstanceDTO,
       "stage" | "supervisorAllocationAccess" | "studentAllocationAccess"
     >;
-    flags: FlagDTO[];
+    flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
     const currentInstanceFlags = await this.db.flag.findMany({
@@ -1344,7 +1346,10 @@ export class AllocationInstance extends DataObject {
 
     const newInstanceFlags = setDiff(
       flags,
-      currentInstanceFlags,
+      currentInstanceFlags.map((f) => ({
+        ...f,
+        unitsOfAssessment: [] as FlagWithAssessmentDTO["unitsOfAssessment"],
+      })),
       byDisplayName,
     );
 
@@ -1395,46 +1400,85 @@ export class AllocationInstance extends DataObject {
         where: expand(this.params),
       });
 
-      const _flagDisplayNameToId = flagData.reduce(
-        (acc, val) => ({ ...acc, [val.displayName]: val.id }),
-        {} as Record<string, string>,
+      const flagDisplayNameToId = keyBy(
+        flagData,
+        (f) => f.displayName,
+        (f) => f.id,
       );
 
-      // const units = await tx.unitOfAssessment.createManyAndReturn({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.map((a) => ({
-      //       ...expand(this.params),
-      //       flagId: flagDisplayNameToId[f.displayName],
-      //       title: a.title,
-      //       weight: a.weight,
-      //       studentSubmissionDeadline: a.studentSubmissionDeadline,
-      //       markerSubmissionDeadline: a.markerSubmissionDeadline,
-      //       allowedMarkerTypes: a.allowedMarkerTypes,
-      //     })),
-      //   ),
-      // });
+      const flagsWithUoAs = flags.filter((f) => f.unitsOfAssessment.length > 0);
 
-      // const unitTitleToId = units.reduce(
-      //   (acc, val) => ({ ...acc, [`${val.flagId}${val.title}`]: val.id }),
-      //   {} as Record<string, string>,
-      // );
+      await Promise.all(
+        flagsWithUoAs.map(async (f) => {
+          const flagId = flagDisplayNameToId[f.displayName];
+          if (!flagId) return;
 
-      // await tx.assessmentCriterion.createMany({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.flatMap((u) =>
-      //       u.components.map((c) => ({
-      //         unitOfAssessmentId:
-      //           unitTitleToId[
-      //             `${flagDisplayNameToId[f.displayName]}${u.title}`
-      //           ],
-      //         title: c.title,
-      //         description: c.description,
-      //         weight: c.weight,
-      //         layoutIndex: c.layoutIndex,
-      //       })),
-      //     ),
-      //   ),
-      // });
+          const existingUoAs = await tx.unitOfAssessment.findMany({
+            where: { flagId, ...expand(this.params) },
+          });
+
+          const existingUoAByTitle = keyBy(existingUoAs, (u) => u.title);
+
+          await Promise.all(
+            f.unitsOfAssessment.map(async (uoa) => {
+              const existing = existingUoAByTitle[uoa.displayName];
+
+              const unitId = existing
+                ? (
+                    await tx.unitOfAssessment.update({
+                      where: { id: existing.id },
+                      data: {
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id
+                : (
+                    await tx.unitOfAssessment.create({
+                      data: {
+                        ...expand(this.params),
+                        flagId,
+                        title: uoa.displayName,
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id;
+
+              await Promise.all(
+                uoa.components.map((c, idx) =>
+                  tx.markingComponent.upsert({
+                    where: {
+                      title_unitOfAssessmentId: {
+                        title: c.displayName,
+                        unitOfAssessmentId: unitId,
+                      },
+                    },
+                    update: {
+                      description: c.description,
+                      weight: c.weight,
+                      layoutIndex: idx,
+                    },
+                    create: {
+                      unitOfAssessmentId: unitId,
+                      title: c.displayName,
+                      description: c.description,
+                      weight: c.weight,
+                      layoutIndex: idx,
+                    },
+                  }),
+                ),
+              );
+            }),
+          );
+        }),
+      );
 
       await tx.tag.deleteMany({
         where: {
