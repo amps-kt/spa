@@ -15,6 +15,8 @@ export function MarkList({
   unit: UnitOfAssessmentDTO;
   marks: FullMarkingSubmissionDTO;
 }) {
+  const totalWeight = unit.components.reduce((acc, val) => acc + val.weight, 0);
+
   return (
     <Fragment>
       {unit.components.map((comp) => (
@@ -22,6 +24,7 @@ export function MarkList({
           key={comp.id}
           title={comp.title}
           description={comp.description}
+          weight={comp.weight / totalWeight}
           result={marks.marks[comp.id]}
         />
       ))}
