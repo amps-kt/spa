@@ -20,21 +20,28 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 
+import { FormatPercent } from "@/lib/utils/format-percent";
+
 import { GradeInput } from "./grade-input";
 
 export function ComponentMarkInput({
   control,
   component: { title, description, id },
+  weight,
   computeOverall,
 }: {
   control: Control<MarkingSubmissionDTO>;
   component: MarkingComponentDTO;
+  weight: number;
   computeOverall: () => void;
 }) {
   return (
     <Card className="row-span-1">
       <CardHeader className="pt-4 pb-2">
-        <CardTitle className="text-lg">{title}</CardTitle>
+        <span className="flex justify-between items-baseline">
+          <CardTitle className="text-lg">{title}</CardTitle>
+          <CardDescription>(weight: {FormatPercent(weight)})</CardDescription>
+        </span>
         {description && <CardDescription>{description}</CardDescription>}
       </CardHeader>
       <CardContent>

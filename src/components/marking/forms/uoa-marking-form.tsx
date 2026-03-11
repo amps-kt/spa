@@ -133,6 +133,8 @@ export function UoaMarkingForm({
   const grade = form.watch("grade");
   const draft = form.watch("draft");
 
+  const totalWeight = components.reduce((acc, val) => acc + val.weight, 0);
+
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className="grid gap-2">
@@ -141,6 +143,7 @@ export function UoaMarkingForm({
             key={c.id}
             component={c}
             control={form.control}
+            weight={c.weight / totalWeight}
             computeOverall={computeOverall}
           />
         ))}
