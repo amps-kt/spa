@@ -5,6 +5,7 @@ import { PAGES } from "@/config/pages";
 
 import {
   flagDtoSchema,
+  flagWithAssessmentDtoSchema,
   instanceDtoSchema,
   ProjectAllocationStatus,
   projectDtoSchema,
@@ -90,7 +91,7 @@ export const instanceRouter = createTRPCRouter({
           supervisorAllocationAccess: true,
           studentAllocationAccess: true,
         }),
-        flags: z.array(flagDtoSchema),
+        flags: z.array(flagWithAssessmentDtoSchema),
         tags: z.array(tagDtoSchema.omit({ id: true })),
       }),
     )
