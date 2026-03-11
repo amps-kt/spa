@@ -90,7 +90,7 @@ export const instanceRouter = createTRPCRouter({
           supervisorAllocationAccess: true,
           studentAllocationAccess: true,
         }),
-        flags: z.array(flagDtoSchema),
+        flags: z.array(flagDtoSchema.omit({ layoutIndex: true })),
         tags: z.array(tagDtoSchema.omit({ id: true })),
       }),
     )

@@ -48,7 +48,7 @@ export class AllocationSubGroup extends DataObject {
     tags,
   }: {
     newInstance: Omit<InstanceDTO, "instance">;
-    flags: FlagDTO[];
+    flags: Omit<FlagDTO, "layoutIndex">[];
     tags: New<TagDTO>[];
   }) {
     const instanceSlug = slugify(newInstance.displayName);
@@ -61,11 +61,12 @@ export class AllocationSubGroup extends DataObject {
       });
 
       const flagData = await tx.flag.createManyAndReturn({
-        data: flags.map((f) => ({
+        data: flags.map((f, i) => ({
           ...expand(params),
           id: f.id,
           displayName: f.displayName,
           description: f.description,
+          layoutIndex: i,
         })),
         skipDuplicates: true,
       });

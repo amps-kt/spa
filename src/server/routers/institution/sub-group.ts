@@ -55,7 +55,7 @@ export const subGroupRouter = createTRPCRouter({
     .input(
       z.object({
         newInstance: instanceDtoSchema.omit({ instance: true }),
-        flags: z.array(flagDtoSchema),
+        flags: z.array(flagDtoSchema.omit({ layoutIndex: true })),
         tags: z.array(tagDtoSchema.omit({ id: true })),
       }),
     )

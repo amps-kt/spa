@@ -4,6 +4,7 @@ export const flagDtoSchema = z.object({
   id: z.string(),
   displayName: z.string(),
   description: z.string(),
+  layoutIndex: z.number(),
 });
 
 export type FlagDTO = z.infer<typeof flagDtoSchema>;

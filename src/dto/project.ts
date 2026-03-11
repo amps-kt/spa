@@ -81,7 +81,7 @@ const submissionSchema = z.object({
   title: z.string(),
   description: z.string(),
 
-  flags: z.array(flagDtoSchema),
+  flags: z.array(flagDtoSchema.omit({ layoutIndex: true })),
   tags: z.array(tagDtoSchema),
 
   capacityUpperBound: z.number().int().positive(),
