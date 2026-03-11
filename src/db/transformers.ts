@@ -230,6 +230,7 @@ export class Transformers {
       id: data.id,
       displayName: data.displayName,
       description: data.description,
+      layoutIndex: data.layoutIndex,
     };
   }
 

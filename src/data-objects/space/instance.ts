@@ -107,6 +107,7 @@ export class AllocationInstance extends DataObject {
   > {
     const flagData = await this.db.flag.findMany({
       where: expand(this.params),
+      orderBy: { layoutIndex: "asc" },
       include: {
         unitsOfAssessment: {
           include: { flag: true, markingComponents: true },
@@ -345,7 +346,10 @@ export class AllocationInstance extends DataObject {
 
   // ---------------------------------------------------------------------------
   public async getFlags(): Promise<FlagDTO[]> {
-    return await this.db.flag.findMany({ where: expand(this.params) });
+    return await this.db.flag.findMany({
+      where: expand(this.params),
+      orderBy: { layoutIndex: "asc" },
+    });
   }
 
   public async getTags(): Promise<TagDTO[]> {
@@ -1331,7 +1335,7 @@ export class AllocationInstance extends DataObject {
       InstanceDTO,
       "stage" | "supervisorAllocationAccess" | "studentAllocationAccess"
     >;
-    flags: FlagDTO[];
+    flags: Omit<FlagDTO, "layoutIndex">[];
     tags: New<TagDTO>[];
   }) {
     const currentInstanceFlags = await this.db.flag.findMany({
@@ -1377,11 +1381,12 @@ export class AllocationInstance extends DataObject {
       });
 
       await tx.flag.createMany({
-        data: newInstanceFlags.map((f) => ({
+        data: newInstanceFlags.map((f, i) => ({
           ...expand(this.params),
           id: f.id,
           displayName: f.displayName,
           description: f.description,
+          layoutIndex: i,
         })),
         skipDuplicates: true,
       });
