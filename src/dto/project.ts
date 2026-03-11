@@ -53,6 +53,7 @@ const formInternalStateSchema = z
           id: z.string(),
           displayName: z.string(),
           description: z.string(),
+          layoutIndex: z.number().int().nonnegative(),
         }),
       )
       .min(1, "You must select at least one flag"),
@@ -81,7 +82,7 @@ const submissionSchema = z.object({
   title: z.string(),
   description: z.string(),
 
-  flags: z.array(flagDtoSchema.omit({ layoutIndex: true })),
+  flags: z.array(flagDtoSchema),
   tags: z.array(tagDtoSchema),
 
   capacityUpperBound: z.number().int().positive(),

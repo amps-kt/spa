@@ -3,8 +3,8 @@
 import { type UseFormReturn } from "react-hook-form";
 
 import {
-  Check,
-  ChevronsUpDown,
+  CheckIcon,
+  ChevronsUpDownIcon,
   SquareCheckBigIcon,
   SquareIcon,
 } from "lucide-react";
@@ -152,7 +152,7 @@ export function ProjectForm({
                         ) : (
                           "Select supervisor..."
                         )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -169,7 +169,7 @@ export function ProjectForm({
                               form.setValue("supervisorId", supervisor.id);
                             }}
                           >
-                            <Check
+                            <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4 shrink-0",
                                 supervisor.id === field.value
@@ -457,7 +457,7 @@ export function ProjectForm({
                         ) : (
                           "Select student..."
                         )}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -484,7 +484,7 @@ export function ProjectForm({
                                 );
                               }}
                             >
-                              <Check
+                              <CheckIcon
                                 className={cn(
                                   "mr-2 h-4 w-4 shrink-0",
                                   student.id === field.value

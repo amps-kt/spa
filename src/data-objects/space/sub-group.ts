@@ -48,7 +48,7 @@ export class AllocationSubGroup extends DataObject {
     tags,
   }: {
     newInstance: Omit<InstanceDTO, "instance">;
-    flags: Omit<FlagDTO, "layoutIndex">[];
+    flags: FlagDTO[];
     tags: New<TagDTO>[];
   }) {
     const instanceSlug = slugify(newInstance.displayName);
