@@ -77,6 +77,45 @@ export const fakeConductUnit = {
   allowedMarkerTypes: [],
 };
 
+export const fakeDissertationCriteria = [
+  {
+    id: "d1-analysis",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Analysis",
+    description:
+      "Has the student surveyed relevant research literature? Has he/she analysed the research problem, and devised a suitable approach for solving the problem?",
+    weight: 15,
+    layoutIndex: 0,
+  },
+  {
+    id: "d4-output-design",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Output Design",
+    description:
+      "Has the research been conducted well? Does it show evidence of original thinking? Are there any significant errors? Might the research be worthy of publication, perhaps after revision?",
+    weight: 40,
+    layoutIndex: 1,
+  },
+  {
+    id: "d2-evaluation",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Evaluation",
+    description:
+      "Has the student critically evaluated and analysed the research results? Does he/she understand their significance? Does he/she have good suggestions for further work?",
+    weight: 10,
+    layoutIndex: 2,
+  },
+  {
+    id: "d3-quality",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Dissertation Quality",
+    description:
+      "Is the research paper well-organised, and literate? Does it clearly explain the research problem, and how it was solved? Does it contain a bibliography and proper citations?",
+    weight: 20,
+    layoutIndex: 3,
+  },
+];
+
 export const fakeDissertationUnit = {
   id: "dissertation-unit-id",
   title: "Dissertation",
@@ -84,7 +123,7 @@ export const fakeDissertationUnit = {
   markerSubmissionDeadline: new Date(),
   weight: 0,
   isOpen: false,
-  components: [],
+  components: fakeDissertationCriteria,
   flag: fakeFlag,
   allowedMarkerTypes: [],
 };
@@ -133,45 +172,6 @@ export const fakeConductCriteria = [
       "Did the student attend meetings, and engage effectively with the supervisor?",
     weight: 10,
     layoutIndex: 1,
-  },
-];
-
-export const fakeDissertationCriteria = [
-  {
-    id: "d1-analysis",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Analysis",
-    description:
-      "Has the student surveyed relevant research literature? Has he/she analysed the research problem, and devised a suitable approach for solving the problem?",
-    weight: 15,
-    layoutIndex: 0,
-  },
-  {
-    id: "d2-evaluation",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Evaluation",
-    description:
-      "Has the student critically evaluated and analysed the research results? Does he/she understand their significance? Does he/she have good suggestions for further work?",
-    weight: 10,
-    layoutIndex: 1,
-  },
-  {
-    id: "d3-quality",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Dissertation Quality",
-    description:
-      "Is the research paper well-organised, and literate? Does it clearly explain the research problem, and how it was solved? Does it contain a bibliography and proper citations?",
-    weight: 20,
-    layoutIndex: 2,
-  },
-  {
-    id: "d4-output-design",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Output Design",
-    description:
-      "Has the research been conducted well? Does it show evidence of original thinking? Are there any significant errors? Might the research be worthy of publication, perhaps after revision?",
-    weight: 40,
-    layoutIndex: 3,
   },
 ];
 
