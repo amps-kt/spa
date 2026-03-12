@@ -11,7 +11,7 @@ import { type WizardFormData } from "../instance-wizard";
 
 import { WeightBadge, sumWeights } from "./weight-badge";
 
-export function FlagPreviewV1({ flags }: { flags: WizardFormData["flags"] }) {
+export function FlagPreview({ flags }: { flags: WizardFormData["flags"] }) {
   return (
     <div>
       <h3 className="mb-4 text-lg font-semibold">Parsed Flags Configuration</h3>
@@ -52,15 +52,16 @@ export function FlagPreviewV1({ flags }: { flags: WizardFormData["flags"] }) {
                           {uoa.components.length} component
                           {uoa.components.length !== 1 && "s"}
                         </span>
-                        <span className="ml-auto" />
-                        {uoa.allowedMarkerTypes.map((mt) => (
-                          <RoleBadge key={mt} role={mt} />
-                        ))}
-                        <WeightBadge
-                          variant="secondary"
-                          weight={uoa.weight}
-                          totalWeight={sumWeights(flag.unitsOfAssessment)}
-                        />
+                        <div className="ml-auto flex items-center gap-2">
+                          {uoa.allowedMarkerTypes.map((mt) => (
+                            <RoleBadge key={mt} role={mt} />
+                          ))}
+                          <WeightBadge
+                            variant="secondary"
+                            weight={uoa.weight}
+                            totalWeight={sumWeights(flag.unitsOfAssessment)}
+                          />
+                        </div>
                       </div>
                     </AccordionTrigger>
                     <AccordionContent>
@@ -69,21 +70,20 @@ export function FlagPreviewV1({ flags }: { flags: WizardFormData["flags"] }) {
                           {uoa.description}
                         </p>
                       )}
-                      <div className="space-y-3.5 pl-2">
+                      <div className="space-y-3.5 pl-2 pr-4">
                         {uoa.components.map((comp, j) => (
                           <div key={j} className="text-sm">
                             <div className="flex items-center gap-2">
                               <span>{comp.displayName}</span>
-                              <span className="ml-auto" />
                               <WeightBadge
+                                className="ml-auto"
                                 variant="outline"
                                 weight={comp.weight}
                                 totalWeight={sumWeights(uoa.components)}
                               />
-                              <span className="mr-[9px]" />
                             </div>
                             {comp.description && (
-                              <p className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
+                              <p className="mt-0.5 text-xs text-muted-foreground">
                                 {comp.description}
                               </p>
                             )}
