@@ -11,6 +11,12 @@ import { spacesLabels } from "@/config/spaces";
 import { MarkerType } from "@/db/types";
 
 import { DateTimePicker } from "@/components/date-time-picker";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -592,20 +598,56 @@ function ReviewPage() {
                     {flag.description}
                   </p>
                   {flag.unitsOfAssessment.length > 0 && (
-                    <div className="mt-2 space-y-2 pl-4">
+                    <Accordion type="multiple" className="mt-2 pl-4">
                       {flag.unitsOfAssessment.map((uoa, i) => (
-                        <div
+                        <AccordionItem
                           key={i}
-                          className="rounded border border-dashed p-2 text-sm"
+                          value={`uoa-${i}`}
+                          className="rounded border border-dashed px-3"
                         >
-                          <p className="font-medium">{uoa.displayName}</p>
-                          <p className="text-xs text-muted-foreground">
-                            Weight: {uoa.weight} | Components:{" "}
-                            {uoa.components.length}
-                          </p>
-                        </div>
+                          <AccordionTrigger className="py-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">
+                                {uoa.displayName}
+                              </span>
+                              <Badge variant="outline" className="text-xs">
+                                w: {uoa.weight}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {uoa.components.length} component
+                                {uoa.components.length !== 1 && "s"}
+                              </span>
+                            </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="text-sm">
+                            {uoa.description && (
+                              <p className="mb-2 text-muted-foreground">
+                                {uoa.description}
+                              </p>
+                            )}
+                            {uoa.components.length > 0 && (
+                              <div className="space-y-1 pl-3">
+                                {uoa.components.map((comp, j) => (
+                                  <div key={j} className="text-xs">
+                                    <div className="flex items-center justify-between">
+                                      <span>{comp.displayName}</span>
+                                      <span className="text-muted-foreground">
+                                        w: {comp.weight}
+                                      </span>
+                                    </div>
+                                    {comp.description && (
+                                      <p className="text-muted-foreground">
+                                        {comp.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </AccordionContent>
+                        </AccordionItem>
                       ))}
-                    </div>
+                    </Accordion>
                   )}
                 </div>
               ))}
