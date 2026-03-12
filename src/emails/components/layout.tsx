@@ -26,7 +26,46 @@ export function Layout({
 }) {
   return (
     <Html>
-      <Tailwind>
+      <Tailwind
+        config={{
+          theme: {
+            extend: {
+              colors: {
+                ["background"]: "hsl(0 0% 100%)",
+                ["foreground"]: "hsl(222.2 47.4% 11.2%)",
+
+                ["primary"]: "hsl(207 100% 20%)",
+                ["primary-foreground"]: "hsl(210 40% 96.1%)",
+
+                ["secondary"]: "hsl(207 100% 30%)",
+                ["secondary-foreground"]: "hsl(210 40% 96.1%)",
+
+                ["accent"]: "hsl(210 40% 96.1%)",
+                ["accent-foreground"]: "hsl(207 100% 20%)",
+
+                ["destructive"]: "hsl(0 100% 40%)",
+                ["destructive-foreground"]: "hsl(210 40% 98%)",
+
+                ["muted"]: "hsl(210 40% 96.1%)",
+                ["muted-foreground"]: "hsl(215.4 16.3% 46.9%)",
+
+                ["card"]: "hsl(0 0% 100%)",
+                ["card-foreground"]: "hsl(222.2 47.4% 11.2%)",
+
+                ["popover"]: "hsl(0 0% 100%)",
+                ["popover-foreground"]: "hsl(222.2 47.4% 11.2%)",
+
+                ["border"]: "hsl(214.3 31.8% 91.4%)",
+
+                ["input"]: "hsl(214.3 31.8% 91.4%)",
+                ["input-dark"]: "hsl(215 25% 27%)",
+
+                ["ring"]: "hsl(215 20.2% 65.1%)",
+              },
+            },
+          },
+        }}
+      >
         <Head />
 
         <Body className="mx-auto my-auto bg-white px-2 font-sans">
