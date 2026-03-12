@@ -40,10 +40,9 @@ export function MarkingReset({
           {unit.title} Marks Reset
         </Heading>
 
-        <Text>
-          Dear {marker.name}, this email is to inform you that{" "}
-          <strong>an admin has reset your marks</strong>. The details can be
-          found below:
+        <Text className="mx-auto text-center">
+          This email is to inform you that{" "}
+          <strong>an admin has reset your marks</strong>.
         </Text>
 
         <Row>
@@ -71,7 +70,7 @@ export function MarkingReset({
         </Row>
       </Section>
 
-      <Text>
+      <Text className="mx-auto text-center">
         If marking is still required, you may now re-enter your marks on the
         marksheet page.
       </Text>

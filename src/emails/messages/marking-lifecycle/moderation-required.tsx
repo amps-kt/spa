@@ -60,6 +60,11 @@ export function ModerationRequired({
       <Heading as="h2" className="mx-auto text-center">
         Moderation Required
       </Heading>
+      <Text className="mx-auto text-center">
+        The marking for this unit requires moderation because it has achieved an
+        exceptional grade or negotiation could not be resolved. The coordinator
+        has been informed and will arrange moderation.
+      </Text>
       <Section>
         <Row>
           <Column>Student: </Column>
@@ -99,7 +104,7 @@ export function ModerationRequired({
           linkArgs={{ ...params, studentId: student.id }}
           variant="button"
         >
-          View marks on marksheet page
+          View marks online
         </EmailLink>
       </Section>
 
@@ -129,7 +134,7 @@ export function ModerationRequired({
                 <Column className="align-top">{Grade.toLetter(g.grade)}</Column>
                 <Column className="align-top px-5">{g.comment}</Column>
                 <Column className="align-top text-right">
-                  <ConsensusMethodBadge method={g.method} />
+                  <ConsensusMethodBadge tooltip={false} method={g.method} />
                 </Column>
               </Row>
             ))}
@@ -149,12 +154,18 @@ ModerationRequired.PreviewProps = {
     status: "RESOLVED",
     studentSubmitted: true,
     grades: [
-      //   {
-      //     grade: Grade.toInt("B1"),
-      //     comment: "Agreed this is a great project, should be considered for A1",
-      //     method: "AUTO",
-      //     timestamp: new Date(),
-      //   },
+      {
+        grade: Grade.toInt("B1"),
+        comment: "Agreed this is a great project, should be considered for A1",
+        method: "NEGOTIATED",
+        timestamp: new Date(),
+      },
+      {
+        grade: Grade.toInt("B1"),
+
+        method: "AUTO",
+        timestamp: new Date(),
+      },
     ],
   },
   supervisor: { submission: fakeSupervisorSubmission, user: fakeSupervisor },

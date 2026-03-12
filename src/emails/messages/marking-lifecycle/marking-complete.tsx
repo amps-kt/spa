@@ -105,7 +105,7 @@ export function MarkingComplete({
           variant="button"
           linkArgs={{ ...params, studentId: student.id }}
         >
-          View marks on marksheet page
+          View marks online
         </EmailLink>
       </Section>
 
