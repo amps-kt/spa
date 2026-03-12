@@ -1,29 +1,17 @@
 import { EmailLink } from "@/emails/components/email-link";
 import { Layout } from "@/emails/components/layout";
-import { Marksheet } from "@/emails/components/marksheet";
 import {
-  fakeDissertationUnit,
-  fakeParams,
-  fakeProject,
   fakeStudent,
-  fakeSupervisor,
-  fakeSupervisorSubmission,
+  fakeProject,
+  fakePresentationUnit,
+  fakeParams,
 } from "@/emails/fake-data";
-import {
-  Column,
-  Row,
-  Heading,
-  Section,
-  Text,
-  Hr,
-} from "@react-email/components";
+import { Column, Row, Section, Heading, Text } from "@react-email/components";
 
 import {
-  type FullMarkingSubmissionDTO,
-  type ProjectDTO,
   type StudentDTO,
+  type ProjectDTO,
   type UnitOfAssessmentDTO,
-  type UserDTO,
 } from "@/dto";
 
 import { type InstanceParams } from "@/lib/validations/params";
@@ -32,47 +20,37 @@ interface Props {
   params: InstanceParams;
   student: StudentDTO;
   project: ProjectDTO;
-  marker: UserDTO;
   unit: UnitOfAssessmentDTO;
-  submission: FullMarkingSubmissionDTO;
 }
 
-export function MarkingReceipt({
-  params,
-  student,
-  project,
-  marker,
-  unit,
-  submission,
-}: Props) {
+export function MedicalVoidGranted({ student, project, unit, params }: Props) {
   return (
-    <Layout previewText={`Marks submitted for ${student.name} - ${unit.title}`}>
+    <Layout
+      previewText={`Extension granted for ${student.name} - ${unit.title}`}
+    >
       <Section>
         <Heading as="h2" className="mx-auto text-center">
-          Marks Submitted:
+          Medical Void Granted
         </Heading>
+        <Text className="mx-auto text-center">
+          You are receiving this email because a student you are responsible for
+          marking has received a medical void.
+        </Text>
 
         <Row>
-          <Column>Marker: </Column>
-          <Column className="text-right">
-            {marker.name} ({marker.email})
-          </Column>
-        </Row>
-
-        <Row>
-          <Column>Student: </Column>
+          <Column>Student:</Column>
           <Column className="text-right">
             {student.name} ({student.id})
           </Column>
         </Row>
 
         <Row>
-          <Column>Project: </Column>
+          <Column>Project:</Column>
           <Column className="text-right">{project.title}</Column>
         </Row>
 
         <Row>
-          <Column>Assessment Unit: </Column>
+          <Column>Assessment Unit:</Column>
           <Column className="text-right">{unit.title}</Column>
         </Row>
 
@@ -80,30 +58,24 @@ export function MarkingReceipt({
           No further action required
         </Text>
       </Section>
-      <Hr />
       <Section className="mb-[32px] mt-[32px] text-center">
         <EmailLink
           page="marksheet"
-          linkArgs={{ ...params, studentId: student.id }}
           variant="button"
+          linkArgs={{ ...params, studentId: student.id }}
         >
-          View marks online
+          View marksheet online
         </EmailLink>
       </Section>
-      <Heading>A full copy can be found below:</Heading>
-
-      <Marksheet submission={submission} components={unit.components} />
     </Layout>
   );
 }
 
-MarkingReceipt.PreviewProps = {
+MedicalVoidGranted.PreviewProps = {
   params: fakeParams,
   student: fakeStudent,
   project: fakeProject,
-  marker: fakeSupervisor,
-  unit: fakeDissertationUnit,
-  submission: fakeSupervisorSubmission,
+  unit: fakePresentationUnit,
 } satisfies Props;
 
-export default MarkingReceipt;
+export default MedicalVoidGranted;

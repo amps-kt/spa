@@ -59,6 +59,11 @@ export function NegotiationRequired({
           Negotiation Required:
         </Heading>
 
+        <Text className="mx-auto text-center">
+          The grades submitted by the supervisor and reader cannot be resolved
+          automatically and <strong>require negotiation</strong>.
+        </Text>
+
         <Row>
           <Column>Student: </Column>
           <Column className="text-right">
@@ -75,21 +80,23 @@ export function NegotiationRequired({
           <Column>Assessment Unit: </Column>
           <Column className="text-right">{unit.title}</Column>
         </Row>
+        <Row>
+          <Column>Supervisor: </Column>
+          <Column className="text-right">{supervisor.user.name}</Column>
+        </Row>
+        <Row>
+          <Column>Reader: </Column>
+          <Column className="text-right">{reader.user.name}</Column>
+        </Row>
       </Section>
 
-      <Text>
-        The grades submitted by the supervisor and reader cannot be resolved
-        automatically and <strong>require negotiation</strong> between
-        supervisor and reader.
+      <Text className="mx-auto text-center italic underline">
+        The supervisor and reader should now negotiate an outcome.
       </Text>
-      <Text>
-        Once a resolution is reached, <strong>the supervisor</strong> must use
-        the link they received in their email regarding this project to upload
-        the resolution to SPA.
-      </Text>
-      <Text>
-        You can view existing marks on the marksheet page. A full copy can also
-        be found below.
+      <Text className="mx-auto text-center">
+        After negotiation, <strong>the supervisor</strong> must input the
+        resolution in the online platform. The existing marks can be viewed on
+        the marksheet page. A full copy can also be found below.
       </Text>
 
       <Section className="mb-[32px] mt-[32px] text-center">
@@ -99,8 +106,8 @@ export function NegotiationRequired({
           variant="button"
         >
           {isSupervisor
-            ? "Submit resolution or view marks"
-            : "View marks on marksheet page"}
+            ? "Submit resolution or view marks online"
+            : "View marks online"}
         </EmailLink>
       </Section>
       <Hr />

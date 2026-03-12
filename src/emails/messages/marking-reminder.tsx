@@ -1,6 +1,7 @@
 // TODO kill this file, replace with other stuff.
 import { Heading, Section, Text } from "@react-email/components";
 
+import { format } from "@/lib/utils/date/format";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { EmailLink } from "../components/email-link";
@@ -11,22 +12,17 @@ interface Props {
   params: InstanceParams;
 }
 
-export function MarkingOverdueGeneric({ params }: Props) {
+export function MarkingReminder({ params }: Props) {
   return (
     <Layout previewText="Marking Overdue">
       <Section>
         <Heading as="h2" className="mx-auto text-center">
-          Marking Overdue
+          Marking Reminder
         </Heading>
 
-        <Text>
-          This is a reminder that the marking upload deadline for Level 4 & SEYP
-          Projects has now <strong>past</strong>. You are receiving this email
-          as you have overdue marks. In particular for supervisors, please
-          remember that you need to submit the{" "}
-          <u>conduct and presentation marks</u>, as well as the dissertation
-          marks. As negotiation may also be required for projects, your support
-          is appreciated.
+        <Text className="mx-auto text-center">
+          This is a gentle reminder that the marking upload deadline for Level 4
+          & SEYP Projects is <strong>{format(new Date())}</strong>.
         </Text>
         <Section className="mb-[32px] mt-[32px] text-center">
           <EmailLink variant="button" page="myMarking" linkArgs={params}>
@@ -38,6 +34,6 @@ export function MarkingOverdueGeneric({ params }: Props) {
   );
 }
 
-MarkingOverdueGeneric.PreviewProps = { params: fakeParams } satisfies Props;
+MarkingReminder.PreviewProps = { params: fakeParams } satisfies Props;
 
-export default MarkingOverdueGeneric;
+export default MarkingReminder;

@@ -33,7 +33,10 @@ import { ClosedCard } from "./closed-card";
 import { DoubleMarkDisplay, SingleMarkDisplay } from "./mark-display";
 import { NonSubmissionCard } from "./non-submission-card";
 
-function getDueDate(unit: UnitOfAssessmentDTO, grade?: UnitGradeDTO): Date {
+export function getDueDate(
+  unit: UnitOfAssessmentDTO,
+  grade?: UnitGradeDTO,
+): Date {
   if (!grade?.customDueDate) return unit.markerSubmissionDeadline;
 
   const delta = differenceInDays(

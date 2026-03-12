@@ -1,4 +1,4 @@
-import { addWeeks } from "date-fns";
+import { addDays, addWeeks } from "date-fns";
 
 import { type FullMarkingSubmissionDTO } from "@/dto";
 
@@ -57,7 +57,7 @@ export const fakePresentationUnit = {
   id: "presentation-unit-id",
   title: "Presentation",
   studentSubmissionDeadline: new Date(),
-  markerSubmissionDeadline: new Date(),
+  markerSubmissionDeadline: addDays(new Date(), 14),
   weight: 0,
   isOpen: false,
   components: [],
@@ -69,7 +69,7 @@ export const fakeConductUnit = {
   id: "conduct-unit-id",
   title: "Conduct",
   studentSubmissionDeadline: new Date(),
-  markerSubmissionDeadline: new Date(),
+  markerSubmissionDeadline: addDays(new Date(), 14),
   weight: 0,
   isOpen: false,
   components: [],
