@@ -3,7 +3,6 @@ import { useFormContext } from "react-hook-form";
 
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import {
   FormControl,
   FormField,
@@ -14,6 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 import { flagsAssessmentSchema, type WizardFormData } from "../instance-wizard";
+
+// Swap the import below to switch between preview variants:
+import { FlagPreviewV1 as FlagPreview } from "./flag-preview-v1";
+
+// import { FlagPreviewV2 as FlagPreview } from "./flag-preview-v2";
+
+// import { FlagPreviewV3 as FlagPreview } from "./flag-preview-v3";
+// import { FlagPreviewV4 as FlagPreview } from "./flag-preview-v4";
 
 export function UploadJsonArea() {
   const form = useFormContext<WizardFormData>();
@@ -67,63 +74,7 @@ export function UploadJsonArea() {
       {flags && flags.length > 0 && (
         <div className="space-y-4">
           <Separator />
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">
-              Parsed Flags Configuration
-            </h3>
-            <div className="space-y-4">
-              {flags.map((flag) => (
-                <div key={flag.id} className="rounded-md border p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Badge variant="secondary">{flag.id}</Badge>
-                    <span className="font-medium">{flag.displayName}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {flag.description}
-                  </p>
-                  {flag.unitsOfAssessment.length > 0 && (
-                    <div className="mt-3 space-y-2 border-l-2 pl-4">
-                      <p className="text-xs font-semibold uppercase text-muted-foreground">
-                        Units of Assessment
-                      </p>
-                      {flag.unitsOfAssessment.map((uoa, i) => (
-                        <div key={i} className="rounded border p-3 text-sm">
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">
-                              {uoa.displayName}
-                            </span>
-                            <Badge variant="outline" className="text-xs">
-                              Weight: {uoa.weight}
-                            </Badge>
-                          </div>
-                          {uoa.description && (
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              {uoa.description}
-                            </p>
-                          )}
-                          {uoa.components.length > 0 && (
-                            <div className="mt-2 space-y-1 pl-3">
-                              {uoa.components.map((comp, j) => (
-                                <div
-                                  key={j}
-                                  className="flex items-center justify-between text-xs"
-                                >
-                                  <span>{comp.displayName}</span>
-                                  <span className="text-muted-foreground">
-                                    w: {comp.weight}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
+          <FlagPreview flags={flags} />
         </div>
       )}
     </div>
