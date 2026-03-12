@@ -29,7 +29,17 @@ const consensusMethodData: Record<
   },
 };
 
-export function ConsensusMethodBadge({ method }: { method: ConsensusMethod }) {
+export function ConsensusMethodBadge({
+  method,
+  tooltip = true,
+}: {
+  method: ConsensusMethod;
+  tooltip?: boolean;
+}) {
+  if (!tooltip) {
+    return <Badge>{consensusMethodData[method].label}</Badge>;
+  }
+
   return (
     <WithTooltip tip={consensusMethodData[method].tip}>
       <div>

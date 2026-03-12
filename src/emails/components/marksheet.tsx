@@ -1,63 +1,101 @@
 import { Grade } from "@/logic/grading";
-import { Text, Section, Row, Heading } from "@react-email/components";
+import { Column, Row, Heading, Section, Text } from "@react-email/components";
+import { Markdown } from "@react-email/components";
 
-import { type MarkingComponentDTO, type FullMarkingSubmissionDTO } from "@/dto";
+import { type FullMarkingSubmissionDTO } from "@/dto";
+import { type MarkingComponentDTO } from "@/dto";
+
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { FormatPercent } from "@/lib/utils/format-percent";
 
-export function Marksheet({
-  submission,
-  criteria,
+function MarkingComponentDisplay({
+  title,
+  description,
+  weight,
+  result: { mark, justification },
 }: {
-  submission: FullMarkingSubmissionDTO;
-  criteria: MarkingComponentDTO[];
+  title: string;
+  description: string;
+  weight: number;
+  result: { mark: number; justification: string };
 }) {
-  const totalWeight = criteria.reduce((acc, val) => acc + val.weight, 0);
-
   return (
-    <>
-      {criteria.map((c) => {
-        const grade = submission.marks[c.id];
+    <Section className="rounded-lg border border-solid border-border bg-card text-card-foreground shadow-xs mb-3">
+      <CardHeader className="p-4">
+        <span className="flex justify-between items-baseline">
+          <CardTitle className="text-lg m-0">{title}</CardTitle>
+          <CardDescription className="text-muted-foreground m-0">
+            (weight: {FormatPercent(weight)})
+          </CardDescription>
+        </span>
+        {description && (
+          <CardDescription className="text-muted-foreground">
+            {description}
+          </CardDescription>
+        )}
+      </CardHeader>
 
-        return (
-          <Section key={c.id}>
-            <Row className="flex flex-row">
-              <span>
-                <Heading as="h5" className="mb-0 inline-block">
-                  {c.title} (weight {FormatPercent(c.weight / totalWeight)}
-                  ):{" "}
-                </Heading>
-                <i className="pl-1">{displayGrade(grade.mark)}</i>
-              </span>
-            </Row>
-
-            <Text>{grade.justification}</Text>
-          </Section>
-        );
-      })}
-      <Section>
-        <Row className="flex flex-row">
-          <span>
-            <Heading as="h5" className="mb-0 inline-block">
-              Overall:{" "}
-            </Heading>
-            <i className="pl-1">{displayGrade(submission.grade)}</i>
-          </span>
-        </Row>
-
-        <Text>{submission.finalComment}</Text>
+      <Section className="p-4 pt-0">
+        <Section className="bg-muted text-muted-foreground rounded-md border border-transparent p-2">
+          <Row>
+            <Column className="align-top">
+              <Text className="font-semibold text-primary text-lg mr-4">
+                {Grade.toLetter(mark)}
+              </Text>
+            </Column>
+            <Column>
+              <Markdown>{justification}</Markdown>
+            </Column>
+          </Row>
+        </Section>
       </Section>
-    </>
+    </Section>
   );
 }
 
-function displayGrade(grade: number): string {
-  switch (grade) {
-    case -2:
-      return "No Submission";
-    case -1:
-      return "N/A";
-    default:
-      return Grade.toLetter(grade);
-  }
+export function Marksheet({
+  submission,
+  components,
+}: {
+  submission: FullMarkingSubmissionDTO;
+  components: MarkingComponentDTO[];
+}) {
+  const totalWeight = components.reduce((acc, val) => acc + val.weight, 0);
+
+  return (
+    <>
+      {components.map(({ title, id, description, weight }) => {
+        const result = submission.marks[id];
+
+        return (
+          <MarkingComponentDisplay
+            key={id}
+            title={title}
+            description={description}
+            weight={weight / totalWeight}
+            result={result}
+          />
+        );
+      })}
+
+      <div className="my-4 px-4">
+        <Heading as="h3" className="text-lg font-semibold my-4">
+          Overall:
+        </Heading>
+        <Section>
+          <Row>
+            <Column style={{ verticalAlign: "top" }}>
+              <Text className="font-semibold text-primary text-lg mr-4">
+                {Grade.toLetter(submission.grade)}
+              </Text>
+            </Column>
+            <Column>
+              <Markdown>{submission.finalComment ?? ""}</Markdown>
+            </Column>
+          </Row>
+        </Section>
+      </div>
+    </>
+  );
 }
