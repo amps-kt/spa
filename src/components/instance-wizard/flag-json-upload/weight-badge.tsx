@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 
 import { cn } from "@/lib/utils";
+import { FormatPercent } from "@/lib/utils/format-percent";
 
 export function WeightBadge({
   weight,
@@ -13,18 +14,17 @@ export function WeightBadge({
   variant: "outline" | "secondary";
   className?: string;
 }) {
-  const pct = totalWeight > 0 ? ((weight / totalWeight) * 100).toFixed(2) : "0";
-  const pctDisplay = parseFloat(pct).toString();
+  const pct = totalWeight > 0 ? weight / totalWeight : 0;
 
   return (
     <Badge
       variant={variant}
       className={cn(
-        "text-xs rounded-sm px-1.5 w-22 flex justify-center",
+        "text-xs rounded-sm px-1.5 w-25 flex justify-center",
         className,
       )}
     >
-      w:{weight} ({pctDisplay}%)
+      w:{weight} ({FormatPercent(pct)})
     </Badge>
   );
 }
