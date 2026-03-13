@@ -1,6 +1,12 @@
 import { z } from "zod";
 
 import {
+  studentDtoSchema,
+  unitOfAssessmentDtoSchema,
+  unitGradeDtoSchema,
+  type UnitGradeDTO,
+} from "@/dto";
+import {
   studentDeltaSchema,
   studentSubmissionsRowDtoSchema,
 } from "@/dto/marking/student-submissions";

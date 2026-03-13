@@ -3,7 +3,6 @@ import { useFormContext } from "react-hook-form";
 
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import {
   FormControl,
   FormField,
@@ -14,6 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 import { flagsAssessmentSchema, type WizardFormData } from "../instance-wizard";
+
+import { FlagPreview } from "./flag-preview";
 
 export function UploadJsonArea() {
   const form = useFormContext<WizardFormData>();
@@ -67,24 +68,7 @@ export function UploadJsonArea() {
       {flags && flags.length > 0 && (
         <div className="space-y-4">
           <Separator />
-          <div>
-            <h3 className="mb-4 text-lg font-semibold">
-              Parsed Flags Configuration
-            </h3>
-            <div className="space-y-4">
-              {flags.map((flag) => (
-                <div key={flag.id} className="rounded-md border p-4">
-                  <div className="mb-2 flex items-center gap-2">
-                    <Badge variant="secondary">{flag.id}</Badge>
-                    <span className="font-medium">{flag.displayName}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {flag.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
+          <FlagPreview flags={flags} />
         </div>
       )}
     </div>

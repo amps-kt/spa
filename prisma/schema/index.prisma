@@ -92,6 +92,7 @@ model Flag {
   id                   String
   displayName          String             @map("display_name")
   description          String
+  layoutIndex          Int                @map("layout_index")
   // ---
   allocationGroupId    String             @map("allocation_group_id")
   allocationSubGroupId String             @map("allocation_sub_group_id")

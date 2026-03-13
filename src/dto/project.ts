@@ -53,6 +53,7 @@ const formInternalStateSchema = z
           id: z.string(),
           displayName: z.string(),
           description: z.string(),
+          layoutIndex: z.number().int().nonnegative(),
         }),
       )
       .min(1, "You must select at least one flag"),

@@ -2,6 +2,8 @@ import { addWeeks } from "date-fns";
 
 import { type FullMarkingSubmissionDTO } from "@/dto";
 
+const fakeFlag = { id: "", displayName: "", description: "", layoutIndex: 0 };
+
 export const fakeProject = {
   id: "",
   title: "Testing Programmatic Emails",
@@ -47,7 +49,7 @@ export const fakeStudent = {
   email: "",
   name: "John Doe",
   joined: false,
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   enrolled: true,
 };
 
@@ -59,7 +61,7 @@ export const fakePresentationUnit = {
   weight: 0,
   isOpen: false,
   components: [],
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
 
@@ -71,7 +73,7 @@ export const fakeConductUnit = {
   weight: 0,
   isOpen: false,
   components: [],
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
 
@@ -83,7 +85,7 @@ export const fakeDissertationUnit = {
   weight: 0,
   isOpen: false,
   components: [],
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
 
