@@ -136,7 +136,7 @@ export function Summary({
           </Column>
         </Row>
         <Marksheet
-          criteria={conductCriteria}
+          components={conductCriteria}
           submission={supervisorConductSubmission}
         />
       </Section>
@@ -165,7 +165,7 @@ export function Summary({
           </Column>
         </Row>
         <Marksheet
-          criteria={presentationCriteria}
+          components={presentationCriteria}
           submission={supervisorPresentationSubmission}
         />
       </Section>
@@ -194,7 +194,7 @@ export function Summary({
           </Column>
         </Row>
         <Marksheet
-          criteria={dissertationCriteria}
+          components={dissertationCriteria}
           submission={supervisorDissertationSubmission}
         />
 
@@ -213,7 +213,7 @@ export function Summary({
           </Column>
         </Row>
         <Marksheet
-          criteria={dissertationCriteria}
+          components={dissertationCriteria}
           submission={readerDissertationSubmission}
         />
       </Section>
