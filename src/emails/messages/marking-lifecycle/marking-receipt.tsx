@@ -106,4 +106,7 @@ MarkingReceipt.PreviewProps = {
   submission: fakeSupervisorSubmission,
 } satisfies Props;
 
+MarkingReceipt.makeSubject = ({ student, unit }: Props) =>
+  `Marks submitted for ${student.name} - ${unit.title}`;
+
 export default MarkingReceipt;

@@ -95,4 +95,7 @@ MarkingReset.PreviewProps = {
   unit: fakeDissertationUnit,
 } satisfies Props;
 
+MarkingReset.makeSubject = ({ student, unit }: Props) =>
+  `Marking reset for ${student.name} - ${unit.title}`;
+
 export default MarkingReset;

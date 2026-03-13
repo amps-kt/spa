@@ -185,4 +185,7 @@ MarkingComplete.PreviewProps = {
   // reader: { submission: fakeReaderSubmission, user: fakeReader },
 } satisfies Props;
 
+MarkingComplete.makeSubject = ({ student, unit }: Props) =>
+  `Marking complete for ${student.name} - ${unit.title}`;
+
 export default MarkingComplete;

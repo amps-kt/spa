@@ -40,4 +40,6 @@ export function MarkingOverdueGeneric({ params }: Props) {
 
 MarkingOverdueGeneric.PreviewProps = { params: fakeParams } satisfies Props;
 
+MarkingOverdueGeneric.makeSubject = () => "Marking Overdue";
+
 export default MarkingOverdueGeneric;

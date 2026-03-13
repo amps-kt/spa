@@ -53,7 +53,9 @@ export function NegotiationRequired({
   isSupervisor,
 }: Props) {
   return (
-    <Layout previewText={`Email required for ${student.name} - ${unit.title}`}>
+    <Layout
+      previewText={`Negotiation required for ${student.name} - ${unit.title}`}
+    >
       <Section>
         <Heading as="h2" className="mx-auto text-center">
           Negotiation Required:
@@ -163,5 +165,11 @@ NegotiationRequired.PreviewProps = {
   reader: { submission: fakeReaderSubmission, user: fakeReader },
   isSupervisor: true,
 } satisfies Props;
+
+NegotiationRequired.makeSubject = ({
+  student,
+  unit,
+}: Omit<Props, "isSupervisor">) =>
+  `Negotiation required for ${student.name} - ${unit.title}`;
 
 export default NegotiationRequired;
