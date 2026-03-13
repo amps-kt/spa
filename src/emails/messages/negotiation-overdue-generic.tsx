@@ -38,5 +38,6 @@ export function MarkingOverdueGeneric({ params }: Props) {
 }
 
 MarkingOverdueGeneric.PreviewProps = { params: fakeParams } satisfies Props;
+MarkingOverdueGeneric.makeSubject = () => "Negotiation Overdue";
 
 export default MarkingOverdueGeneric;

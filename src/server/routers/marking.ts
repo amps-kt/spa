@@ -297,12 +297,20 @@ export const markingRouter = createTRPCRouter({
     .inStage(subsequentStages(Stage.MARK_SUBMISSION))
     .subGroupAdmin.output(z.void())
     .input(z.object({ markers: z.array(z.object({ email: z.string() })) }))
-    .mutation(async ({ ctx: { mailer, logger, user }, input: { markers } }) => {
-      logger.log(LogLevels.AUDIT, "sending negotiation reminders", {
-        numAcademics: markers.length,
-        authorizerId: user.id,
-      });
+    .mutation(
+      async ({
+        ctx: { mailer, logger, user, instance },
+        input: { markers },
+      }) => {
+        logger.log(LogLevels.AUDIT, "sending negotiation reminders", {
+          numAcademics: markers.length,
+          authorizerId: user.id,
+        });
 
-      await mailer.notifyGenericNegotiationOverdue({ markers });
-    }),
+        await mailer.notifyGenericNegotiationOverdue({
+          params: instance.params,
+          markers,
+        });
+      },
+    ),
 });

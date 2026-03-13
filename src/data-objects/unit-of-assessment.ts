@@ -32,6 +32,15 @@ export class UnitOfAssessment extends DataObject {
     this.id = unitId;
   }
 
+  public async toDTO(): Promise<UnitOfAssessmentDTO> {
+    const data = await this.db.unitOfAssessment.findUniqueOrThrow({
+      where: { id: this.id },
+      include: { flag: true, markingComponents: true },
+    });
+
+    return T.toUnitOfAssessmentDTO(data);
+  }
+
   public async getMarks(
     studentId: string,
   ): Promise<{
@@ -163,7 +172,10 @@ export class UnitOfAssessment extends DataObject {
   // players choice
   // ig if you want to leave it like this then make sure to emit enough logs / events that if something goes south you know what happened.
   // but you should probably just make it an interactive transaction soz
-  public async updateFinalMark(studentId: string, newData: FinalMarkingResult) {
+  public async updateFinalMark(
+    studentId: string,
+    newData: FinalMarkingResult,
+  ): Promise<UnitGradeDTO> {
     await this.db.$transaction([
       this.db.unitOfAssessmentGrade.upsert({
         where: { uoaGradeId: { unitOfAssessmentId: this.id, studentId } },
@@ -255,5 +267,12 @@ export class UnitOfAssessment extends DataObject {
         });
       }
     }
+
+    const data = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
+      where: { uoaGradeId: { studentId, unitOfAssessmentId: this.id } },
+      include: { gradeEntries: true },
+    });
+
+    return T.toUnitGradeDTO(data);
   }
 }

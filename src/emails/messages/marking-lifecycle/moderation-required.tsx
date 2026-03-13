@@ -172,4 +172,7 @@ ModerationRequired.PreviewProps = {
   reader: { submission: fakeReaderSubmission, user: fakeReader },
 } satisfies Props;
 
+ModerationRequired.makeSubject = ({ student, unit }: Props) =>
+  `Moderation required for ${student.name} - ${unit.title}`;
+
 export default ModerationRequired;
