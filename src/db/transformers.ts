@@ -279,7 +279,7 @@ export class Transformers {
         Transformers.toAssessmentCriterionDTO(x),
       ),
       studentSubmissionDeadline: data.defaultStudentSubmissionDeadline,
-      markerSubmissionDeadline: data.defaultStudentSubmissionDeadline,
+      markerSubmissionDeadline: data.markerSubmissionDeadline,
       weight: data.defaultWeight,
       isOpen: data.open,
       allowedMarkerTypes: data.allowedMarkerTypes,
