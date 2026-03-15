@@ -25,8 +25,7 @@ export const ProjectAllocationStatus = {
   UNALLOCATED: "UNALLOCATED",
 } as const;
 
-export type ProjectAllocationStatus =
-  (typeof ProjectAllocationStatus)[keyof typeof ProjectAllocationStatus];
+export type ProjectAllocationStatus = keyof typeof ProjectAllocationStatus;
 
 export const projectAllocationStatusSchema = z.enum([
   ProjectAllocationStatus.UNALLOCATED,
@@ -54,6 +53,7 @@ const formInternalStateSchema = z
           id: z.string(),
           displayName: z.string(),
           description: z.string(),
+          layoutIndex: z.number().int().nonnegative(),
         }),
       )
       .min(1, "You must select at least one flag"),

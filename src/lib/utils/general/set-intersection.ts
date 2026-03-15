@@ -16,15 +16,17 @@
 export function setIntersection<T>(
   a: T[],
   b: T[],
-  getKey: (a: T) => string,
+  getKey?: (a: T) => string,
 ): T[] {
-  return a.filter((x) => b.some((y) => getKey(x) === getKey(y)));
+  if (getKey === undefined) return a.filter((x) => b.some((y) => x === y));
+  else return a.filter((x) => b.some((y) => getKey(x) === getKey(y)));
 }
 
 export function hasOverlap<T>(
   a: T[],
   b: T[],
-  getKey: (a: T) => string,
+  getKey?: (a: T) => string,
 ): boolean {
-  return setIntersection(a, b, getKey).length > 0;
+  if (getKey === undefined) return setIntersection(a, b).length > 0;
+  else return setIntersection(a, b, getKey).length > 0;
 }

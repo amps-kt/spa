@@ -1,17 +1,21 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-// @ts-nocheck
+import { Grade } from "@/logic/grading";
+
 import {
-  type MarkingSubmissionDTO,
   type ProjectDTO,
   type StudentDTO,
   type UnitOfAssessmentDTO,
-  type PartialMarkingSubmissionDTO,
 } from "@/dto";
-import { MarkingSubmissionStatus } from "@/dto/result/marking-submission-status";
+import {
+  markingStatusMin,
+  type UnitGradingLifecycleState,
+  unitToOverall,
+  type StudentGradingLifecycleState,
+  type UnitGradeDTO,
+  type MarkingSubmissionDTO,
+} from "@/dto/marking";
 
 import { Transformers as T } from "@/db/transformers";
-import { MarkerType } from "@/db/types";
-import { type DB } from "@/db/types";
+import { MarkerType, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -21,21 +25,6 @@ import { AllocationInstance } from "../space/instance";
 import { User } from ".";
 
 export class Marker extends User {
-  public static computeStatus(
-    u: UnitOfAssessmentDTO,
-    submission: MarkingSubmissionDTO | undefined,
-  ): MarkingSubmissionStatus {
-    if (!u.isOpen) {
-      return MarkingSubmissionStatus.CLOSED;
-    } else if (!submission) {
-      return MarkingSubmissionStatus.OPEN;
-    } else if (submission.draft) {
-      return MarkingSubmissionStatus.DRAFT;
-    } else {
-      return MarkingSubmissionStatus.SUBMITTED;
-    }
-  }
-
   instance: AllocationInstance;
 
   constructor(db: DB, id: string, params: InstanceParams) {
@@ -43,165 +32,117 @@ export class Marker extends User {
     this.instance = new AllocationInstance(db, params);
   }
 
-  async getMarkingSubmission(
-    unitOfAssessmentId: string,
-    studentId: string,
-  ): Promise<MarkingSubmissionDTO> {
-    const result = await this.db.markingSubmission.findFirst({
-      where: { markerId: this.id, studentId, unitOfAssessmentId },
-      include: { criterionScores: true },
-    });
-
-    console.log(result);
-
-    if (result) return T.toMarkingSubmissionDTO(result);
-
-    return {
-      unitOfAssessmentId,
-      studentId,
-      grade: -1,
-      markerId: this.id,
-      draft: true,
-      marks: {},
-      finalComment: "",
-      recommendation: false,
-    };
-  }
-
-  public async getProjectsWithSubmissions(): Promise<
+  async getAssignedMarking(
+    asAdmin = false,
+  ): Promise<
     {
       project: ProjectDTO;
       student: StudentDTO;
-      markerType: MarkerType;
-      unitsOfAssessment: {
-        unit: UnitOfAssessmentDTO;
-        status: MarkingSubmissionStatus;
-      }[];
+      role: MarkerType;
+      status: StudentGradingLifecycleState;
+      units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
     }[]
   > {
-    type Ret = Awaited<ReturnType<typeof this.getProjectsWithSubmissions>>;
-    let assignedProjects: Ret = [];
-
-    const markerId = this.id;
-
-    if (await this.isSupervisor(this.instance.params)) {
-      const data = await this.db.studentProjectAllocation.findMany({
-        where: {
-          ...expand(this.instance.params),
-          project: { supervisorId: this.id },
+    const projectsToMark = await this.db.studentProjectAllocation.findMany({
+      where: {
+        ...expand(this.instance.params),
+        project: {
+          OR: [
+            { supervisorId: this.id }, // is supervisor
+            { readerAllocations: { some: { readerId: this.id } } }, // is reader
+          ],
         },
-        include: {
-          student: {
-            include: {
-              userInInstance: { include: { user: true } },
-              studentFlag: {
-                include: {
-                  unitsOfAssessment: {
-                    where: { allowedMarkerTypes: { has: "SUPERVISOR" } },
-                    include: {
-                      assessmentCriteria: true,
-                      flag: true,
-                      markerSubmissions: { where: { markerId } },
-                    },
-                  },
-                },
-              },
-            },
-          },
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-            },
+        student: { enrolled: true },
+      },
+      include: {
+        project: {
+          include: {
+            flagsOnProject: { include: { flag: true } },
+            tagsOnProject: { include: { tag: true } },
           },
         },
-      });
-
-      assignedProjects = assignedProjects.concat(
-        data.flatMap((a) => ({
-          project: T.toProjectDTO(a.project),
-          student: T.toStudentDTO(a.student),
-          markerType: MarkerType.SUPERVISOR,
-          unitsOfAssessment: a.student.studentFlag.unitsOfAssessment.map(
-            (u) => {
-              const submission = u.markerSubmissions.find(
-                (s) => s.studentId === a.student.userId,
-              );
-
-              const unit = T.toUnitOfAssessmentDTO(u);
-
-              return {
-                unit,
-                status: Marker.computeStatus(
-                  unit,
-                  submission && T.toMarkingSubmissionDTO(submission),
-                ),
-              };
+        student: {
+          include: {
+            unitSubmissions: true,
+            unitGrades: {
+              include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
             },
-          ),
-        })),
-      );
-    }
-
-    if (await this.isReader(this.instance.params)) {
-      const readerAllocations = await this.db.readerProjectAllocation.findMany({
-        where: { ...expand(this.instance.params), readerId: this.id },
-        include: {
-          project: {
-            include: {
-              flagsOnProject: { include: { flag: true } },
-              tagsOnProject: { include: { tag: true } },
-              studentAllocations: {
-                include: {
-                  student: {
-                    include: {
-                      userInInstance: { include: { user: true } },
-                      studentFlag: {
-                        include: {
-                          unitsOfAssessment: {
-                            include: { markerSubmissions: true },
-                          },
-                        },
-                      },
-                    },
+            userInInstance: { include: { user: true } },
+            studentFlag: {
+              include: {
+                unitsOfAssessment: {
+                  include: {
+                    grades: true,
+                    markingComponents: true,
+                    markerSubmissions: { where: {} },
                   },
                 },
               },
             },
           },
         },
+      },
+    });
+
+    const user = await this.toDTO();
+
+    return projectsToMark.map(({ student, project }) => {
+      const flag = student.studentFlag;
+
+      type UnitOfAssessmentID = string;
+
+      const unitGrades: Record<UnitOfAssessmentID, UnitGradeDTO> =
+        student.unitGrades.reduce(
+          (acc, val) => ({
+            ...acc,
+            [val.unitOfAssessmentId]: T.toUnitGradeDTO(val),
+          }),
+          {},
+        );
+
+      const unitSubmissions: Record<
+        UnitOfAssessmentID,
+        MarkingSubmissionDTO[]
+      > = student.unitSubmissions.reduce(
+        (acc, val) => {
+          const list = acc[val.unitOfAssessmentId] ?? [];
+          return {
+            ...acc,
+            [val.unitOfAssessmentId]: [...list, T.toMarkingSubmissionDTO(val)],
+          };
+        },
+        {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
+      );
+
+      const units = flag.unitsOfAssessment.map((x) => {
+        const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
+        const status = Grade.getUnitStatus(
+          unit,
+          unitGrades[unit.id],
+          unitSubmissions[unit.id] ?? [],
+          asAdmin ? undefined : user,
+        );
+
+        return { unit, status };
       });
 
-      assignedProjects = assignedProjects.concat(
-        readerAllocations.flatMap(({ project }) => ({
-          project: T.toProjectDTO(project),
-          student: T.toStudentDTO(project.studentAllocations[0].student),
-          markerType: MarkerType.READER,
-          unitsOfAssessment:
-            project.studentAllocations[0].student.studentFlag.unitsOfAssessment.map(
-              (u) => {
-                const submission = u.markerSubmissions.find(
-                  (s) => s.studentId === project.studentAllocations[0].userId,
-                );
-
-                const unit = T.toUnitOfAssessmentDTO(u);
-
-                return {
-                  unit,
-                  status: Marker.computeStatus(
-                    unit,
-                    submission && T.toMarkingSubmissionDTO(submission),
-                  ),
-                };
-              },
-            ),
-        })),
+      const status = markingStatusMin(
+        units.map((x) => unitToOverall(x.status)),
       );
-    }
 
-    return assignedProjects.sort((a, b) =>
-      a.student.id.localeCompare(b.student.id),
-    );
+      const role =
+        project.supervisorId == this.id
+          ? MarkerType.SUPERVISOR
+          : MarkerType.READER;
+
+      return {
+        project: T.toProjectDTO(project),
+        student: T.toStudentDTO(student),
+        role,
+        status,
+        units,
+      };
+    });
   }
 
   public async getMarkerType(studentId: string): Promise<MarkerType> {
@@ -222,78 +163,5 @@ export class Marker extends User {
     }
 
     throw new Error("User is not a marker for this student");
-  }
-
-  public async writeMarks({
-    unitOfAssessmentId,
-    studentId,
-    marks = {},
-    finalComment = "",
-    recommendation,
-    draft,
-    grade,
-  }: Omit<PartialMarkingSubmissionDTO, "markerId">) {
-    const markerId = this.id;
-    await this.db.$transaction([
-      this.db.markingSubmission.upsert({
-        where: {
-          studentMarkerSubmission: { markerId, studentId, unitOfAssessmentId },
-        },
-        create: {
-          markerId,
-          studentId,
-          unitOfAssessmentId,
-          draft,
-          summary: finalComment,
-          recommendedForPrize: recommendation,
-          grade,
-        },
-        update: {
-          draft,
-          summary: finalComment,
-          recommendedForPrize: recommendation,
-          grade: grade,
-        },
-      }),
-
-      ...Object.entries(marks).map(([assessmentCriterionId, m]) =>
-        this.db.criterionScore.upsert({
-          where: {
-            markingCriterionSubmission: {
-              markerId,
-              studentId,
-              assessmentCriterionId,
-            },
-          },
-          create: {
-            markerId,
-            studentId,
-            assessmentCriterionId,
-            unitOfAssessmentId,
-            grade: m.mark ?? -1,
-            justification: m.justification ?? "",
-          },
-          update: { grade: m.mark, justification: m.justification },
-        }),
-      ),
-    ]);
-  }
-
-  public async writeFinalMark({
-    studentId,
-    unitOfAssessmentId,
-    grade,
-    comment,
-  }: {
-    studentId: string;
-    unitOfAssessmentId: string;
-    grade: number;
-    comment: string;
-  }) {
-    await this.db.finalUnitOfAssessmentGrade.upsert({
-      where: { studentAssessmentGrade: { studentId, unitOfAssessmentId } },
-      create: { studentId, unitOfAssessmentId, comment, grade },
-      update: { studentId, unitOfAssessmentId, comment, grade },
-    });
   }
 }

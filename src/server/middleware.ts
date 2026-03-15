@@ -10,6 +10,7 @@ import {
   User,
   MatchingAlgorithm,
 } from "@/data-objects";
+import { UnitOfAssessment } from "@/data-objects/unit-of-assessment";
 
 import { Role, type Stage } from "@/db/types";
 
@@ -134,6 +135,32 @@ const algorithmMiddleware = t.middleware(
     return next({ ctx: { alg } });
   },
 );
+
+/**
+ * @requires a preceding ```
+  .input(z.object({
+    params: instanceParamsSchema,
+    studentId: z.string(),
+    unitId: z.string(),
+  }))
+  ```
+ */
+const unitOfAssessmentMiddleware = t.middleware(
+  async ({ ctx: { db }, input, next }) => {
+    const { params, studentId, unitId } = z
+      .object({
+        params: instanceParamsSchema,
+        studentId: z.string(),
+        unitId: z.string(),
+      })
+      .parse(input);
+
+    const unit = new UnitOfAssessment(db, params, unitId);
+
+    return next({ ctx: { unit } });
+  },
+);
+// ----
 
 const authedMiddleware = t.middleware(({ ctx: { db, session }, next }) => {
   if (!session?.user) {
@@ -267,6 +294,36 @@ const markerMiddleware = authedMiddleware.unstable_pipe(
   },
 );
 
+/**
+ * @requires a preceding ```
+  .input(z.object({
+    params: instanceParamsSchema,
+    studentId: z.string(),
+    unitId: z.string(),
+  }))
+  ```
+ */
+const unitMarkerMiddleware = authedMiddleware.unstable_pipe(
+  async ({ ctx: { user }, next, input }) => {
+    const { params, studentId } = z
+      .object({
+        params: instanceParamsSchema,
+        studentId: z.string(),
+        unitId: z.string(),
+      })
+      .parse(input);
+
+    if (!(await user.isStudentMarker(params, studentId))) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "User is not a marker in instance XXX",
+      });
+    }
+
+    return next({ ctx: { user: await user.toMarker(params) } });
+  },
+);
+
 // * New!
 /**
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
@@ -388,6 +445,19 @@ const algorithmProcedure = institutionProcedure
   .use(subGroupMiddleware)
   .use(instanceMiddleware)
   .use(algorithmMiddleware);
+
+const unitOfAssessmentProcedure = institutionProcedure
+  .input(
+    z.object({
+      params: instanceParamsSchema,
+      studentId: z.string(),
+      unitId: z.string(),
+    }),
+  )
+  .use(groupMiddleware)
+  .use(subGroupMiddleware)
+  .use(instanceMiddleware)
+  .use(unitOfAssessmentMiddleware);
 
 export const procedure = {
   // site wide procedures (i.e. not tied to a space)
@@ -511,5 +581,13 @@ export const procedure = {
         subGroupAdmin: proc.use(SubGroupAdminMiddleware),
       };
     },
+  },
+
+  unitOfAssessment: {
+    user: unitOfAssessmentProcedure.use(authedMiddleware),
+    superAdmin: unitOfAssessmentProcedure.use(SuperAdminMiddleware),
+    groupAdmin: unitOfAssessmentProcedure.use(GroupAdminMiddleware),
+    subGroupAdmin: unitOfAssessmentProcedure.use(SubGroupAdminMiddleware),
+    marker: unitOfAssessmentProcedure.use(unitMarkerMiddleware),
   },
 };

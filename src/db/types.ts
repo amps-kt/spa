@@ -4,6 +4,8 @@ import {
   type PrismaClient,
   Stage,
   AllocationMethod as DB_AllocationMethod,
+  ConsensusStage,
+  ConsensusMethod,
 } from "@prisma/client";
 import { z } from "zod";
 
@@ -20,17 +22,19 @@ export type {
   AllocationGroup as DB_AllocationGroup,
   AllocationInstance as DB_AllocationInstance,
   AllocationSubGroup as DB_AllocationSubGroup,
-  AssessmentCriterion as DB_AssessmentCriterion,
-  CriterionScore as DB_CriterionScore,
   FinalGrade as DB_FinalGrade,
   Flag as DB_Flag,
   FlagOnProject as DB_FlagOnProject,
   UnitOfAssessment as DB_UnitOfAssessment,
   GroupAdmin as DB_GroupAdmin,
-  MarkingSubmission as DB_MarkingSubmission,
+  MarkingComponent as DB_MarkingComponent,
+  MarkingComponentSubmission as DB_MarkingComponentSubmission,
+  UnitOfAssessmentSubmission as DB_UnitOfAssessmentSubmission,
   MatchingPair as DB_MatchingPair,
   MatchingResult as DB_MatchingResult,
   Project as DB_Project,
+  UnitOfAssessmentGrade as DB_UnitOfAssessmentGrade,
+  GradeEntry as DB_GradeEntry,
   ReaderDetails as DB_ReaderDetails,
   ReaderProjectAllocation as DB_ReaderProjectAllocation,
   StudentDetails as DB_StudentDetails,
@@ -163,6 +167,22 @@ export const allocationMethodSchema = z.enum([
   DB_AllocationMethod.RANDOM,
 ]);
 
+export const consensusStageSchema = z.enum([
+  ConsensusStage.RESOLVED,
+  ConsensusStage.UNRESOLVED,
+  ConsensusStage.NEGOTIATE,
+  ConsensusStage.MODERATE,
+  ConsensusStage.MODERATE_AFTER_NEGOTIATION,
+]);
+
+export const consensusMethodSchema = z.enum([
+  ConsensusMethod.AUTO,
+  ConsensusMethod.OVERRIDE,
+  ConsensusMethod.NEGOTIATED,
+  ConsensusMethod.MODERATED,
+  ConsensusMethod.NEGOTIATED_MODERATED,
+]);
+
 export {
   AlgorithmFlag,
   StudentPreferenceType as PreferenceType,
@@ -170,6 +190,8 @@ export {
   Stage,
   MarkerType,
   AllocationMethod,
+  ConsensusStage,
+  ConsensusMethod,
 } from "@prisma/client";
 
 export type New<T> = Omit<T, "id">;

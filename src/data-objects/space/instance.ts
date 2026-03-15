@@ -1,5 +1,3 @@
-import { ReaderPreferenceType } from "@prisma/client";
-
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -7,8 +5,9 @@ import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
 
 import {
   type UnitOfAssessmentDTO,
-  type AssessmentCriterionDTO,
+  type MarkingComponentDTO,
   type FlagDTO,
+  type FlagWithAssessmentDTO,
   type InstanceDTO,
   type InstanceDisplayData,
   type AlgorithmDTO,
@@ -19,8 +18,14 @@ import {
   type StudentDTO,
   type ReaderDTO,
 } from "@/dto";
+import {
+  type StudentSubmissionsRow,
+  type StudentDelta,
+  type StudentSubmissionInfoDTO,
+} from "@/dto/marking/student-submissions";
 
 import { Transformers as T } from "@/db/transformers";
+import { DB_ReaderPreferenceType } from "@/db/types";
 import {
   type DB,
   Stage,
@@ -37,6 +42,7 @@ import {
 } from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
@@ -65,15 +71,15 @@ export class AllocationInstance extends DataObject {
     return await this.db.unitOfAssessment
       .findFirstOrThrow({
         where: { id: unitOfAssessmentId },
-        include: { flag: true, assessmentCriteria: true },
+        include: { flag: true, markingComponents: true },
       })
       .then((x) => T.toUnitOfAssessmentDTO(x));
   }
 
   public async getCriteria(
     unitOfAssessmentId: string,
-  ): Promise<AssessmentCriterionDTO[]> {
-    const data = await this.db.assessmentCriterion.findMany({
+  ): Promise<MarkingComponentDTO[]> {
+    const data = await this.db.markingComponent.findMany({
       where: { unitOfAssessmentId },
       orderBy: { layoutIndex: "asc" },
     });
@@ -81,14 +87,36 @@ export class AllocationInstance extends DataObject {
     return data.map((x) => T.toAssessmentCriterionDTO(x));
   }
 
+  public async getFlagUoAs(flagId: string): Promise<UnitOfAssessmentDTO[]> {
+    const flagData = await this.db.flag.findFirstOrThrow({
+      where: { ...expand(this.params), id: flagId },
+      include: {
+        unitsOfAssessment: {
+          include: { flag: true, markingComponents: true },
+          orderBy: [
+            { defaultStudentSubmissionDeadline: "asc" },
+            { title: "asc" },
+          ],
+        },
+      },
+    });
+
+    return flagData.unitsOfAssessment.map((x) => T.toUnitOfAssessmentDTO(x));
+  }
+
   public async getFlagsWithAssessmentDetails(): Promise<
     (FlagDTO & { unitsOfAssessment: UnitOfAssessmentDTO[] })[]
   > {
     const flagData = await this.db.flag.findMany({
       where: expand(this.params),
+      orderBy: { layoutIndex: "asc" },
       include: {
         unitsOfAssessment: {
-          include: { flag: true, assessmentCriteria: true },
+          include: { flag: true, markingComponents: true },
+          orderBy: [
+            { defaultStudentSubmissionDeadline: "asc" },
+            { title: "asc" },
+          ],
         },
       },
     });
@@ -320,7 +348,10 @@ export class AllocationInstance extends DataObject {
 
   // ---------------------------------------------------------------------------
   public async getFlags(): Promise<FlagDTO[]> {
-    return await this.db.flag.findMany({ where: expand(this.params) });
+    return await this.db.flag.findMany({
+      where: expand(this.params),
+      orderBy: { layoutIndex: "asc" },
+    });
   }
 
   public async getTags(): Promise<TagDTO[]> {
@@ -1013,6 +1044,74 @@ export class AllocationInstance extends DataObject {
     return students.map((s) => T.toStudentDTO(s));
   }
 
+  public async getStudentsByFlag(flagId: string): Promise<StudentDTO[]> {
+    const studentData = await this.db.studentDetails.findMany({
+      where: { ...expand(this.params), studentFlag: { id: flagId } },
+      include: {
+        studentFlag: true,
+        userInInstance: { include: { user: true } },
+      },
+    });
+
+    return studentData.map((s) => T.toStudentDTO(s));
+  }
+
+  public async getStudentUnitSubmissionsByFlag(
+    flagId: string,
+  ): Promise<StudentSubmissionsRow[]> {
+    const studentData = await this.db.flag.findMany({
+      where: { ...expand(this.params), id: flagId },
+      include: {
+        students: {
+          include: {
+            studentFlag: {
+              include: {
+                unitsOfAssessment: {
+                  include: { flag: true, markingComponents: true },
+                  orderBy: [
+                    { defaultStudentSubmissionDeadline: "asc" },
+                    { title: "asc" },
+                  ],
+                },
+              },
+            },
+            userInInstance: { include: { user: true } },
+            unitGrades: {
+              include: {
+                gradeEntries: true,
+                unitOfAssessment: {
+                  include: { flag: true, markingComponents: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const defaultSubmissionInfo: StudentSubmissionInfoDTO = {
+      studentSubmitted: false,
+    };
+
+    return studentData.flatMap((f) =>
+      f.students.map((s) => ({
+        student: T.toStudentDTO(s),
+        units: s.studentFlag.unitsOfAssessment.map((u) => {
+          const rawGrade = s.unitGrades.find(
+            (x) => x.unitOfAssessmentId == u.id,
+          );
+
+          return {
+            unit: T.toUnitOfAssessmentDTO(u),
+            submissionInfo: rawGrade
+              ? T.toSubmissionInfo(rawGrade)
+              : defaultSubmissionInfo,
+          };
+        }),
+      })),
+    );
+  }
+
   // --- side panel tab methods
   public async getAdminTabs() {
     const { stage } = await this.get();
@@ -1238,7 +1337,7 @@ export class AllocationInstance extends DataObject {
       InstanceDTO,
       "stage" | "supervisorAllocationAccess" | "studentAllocationAccess"
     >;
-    flags: FlagDTO[];
+    flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
     const currentInstanceFlags = await this.db.flag.findMany({
@@ -1247,7 +1346,10 @@ export class AllocationInstance extends DataObject {
 
     const newInstanceFlags = setDiff(
       flags,
-      currentInstanceFlags,
+      currentInstanceFlags.map((f) => ({
+        ...f,
+        unitsOfAssessment: [] as FlagWithAssessmentDTO["unitsOfAssessment"],
+      })),
       byDisplayName,
     );
 
@@ -1284,11 +1386,12 @@ export class AllocationInstance extends DataObject {
       });
 
       await tx.flag.createMany({
-        data: newInstanceFlags.map((f) => ({
+        data: newInstanceFlags.map((f, i) => ({
           ...expand(this.params),
           id: f.id,
           displayName: f.displayName,
           description: f.description,
+          layoutIndex: i,
         })),
         skipDuplicates: true,
       });
@@ -1297,46 +1400,85 @@ export class AllocationInstance extends DataObject {
         where: expand(this.params),
       });
 
-      const _flagDisplayNameToId = flagData.reduce(
-        (acc, val) => ({ ...acc, [val.displayName]: val.id }),
-        {} as Record<string, string>,
+      const flagDisplayNameToId = keyBy(
+        flagData,
+        (f) => f.displayName,
+        (f) => f.id,
       );
 
-      // const units = await tx.unitOfAssessment.createManyAndReturn({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.map((a) => ({
-      //       ...expand(this.params),
-      //       flagId: flagDisplayNameToId[f.displayName],
-      //       title: a.title,
-      //       weight: a.weight,
-      //       studentSubmissionDeadline: a.studentSubmissionDeadline,
-      //       markerSubmissionDeadline: a.markerSubmissionDeadline,
-      //       allowedMarkerTypes: a.allowedMarkerTypes,
-      //     })),
-      //   ),
-      // });
+      const flagsWithUoAs = flags.filter((f) => f.unitsOfAssessment.length > 0);
 
-      // const unitTitleToId = units.reduce(
-      //   (acc, val) => ({ ...acc, [`${val.flagId}${val.title}`]: val.id }),
-      //   {} as Record<string, string>,
-      // );
+      await Promise.all(
+        flagsWithUoAs.map(async (f) => {
+          const flagId = flagDisplayNameToId[f.displayName];
+          if (!flagId) return;
 
-      // await tx.assessmentCriterion.createMany({
-      //   data: flags.flatMap((f) =>
-      //     f.unitsOfAssessment.flatMap((u) =>
-      //       u.components.map((c) => ({
-      //         unitOfAssessmentId:
-      //           unitTitleToId[
-      //             `${flagDisplayNameToId[f.displayName]}${u.title}`
-      //           ],
-      //         title: c.title,
-      //         description: c.description,
-      //         weight: c.weight,
-      //         layoutIndex: c.layoutIndex,
-      //       })),
-      //     ),
-      //   ),
-      // });
+          const existingUoAs = await tx.unitOfAssessment.findMany({
+            where: { flagId, ...expand(this.params) },
+          });
+
+          const existingUoAByTitle = keyBy(existingUoAs, (u) => u.title);
+
+          await Promise.all(
+            f.unitsOfAssessment.map(async (uoa) => {
+              const existing = existingUoAByTitle[uoa.displayName];
+
+              const unitId = existing
+                ? (
+                    await tx.unitOfAssessment.update({
+                      where: { id: existing.id },
+                      data: {
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id
+                : (
+                    await tx.unitOfAssessment.create({
+                      data: {
+                        ...expand(this.params),
+                        flagId,
+                        title: uoa.displayName,
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id;
+
+              await Promise.all(
+                uoa.components.map((c, idx) =>
+                  tx.markingComponent.upsert({
+                    where: {
+                      title_unitOfAssessmentId: {
+                        title: c.displayName,
+                        unitOfAssessmentId: unitId,
+                      },
+                    },
+                    update: {
+                      description: c.description,
+                      weight: c.weight,
+                      layoutIndex: idx,
+                    },
+                    create: {
+                      unitOfAssessmentId: unitId,
+                      title: c.displayName,
+                      description: c.description,
+                      weight: c.weight,
+                      layoutIndex: idx,
+                    },
+                  }),
+                ),
+              );
+            }),
+          );
+        }),
+      );
 
       await tx.tag.deleteMany({
         where: {
@@ -1564,11 +1706,11 @@ export class AllocationInstance extends DataObject {
               id: r.userId,
               capacity: r.readingWorkloadQuota - r._count.projectAllocations,
               preferable: r.preferences
-                .filter((p) => p.type === ReaderPreferenceType.PREFERRED)
+                .filter((p) => p.type === DB_ReaderPreferenceType.PREFERRED)
                 .map((p) => p.projectId),
 
               unacceptable: r.preferences
-                .filter((p) => p.type === ReaderPreferenceType.UNACCEPTABLE)
+                .filter((p) => p.type === DB_ReaderPreferenceType.UNACCEPTABLE)
                 .map((p) => p.projectId),
 
               conflict:
@@ -1647,7 +1789,7 @@ export class AllocationInstance extends DataObject {
     const prefMap = preferences.reduce((acc, val) => {
       acc.set(val.readerId, val.type);
       return acc;
-    }, new Map<string, ReaderPreferenceType>());
+    }, new Map<string, DB_ReaderPreferenceType>());
 
     return projects.map(({ project }) => {
       const rpa = project.readerAllocations.at(0);
@@ -1696,14 +1838,64 @@ export class AllocationInstance extends DataObject {
 
     return data.map((r) => {
       const numPreferred = r.preferences.filter(
-        (p) => p.type === ReaderPreferenceType.PREFERRED,
+        (p) => p.type === DB_ReaderPreferenceType.PREFERRED,
       ).length;
 
       const numVetoed = r.preferences.filter(
-        (p) => p.type === ReaderPreferenceType.UNACCEPTABLE,
+        (p) => p.type === DB_ReaderPreferenceType.UNACCEPTABLE,
       ).length;
 
       return { reader: T.toReaderDTO(r), numPreferred, numVetoed };
     });
+  }
+
+  public async updateStudentSubmissionInfo(
+    deltas: StudentDelta[],
+  ): Promise<void> {
+    await this.db.$transaction([
+      ...deltas
+        .filter((d) => d.enrolled !== undefined)
+        .map((d) =>
+          this.db.studentDetails.update({
+            where: {
+              studentDetailsId: { ...expand(this.params), userId: d.studentId },
+            },
+            data: { enrolled: d.enrolled },
+          }),
+        ),
+
+      ...deltas.flatMap((d) =>
+        d.units
+          .filter(
+            (u) =>
+              u.customDueDate !== undefined ||
+              u.customWeight !== undefined ||
+              u.submitted !== undefined,
+          )
+          .map((u) =>
+            this.db.unitOfAssessmentGrade.upsert({
+              where: {
+                uoaGradeId: {
+                  studentId: d.studentId,
+                  unitOfAssessmentId: u.unitId,
+                },
+              },
+              update: {
+                customDueDate: u.customDueDate,
+                customWeight: u.customWeight,
+                submitted: u.submitted,
+              },
+              create: {
+                ...expand(this.params),
+                studentId: d.studentId,
+                unitOfAssessmentId: u.unitId,
+                customDueDate: u.customDueDate,
+                customWeight: u.customWeight ?? null,
+                submitted: u.submitted,
+              },
+            }),
+          ),
+      ),
+    ]);
   }
 }

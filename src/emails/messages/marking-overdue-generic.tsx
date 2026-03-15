@@ -1,9 +1,9 @@
 // TODO kill this file, replace with other stuff.
-import { env } from "@/env";
-import { Button, Heading, Section, Text } from "@react-email/components";
+import { Heading, Section, Text } from "@react-email/components";
 
 import { type InstanceParams } from "@/lib/validations/params";
 
+import { EmailLink } from "../components/email-link";
 import { Layout } from "../components/layout";
 import { fakeParams } from "../fake-data";
 
@@ -12,13 +12,11 @@ interface Props {
 }
 
 export function MarkingOverdueGeneric({ params }: Props) {
-  const markingURL = `${env.FRONTEND_SERVER_URL}/${params.group}/${params.subGroup}/${params.instance}/my-marking/`;
-
   return (
     <Layout previewText="Marking Overdue">
       <Section>
         <Heading as="h2" className="mx-auto text-center">
-          Marking Overdue:
+          Marking Overdue
         </Heading>
 
         <Text>
@@ -31,22 +29,17 @@ export function MarkingOverdueGeneric({ params }: Props) {
           is appreciated.
         </Text>
         <Section className="mb-[32px] mt-[32px] text-center">
-          <Button
-            className="rounded bg-[#000000] px-5 py-3 text-center text-[12px] font-semibold text-white no-underline"
-            href={markingURL}
-          >
-            Submit marking
-          </Button>
+          <EmailLink variant="button" page="myMarking" linkArgs={params}>
+            View My Marking
+          </EmailLink>
         </Section>
-        <Text>
-          If there is some issue, please contact the coordinator: Paul Harvey
-          (Paul.Harvey@glasgow.ac.uk).
-        </Text>
       </Section>
     </Layout>
   );
 }
 
 MarkingOverdueGeneric.PreviewProps = { params: fakeParams } satisfies Props;
+
+MarkingOverdueGeneric.makeSubject = () => "Marking Overdue";
 
 export default MarkingOverdueGeneric;

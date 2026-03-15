@@ -1,6 +1,8 @@
-import { addWeeks } from "date-fns";
+import { addDays, addWeeks } from "date-fns";
 
-import { type MarkingSubmissionDTO } from "@/dto";
+import { type FullMarkingSubmissionDTO } from "@/dto";
+
+const fakeFlag = { id: "", displayName: "", description: "", layoutIndex: 0 };
 
 export const fakeProject = {
   id: "",
@@ -47,18 +49,19 @@ export const fakeStudent = {
   email: "",
   name: "John Doe",
   joined: false,
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
+  enrolled: true,
 };
 
 export const fakePresentationUnit = {
   id: "presentation-unit-id",
   title: "Presentation",
   studentSubmissionDeadline: new Date(),
-  markerSubmissionDeadline: new Date(),
+  markerSubmissionDeadline: addDays(new Date(), 14),
   weight: 0,
   isOpen: false,
   components: [],
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
 
@@ -66,13 +69,52 @@ export const fakeConductUnit = {
   id: "conduct-unit-id",
   title: "Conduct",
   studentSubmissionDeadline: new Date(),
-  markerSubmissionDeadline: new Date(),
+  markerSubmissionDeadline: addDays(new Date(), 14),
   weight: 0,
   isOpen: false,
   components: [],
-  flag: { id: "", displayName: "", description: "" },
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
+
+export const fakeDissertationCriteria = [
+  {
+    id: "d1-analysis",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Analysis",
+    description:
+      "Has the student surveyed relevant research literature? Has he/she analysed the research problem, and devised a suitable approach for solving the problem?",
+    weight: 15,
+    layoutIndex: 0,
+  },
+  {
+    id: "d4-output-design",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Output Design",
+    description:
+      "Has the research been conducted well? Does it show evidence of original thinking? Are there any significant errors? Might the research be worthy of publication, perhaps after revision?",
+    weight: 40,
+    layoutIndex: 1,
+  },
+  {
+    id: "d2-evaluation",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Evaluation",
+    description:
+      "Has the student critically evaluated and analysed the research results? Does he/she understand their significance? Does he/she have good suggestions for further work?",
+    weight: 10,
+    layoutIndex: 2,
+  },
+  {
+    id: "d3-quality",
+    unitOfAssessmentId: "dissertation-unit-id",
+    title: "Dissertation Quality",
+    description:
+      "Is the research paper well-organised, and literate? Does it clearly explain the research problem, and how it was solved? Does it contain a bibliography and proper citations?",
+    weight: 20,
+    layoutIndex: 3,
+  },
+];
 
 export const fakeDissertationUnit = {
   id: "dissertation-unit-id",
@@ -81,8 +123,8 @@ export const fakeDissertationUnit = {
   markerSubmissionDeadline: new Date(),
   weight: 0,
   isOpen: false,
-  components: [],
-  flag: { id: "", displayName: "", description: "" },
+  components: fakeDissertationCriteria,
+  flag: fakeFlag,
   allowedMarkerTypes: [],
 };
 
@@ -133,47 +175,8 @@ export const fakeConductCriteria = [
   },
 ];
 
-export const fakeDissertationCriteria = [
-  {
-    id: "d1-analysis",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Analysis",
-    description:
-      "Has the student surveyed relevant research literature? Has he/she analysed the research problem, and devised a suitable approach for solving the problem?",
-    weight: 15,
-    layoutIndex: 0,
-  },
-  {
-    id: "d2-evaluation",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Evaluation",
-    description:
-      "Has the student critically evaluated and analysed the research results? Does he/she understand their significance? Does he/she have good suggestions for further work?",
-    weight: 10,
-    layoutIndex: 1,
-  },
-  {
-    id: "d3-quality",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Dissertation Quality",
-    description:
-      "Is the research paper well-organised, and literate? Does it clearly explain the research problem, and how it was solved? Does it contain a bibliography and proper citations?",
-    weight: 20,
-    layoutIndex: 2,
-  },
-  {
-    id: "d4-output-design",
-    unitOfAssessmentId: "dissertation-unit-id",
-    title: "Output Design",
-    description:
-      "Has the research been conducted well? Does it show evidence of original thinking? Are there any significant errors? Might the research be worthy of publication, perhaps after revision?",
-    weight: 40,
-    layoutIndex: 3,
-  },
-];
-
 // Supervisor Submissions
-export const fakeSupervisorConductSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorConductSubmission: FullMarkingSubmissionDTO = {
   grade: 18,
   unitOfAssessmentId: "conduct-unit-id",
   studentId: "3858475d",
@@ -191,7 +194,7 @@ export const fakeSupervisorConductSubmission: MarkingSubmissionDTO = {
   draft: false,
 };
 
-export const fakeSupervisorPresentationSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorPresentationSubmission: FullMarkingSubmissionDTO = {
   grade: 16,
   unitOfAssessmentId: "presentation-unit-id",
   studentId: "3858475d",
@@ -224,7 +227,7 @@ export const fakeSupervisorPresentationSubmission: MarkingSubmissionDTO = {
   draft: false,
 };
 
-export const fakeSupervisorMissingPresentationSubmission: MarkingSubmissionDTO =
+export const fakeSupervisorMissingPresentationSubmission: FullMarkingSubmissionDTO =
   {
     grade: 0,
     unitOfAssessmentId: "presentation-unit-id",
@@ -253,7 +256,7 @@ export const fakeSupervisorMissingPresentationSubmission: MarkingSubmissionDTO =
     draft: false,
   };
 
-export const fakeSupervisorDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeSupervisorDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 17,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",
@@ -287,7 +290,7 @@ export const fakeSupervisorDissertationSubmission: MarkingSubmissionDTO = {
 };
 
 // Reader Submissions (only for dissertation)
-export const fakeReaderDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeReaderDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 16,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",
@@ -321,7 +324,7 @@ export const fakeReaderDissertationSubmission: MarkingSubmissionDTO = {
 };
 
 // Third Marker Submissions (only for dissertation)
-export const fakeThirdMarkerDissertationSubmission: MarkingSubmissionDTO = {
+export const fakeThirdMarkerDissertationSubmission: FullMarkingSubmissionDTO = {
   grade: 15,
   unitOfAssessmentId: "dissertation-unit-id",
   studentId: "3858475d",

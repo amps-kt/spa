@@ -1,8 +1,5 @@
-// MOVE these to some other file
 import {
-  type AssessmentCriterionDTO,
-  type CriterionScoreDTO,
-  type MarkingSubmissionDTO,
+  type MarkingComponentDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
   type AlgorithmDTO,
@@ -16,14 +13,19 @@ import {
   type SubGroupDTO,
   type SupervisorDTO,
   type TagDTO,
+  type ComponentScoreDTO,
+  type UnitGradeDTO,
+  type MarkingSubmissionDTO,
+  markingSubmissionDtoSchema,
+  type GradeEntryDTO,
 } from "@/dto";
+import { type StudentSubmissionInfoDTO } from "@/dto/marking/student-submissions";
 
 import {
   type DB_Algorithm,
   type DB_AllocationGroup,
   type DB_AllocationInstance,
   type DB_AllocationSubGroup,
-  type DB_AssessmentCriterion,
   type DB_Flag,
   type DB_FlagOnProject,
   type DB_UnitOfAssessment,
@@ -35,10 +37,13 @@ import {
   type DB_TagOnProject,
   type DB_User,
   type DB_UserInInstance,
-  type DB_CriterionScore,
-  type DB_MarkingSubmission,
   DB_ReaderPreferenceType,
   ExtendedReaderPreferenceType,
+  type DB_MarkingComponent,
+  type DB_UnitOfAssessmentSubmission,
+  type DB_MarkingComponentSubmission,
+  type DB_UnitOfAssessmentGrade,
+  type DB_GradeEntry,
 } from "./types";
 
 export class Transformers {
@@ -56,27 +61,36 @@ export class Transformers {
 
   public static toMarkingSubmissionDTO(
     this: void,
-    data: DB_MarkingSubmission & { criterionScores?: DB_CriterionScore[] },
+    data: DB_UnitOfAssessmentSubmission & {
+      criterionScores?: DB_MarkingComponentSubmission[];
+    },
   ): MarkingSubmissionDTO {
-    return {
+    return markingSubmissionDtoSchema.parse({
       markerId: data.markerId,
       studentId: data.studentId,
-      grade: data.grade,
+      grade: data.grade ?? undefined,
       unitOfAssessmentId: data.unitOfAssessmentId,
+      // ? Does this mean you sometimes won't fetch everything?
       marks: (data.criterionScores ?? []).reduce(
         (acc, val) => ({
           ...acc,
-          [val.assessmentCriterionId]: Transformers.toScoreDTO(val),
+          [val.markingComponentId]: Transformers.toScoreDTO(val),
         }),
         {},
       ),
-      finalComment: data.summary,
+      finalComment: data.summary ?? undefined,
       recommendation: data.recommendedForPrize,
       draft: data.draft,
-    };
+    });
   }
-  public static toScoreDTO(data: DB_CriterionScore): CriterionScoreDTO {
-    return { mark: data.grade, justification: data.justification };
+
+  public static toScoreDTO(
+    data: DB_MarkingComponentSubmission,
+  ): Partial<ComponentScoreDTO> {
+    return {
+      mark: data.grade ?? undefined,
+      justification: data.justification ?? undefined,
+    };
   }
 
   public static toAllocationGroupDTO(
@@ -150,6 +164,7 @@ export class Transformers {
       joined: data.userInInstance.joined,
       latestSubmission: data.latestSubmissionDateTime ?? undefined,
       flag: data.studentFlag,
+      enrolled: data.enrolled,
     };
   }
 
@@ -215,6 +230,7 @@ export class Transformers {
       id: data.id,
       displayName: data.displayName,
       description: data.description,
+      layoutIndex: data.layoutIndex,
     };
   }
 
@@ -236,8 +252,8 @@ export class Transformers {
 
   public static toAssessmentCriterionDTO(
     this: void,
-    data: DB_AssessmentCriterion,
-  ): AssessmentCriterionDTO {
+    data: DB_MarkingComponent,
+  ): MarkingComponentDTO {
     return {
       id: data.id,
       unitOfAssessmentId: data.unitOfAssessmentId,
@@ -252,21 +268,57 @@ export class Transformers {
     this: void,
     data: DB_UnitOfAssessment & {
       flag: DB_Flag;
-      assessmentCriteria: DB_AssessmentCriterion[];
+      markingComponents: DB_MarkingComponent[];
     },
   ): UnitOfAssessmentDTO {
     return {
       id: data.id,
       title: data.title,
       flag: Transformers.toFlagDTO(data.flag),
-      components: data.assessmentCriteria.map((x) =>
+      components: data.markingComponents.map((x) =>
         Transformers.toAssessmentCriterionDTO(x),
       ),
-      studentSubmissionDeadline: data.studentSubmissionDeadline,
-      markerSubmissionDeadline: data.markerSubmissionDeadline,
-      weight: data.weight,
+      studentSubmissionDeadline: data.defaultStudentSubmissionDeadline,
+      markerSubmissionDeadline: data.defaultStudentSubmissionDeadline,
+      weight: data.defaultWeight,
       isOpen: data.open,
       allowedMarkerTypes: data.allowedMarkerTypes,
+    };
+  }
+
+  public static toGradeEntryDTO(
+    this: void,
+    data: DB_GradeEntry,
+  ): GradeEntryDTO {
+    return {
+      grade: data.grade,
+      comment: data.comment,
+      method: data.method,
+      timestamp: data.timestamp,
+    };
+  }
+
+  public static toUnitGradeDTO(
+    this: void,
+    data: DB_UnitOfAssessmentGrade & { gradeEntries: DB_GradeEntry[] },
+  ): UnitGradeDTO {
+    return {
+      studentSubmitted: data.submitted,
+      customDueDate: data.customDueDate ?? undefined,
+      customWeight: data.customWeight ?? undefined,
+      status: data.status,
+      grades: data.gradeEntries.map((e) => Transformers.toGradeEntryDTO(e)),
+    };
+  }
+
+  public static toSubmissionInfo(
+    this: void,
+    data: DB_UnitOfAssessmentGrade,
+  ): StudentSubmissionInfoDTO {
+    return {
+      studentSubmitted: data.submitted,
+      customDueDate: data.customDueDate ?? undefined,
+      customWeight: data.customWeight ?? undefined,
     };
   }
 

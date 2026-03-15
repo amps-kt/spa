@@ -1,8 +1,9 @@
 import {
-  BarChart3,
+  BarChart3Icon,
   BookOpenIcon,
   BookTextIcon,
   BriefcaseIcon,
+  CalendarClockIcon,
   FileCheck2Icon,
   FilePlus2Icon,
   FileSpreadsheetIcon,
@@ -30,7 +31,7 @@ import {
 export function Icon({ type }: { type: string }) {
   switch (type) {
     case "bar-chart":
-      return <BarChart3 className="mr-2 h-4 w-4" />;
+      return <BarChart3Icon className="mr-2 h-4 w-4" />;
 
     case "book-open":
       return <BookOpenIcon className="mr-2 h-4 w-4" />;
@@ -40,6 +41,9 @@ export function Icon({ type }: { type: string }) {
 
     case "briefcase":
       return <BriefcaseIcon className="mr-2 h-4 w-4" />;
+
+    case "calendar-clock":
+      return <CalendarClockIcon className="mr-2 h-4 w-4" />;
 
     case "file-check-2":
       return <FileCheck2Icon className="mr-2 h-4 w-4" />;

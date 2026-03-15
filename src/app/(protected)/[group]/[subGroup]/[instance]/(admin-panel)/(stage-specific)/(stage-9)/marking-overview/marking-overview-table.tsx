@@ -15,7 +15,6 @@ import { toast } from "sonner";
 
 import { CopyButton } from "@/components/copy-button";
 import { CopyEmailsButton } from "@/components/copy-emails-button";
-import { ExportCSVButton } from "@/components/export-csv";
 import { useInstanceParams } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,7 @@ import { YesNoAction } from "@/components/yes-no-action";
 import { api } from "@/lib/trpc/client";
 
 import { columns, StatusBox } from "./marking-overview-columns";
-import { prepCSV } from "./prep-csv";
+// import { prepCSV } from "./prep-csv";
 import { type ProjectMarkingOverview } from "./row";
 
 export function MarkingOverviewTable({
@@ -133,7 +132,7 @@ export function MarkingOverviewTable({
         />
       </div>
       <div>
-        <ExportCSVButton
+        {/* <ExportCSVButton
           header={[
             "studentGUID",
             "studentName",
@@ -171,10 +170,10 @@ export function MarkingOverviewTable({
             "overallGrade",
             "penalty",
           ]}
-          data={prepCSV(data)} /* */
+          data={prepCSV(data)}
           filename={"marking"}
           text="Download as CSV"
-        />
+        /> */}
       </div>
       <div className="flex items-center py-4">
         <Input

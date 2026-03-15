@@ -10,18 +10,18 @@
     "scope": "javascript,typescript",
     "prefix": "depr",
     "body": ["/**", "* @deprecated $0", "*/"],
-    "description": "Log output to console",
+    "description": "Mark a feature as deprecated",
   },
 
   "Page": {
-		"prefix": "pasy",
-		"body": [
-			"export default async function Page() {",
-			"  return (<>${0}</>);",
-			"}"
-		],
-		"description": "Creates a page server component with no params",
-	},
+    "prefix": "pasy",
+    "body": [
+      "export default async function Page() {",
+      "  return (<>${0}</>);",
+      "}",
+    ],
+    "description": "Creates a page server component with no params",
+  },
 
   "Instance Page": {
     "prefix": "inpag",
@@ -47,24 +47,32 @@
   "Email Template": {
     "prefix": "eml",
     "body": [
-      "import { Html } from \"@react-email/components\";",
+      "import { Layout } from \"@/emails/components/layout\";",
       "",
-      "interface Props {",
+      "interface Props {$3}",
       "",
-      "}",
-      "",
-      "export function ${0}({}: Props) {",
-      "return (",
-      "    <Html>",
-      "    </Html>",
+      "export function ${1:${TM_FILENAME_BASE/(^|-)(.)/${2:/upcase}/g}}({}: Props) {",
+      "  return (",
+      "    <Layout previewText=\"${4}\">",
+      "           $5",
+      "    </Layout>",
       "  );",
       "}",
       "",
-      "${0}.PreviewProps = {",
+      "${1:${TM_FILENAME_BASE/(^|-)(.)/${2:/upcase}/g}}.PreviewProps = {} satisfies Props;",
       "",
-      "} satisfies Props;",
+      "export default ${1:${TM_FILENAME_BASE/(^|-)(.)/${2:/upcase}/g}};",
+    ],
+  },
+
+  "Enum": {
+    "prefix": "enm",
+    "body": [
+      "export const $1 = {",
+      "\t$2",
+      "} as const;",
       "",
-      "export default ${0};",
+      "export type $1 = keyof typeof $1;",
     ],
   },
 }

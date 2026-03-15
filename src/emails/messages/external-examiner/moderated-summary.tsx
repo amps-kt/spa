@@ -13,6 +13,7 @@ import {
   fakeDissertationCriteria,
   fakeConductCriteria,
 } from "@/emails/fake-data";
+import { Grade } from "@/logic/grading";
 import {
   Column,
   Heading,
@@ -22,11 +23,9 @@ import {
   Hr,
 } from "@react-email/components";
 
-import { Grade } from "@/config/grades";
-
 import {
-  type AssessmentCriterionDTO,
-  type MarkingSubmissionDTO,
+  type MarkingComponentDTO,
+  type FullMarkingSubmissionDTO,
   type ProjectDTO,
   type ReaderDTO,
   type StudentDTO,
@@ -42,15 +41,15 @@ export interface ModeratedSummaryProps {
   supervisor: SupervisorDTO;
   // thirdMarker: UserDTO;
 
-  presentationCriteria: AssessmentCriterionDTO[];
-  conductCriteria: AssessmentCriterionDTO[];
-  dissertationCriteria: AssessmentCriterionDTO[];
+  presentationCriteria: MarkingComponentDTO[];
+  conductCriteria: MarkingComponentDTO[];
+  dissertationCriteria: MarkingComponentDTO[];
 
-  supervisorConductSubmission: MarkingSubmissionDTO;
-  supervisorPresentationSubmission: MarkingSubmissionDTO;
-  supervisorDissertationSubmission: MarkingSubmissionDTO;
-  readerDissertationSubmission: MarkingSubmissionDTO;
-  thirdMarkerDissertationSubmission: MarkingSubmissionDTO;
+  supervisorConductSubmission: FullMarkingSubmissionDTO;
+  supervisorPresentationSubmission: FullMarkingSubmissionDTO;
+  supervisorDissertationSubmission: FullMarkingSubmissionDTO;
+  readerDissertationSubmission: FullMarkingSubmissionDTO;
+  thirdMarkerDissertationSubmission: FullMarkingSubmissionDTO;
   finalMark: number;
 }
 
@@ -149,7 +148,7 @@ export function ModeratedSummary({
           </Column>
         </Row>
         <Marksheet
-          criteria={conductCriteria}
+          components={conductCriteria}
           submission={supervisorConductSubmission}
         />
       </Section>
@@ -177,7 +176,7 @@ export function ModeratedSummary({
           </Column>
         </Row>
         <Marksheet
-          criteria={presentationCriteria}
+          components={presentationCriteria}
           submission={supervisorPresentationSubmission}
         />
       </Section>
@@ -205,7 +204,7 @@ export function ModeratedSummary({
           </Column>
         </Row>
         <Marksheet
-          criteria={dissertationCriteria}
+          components={dissertationCriteria}
           submission={supervisorDissertationSubmission}
         />
 
@@ -222,7 +221,7 @@ export function ModeratedSummary({
           </Column>
         </Row>
         <Marksheet
-          criteria={dissertationCriteria}
+          components={dissertationCriteria}
           submission={readerDissertationSubmission}
         />
 
@@ -239,7 +238,7 @@ export function ModeratedSummary({
           </Column>
         </Row>
         <Marksheet
-          criteria={dissertationCriteria}
+          components={dissertationCriteria}
           submission={thirdMarkerDissertationSubmission}
         />
       </Section>

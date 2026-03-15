@@ -53,6 +53,7 @@ export const ADMIN_TABS_BY_STAGE: Record<Stage, TabType[]> = {
     PAGES.allReaders,
     PAGES.addReaders,
     PAGES.readerPreferenceOverview,
+    PAGES.studentSubmissions,
   ],
   [Stage.READER_ALLOCATION]: [
     PAGES.allReaders,
@@ -60,7 +61,12 @@ export const ADMIN_TABS_BY_STAGE: Record<Stage, TabType[]> = {
     PAGES.readerPreferenceOverview,
     PAGES.readerAllocationOverview,
     PAGES.manualReadingAllocations,
+    PAGES.studentSubmissions,
   ],
-  [Stage.MARK_SUBMISSION]: [PAGES.unitsOfAssessment, PAGES.markingOverview],
-  [Stage.GRADE_PUBLICATION]: [],
+  [Stage.MARK_SUBMISSION]: [
+    PAGES.unitsOfAssessment,
+    PAGES.markingOverview,
+    PAGES.studentSubmissions,
+  ],
+  [Stage.GRADE_PUBLICATION]: [PAGES.studentSubmissions],
 };

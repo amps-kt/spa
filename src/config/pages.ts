@@ -626,6 +626,16 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
+  studentSubmissions: {
+    title: "Student Submissions",
+    href: "student-submissions",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}/student-submissions`,
+    icon: "calendar-clock",
+    level: 4,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
   myReadingPreferences: {
     title: "My Reading Preferences",
     href: "my-reading-preferences",
@@ -661,6 +671,21 @@ export const PAGES = {
     href: "my-marking",
     mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
       `/${group}/${subGroup}/${instance}/my-marking`,
+    icon: "file-check-2",
+    level: 4,
+    allowedRoles: [Role.SUPERVISOR, Role.READER],
+    hasSubRoute: false,
+  },
+  marksheet: {
+    title: "My Marking",
+    href: "my-marking",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      studentId,
+    }: InInstance<{ studentId: string }>) =>
+      `/${group}/${subGroup}/${instance}/marksheet/${studentId}`,
     icon: "file-check-2",
     level: 4,
     allowedRoles: [Role.SUPERVISOR, Role.READER],

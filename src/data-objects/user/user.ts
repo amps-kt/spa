@@ -131,6 +131,23 @@ export class User extends DataObject {
     return (await this.isSupervisor(params)) || (await this.isReader(params));
   }
 
+  public async isStudentMarker(
+    params: InstanceParams,
+    studentId: string,
+  ): Promise<boolean> {
+    return !!(await this.db.project.findFirst({
+      where: {
+        ...expand(params),
+        studentAllocations: { some: { student: { userId: studentId } } },
+
+        OR: [
+          { supervisorId: this.id }, // is supervisor
+          { readerAllocations: { some: { readerId: this.id } } }, // is reader
+        ],
+      },
+    }));
+  }
+
   public async isStaff(params: InstanceParams): Promise<boolean> {
     return (
       (await this.isSubGroupAdminOrBetter(params)) ||

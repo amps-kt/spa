@@ -1,12 +1,17 @@
 import { z } from "zod";
 
-import { MarkerType } from "@/db/types";
+import {
+  ConsensusStage,
+  MarkerType,
+  consensusMethodSchema,
+  consensusStageSchema,
+} from "@/db/types";
 
 import { flagDtoSchema } from "./flag-tag";
 
 // --- markscheme stuff:
 
-export const assessmentCriterionDtoSchema = z.object({
+export const markingComponentDtoSchema = z.object({
   id: z.string(),
   unitOfAssessmentId: z.string(),
   title: z.string(),
@@ -15,9 +20,7 @@ export const assessmentCriterionDtoSchema = z.object({
   layoutIndex: z.number(),
 });
 
-export type AssessmentCriterionDTO = z.infer<
-  typeof assessmentCriterionDtoSchema
->;
+export type MarkingComponentDTO = z.infer<typeof markingComponentDtoSchema>;
 
 export const unitOfAssessmentDtoSchema = z.object({
   id: z.string(),
@@ -26,7 +29,7 @@ export const unitOfAssessmentDtoSchema = z.object({
   markerSubmissionDeadline: z.date(),
   weight: z.number(),
   isOpen: z.boolean(),
-  components: z.array(assessmentCriterionDtoSchema),
+  components: z.array(markingComponentDtoSchema),
   flag: flagDtoSchema,
   allowedMarkerTypes: z.array(z.enum(MarkerType)),
 });
@@ -56,43 +59,198 @@ export type NewUnitOfAssessmentDTO = z.infer<typeof newUnitOfAssessmentSchema>;
 
 // --- mark submission/grade stuff
 
-export const criterionScoreDtoSchema = z.object({
+export const componentScoreDtoSchema = z.object({
   mark: z.number().int().nonnegative(),
-  justification: z.string().min(1),
+  justification: z
+    .string("You must provide a justification for this grade")
+    .min(1, "You must provide a justification for this grade"),
 });
 
-export type CriterionScoreDTO = z.infer<typeof criterionScoreDtoSchema>;
+export type ComponentScoreDTO = z.infer<typeof componentScoreDtoSchema>;
 
-export const markingSubmissionDtoSchema = z.object({
-  unitOfAssessmentId: z.string(),
-  grade: z.number().int().nonnegative(),
-  studentId: z.string(),
+export const draftMarkingSubmissionDtoSchema = z.object({
+  draft: z.literal(true),
   markerId: z.string(),
+  studentId: z.string(),
+  unitOfAssessmentId: z.string(),
+  grade: z.number().int().nonnegative().optional(),
+  finalComment: z.string().optional(),
+  recommendation: z.boolean(),
   marks: z.record(
     z.string(), // assessmentCriterionId
-    criterionScoreDtoSchema,
+    componentScoreDtoSchema.partial(),
   ),
-  finalComment: z.string(),
-  recommendation: z.boolean(),
-  draft: z.boolean(),
 });
+
+export type DraftMarkingSubmissionDTO = z.infer<
+  typeof draftMarkingSubmissionDtoSchema
+>;
+
+export const fullMarkingSubmissionDtoSchema = z.object({
+  draft: z.literal(false),
+  markerId: z.string(),
+  studentId: z.string(),
+  unitOfAssessmentId: z.string(),
+  grade: z.number().int().nonnegative(),
+  finalComment: z.string().optional(),
+  recommendation: z.boolean(),
+  marks: z.record(
+    z.string(), // assessmentCriterionId
+    componentScoreDtoSchema,
+  ),
+});
+
+export type FullMarkingSubmissionDTO = z.infer<
+  typeof fullMarkingSubmissionDtoSchema
+>;
+
+export const markingSubmissionDtoSchema = z.discriminatedUnion("draft", [
+  fullMarkingSubmissionDtoSchema,
+  draftMarkingSubmissionDtoSchema,
+]);
 
 export type MarkingSubmissionDTO = z.infer<typeof markingSubmissionDtoSchema>;
 
-export const partialMarkingSubmissionDtoSchema = markingSubmissionDtoSchema
-  .partial({ finalComment: true, recommendation: true })
-  .extend({
-    grade: z.number().int(),
-    marks: z
-      .record(
-        z.string(), // assessmentCriterionId
-        z
-          .object({ mark: z.number().int(), justification: z.string() })
-          .partial(),
-      )
-      .optional(),
-  });
+export const gradeEntryDtoSchema = z.object({
+  grade: z.number(),
+  comment: z.string().optional(),
+  method: consensusMethodSchema,
+  timestamp: z.date(),
+});
 
-export type PartialMarkingSubmissionDTO = z.infer<
-  typeof partialMarkingSubmissionDtoSchema
->;
+export type GradeEntryDTO = z.infer<typeof gradeEntryDtoSchema>;
+
+export const unitGradeDtoSchema = z.object({
+  status: consensusStageSchema,
+  studentSubmitted: z.boolean(),
+  customDueDate: z.date().optional(),
+  customWeight: z.number().optional(),
+  grades: z.array(gradeEntryDtoSchema),
+});
+
+export type UnitGradeDTO = z.infer<typeof unitGradeDtoSchema>;
+
+export const UnitGradingLifecycleState = {
+  CLOSED: "CLOSED",
+  NOT_SUBMITTED: "NOT_SUBMITTED",
+  REQUIRES_MARKING: "REQUIRES_MARKING",
+  IN_NEGOTIATION: "IN_NEGOTIATION",
+  IN_MODERATION: "IN_MODERATION",
+  IN_MODERATION_AFTER_NEGOTIATION: "IN_MODERATION_AFTER_NEGOTIATION",
+  PENDING_2ND_MARKER: "PENDING_2ND_MARKER",
+  DONE: "DONE",
+  AUTO_RESOLVED: "AUTO_RESOLVED",
+  RESOLVED_BY_NEGOTIATION: "RESOLVED_BY_NEGOTIATION",
+  RESOLVED_BY_MODERATION: "RESOLVED_BY_MODERATION",
+} as const;
+
+export type UnitGradingLifecycleState = keyof typeof UnitGradingLifecycleState;
+
+export const unitGradingLifecycleStateSchema = z.enum([
+  UnitGradingLifecycleState.CLOSED,
+  UnitGradingLifecycleState.NOT_SUBMITTED,
+  UnitGradingLifecycleState.REQUIRES_MARKING,
+  UnitGradingLifecycleState.IN_NEGOTIATION,
+  UnitGradingLifecycleState.IN_MODERATION,
+  UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION,
+  UnitGradingLifecycleState.PENDING_2ND_MARKER,
+  UnitGradingLifecycleState.DONE,
+  UnitGradingLifecycleState.AUTO_RESOLVED,
+  UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION,
+  UnitGradingLifecycleState.RESOLVED_BY_MODERATION,
+]);
+
+export const StudentGradingLifecycleState = {
+  DONE: "DONE",
+  NOT_SUBMITTED: "NOT_SUBMITTED",
+  CLOSED: "CLOSED",
+  PENDING: "PENDING",
+  ACTION_REQUIRED: "ACTION_REQUIRED",
+} as const;
+
+export type StudentGradingLifecycleState =
+  keyof typeof StudentGradingLifecycleState;
+
+export const studentGradingLifecycleStateSchema = z.enum([
+  StudentGradingLifecycleState.DONE,
+  StudentGradingLifecycleState.NOT_SUBMITTED,
+  StudentGradingLifecycleState.CLOSED,
+  StudentGradingLifecycleState.PENDING,
+  StudentGradingLifecycleState.ACTION_REQUIRED,
+]);
+
+export function unitToOverall(
+  stat: UnitGradingLifecycleState,
+): StudentGradingLifecycleState {
+  const rec: Record<UnitGradingLifecycleState, StudentGradingLifecycleState> = {
+    [UnitGradingLifecycleState.CLOSED]: StudentGradingLifecycleState.CLOSED,
+    [UnitGradingLifecycleState.NOT_SUBMITTED]:
+      StudentGradingLifecycleState.NOT_SUBMITTED,
+    [UnitGradingLifecycleState.REQUIRES_MARKING]:
+      StudentGradingLifecycleState.ACTION_REQUIRED,
+    [UnitGradingLifecycleState.IN_NEGOTIATION]:
+      StudentGradingLifecycleState.ACTION_REQUIRED,
+    [UnitGradingLifecycleState.IN_MODERATION]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.IN_MODERATION_AFTER_NEGOTIATION]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.PENDING_2ND_MARKER]:
+      StudentGradingLifecycleState.PENDING,
+    [UnitGradingLifecycleState.DONE]: StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.AUTO_RESOLVED]:
+      StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.RESOLVED_BY_NEGOTIATION]:
+      StudentGradingLifecycleState.DONE,
+    [UnitGradingLifecycleState.RESOLVED_BY_MODERATION]:
+      StudentGradingLifecycleState.DONE,
+  };
+
+  return rec[stat];
+}
+
+export function markingStatusCompare(
+  a: StudentGradingLifecycleState,
+  b: StudentGradingLifecycleState,
+): StudentGradingLifecycleState {
+  const rec: Record<StudentGradingLifecycleState, number> = {
+    CLOSED: 4,
+    DONE: 3,
+    NOT_SUBMITTED: 2,
+    PENDING: 1,
+    ACTION_REQUIRED: 0,
+  };
+
+  return rec[a] < rec[b] ? a : b;
+}
+
+export function markingStatusMin(
+  s: StudentGradingLifecycleState[],
+): StudentGradingLifecycleState {
+  return s.reduce(markingStatusCompare, StudentGradingLifecycleState.CLOSED);
+}
+
+export const markOverrideDtoSchema = z.object({
+  grade: z.number(),
+  justification: z.string(),
+});
+
+export type MarkOverrideDTO = z.infer<typeof markOverrideDtoSchema>;
+
+export const finalMarkingResult = z.discriminatedUnion("status", [
+  z.object({ status: z.literal(ConsensusStage.UNRESOLVED) }),
+  z.object({ status: z.literal(ConsensusStage.NEGOTIATE) }),
+  z.object({ status: z.literal(ConsensusStage.MODERATE) }),
+  z.object({
+    status: z.literal(ConsensusStage.MODERATE_AFTER_NEGOTIATION),
+    grade: z.number(),
+    comment: z.string(),
+  }),
+  z.object({
+    status: z.literal(ConsensusStage.RESOLVED),
+    method: consensusMethodSchema,
+    grade: z.number(),
+    comment: z.string(),
+  }),
+]);
+
+export type FinalMarkingResult = z.infer<typeof finalMarkingResult>;

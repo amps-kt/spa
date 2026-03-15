@@ -5,6 +5,7 @@ import { PAGES } from "@/config/pages";
 
 import {
   flagDtoSchema,
+  flagWithAssessmentDtoSchema,
   instanceDtoSchema,
   ProjectAllocationStatus,
   projectDtoSchema,
@@ -90,7 +91,7 @@ export const instanceRouter = createTRPCRouter({
           supervisorAllocationAccess: true,
           studentAllocationAccess: true,
         }),
-        flags: z.array(flagDtoSchema),
+        flags: z.array(flagWithAssessmentDtoSchema),
         tags: z.array(tagDtoSchema.omit({ id: true })),
       }),
     )
@@ -1414,7 +1415,7 @@ export const instanceRouter = createTRPCRouter({
         where: expand(instance.params),
         include: {
           unitsOfAssessment: {
-            include: { flag: true, assessmentCriteria: true },
+            include: { flag: true, markingComponents: true },
             orderBy: [{ markerSubmissionDeadline: "asc" }],
           },
         },

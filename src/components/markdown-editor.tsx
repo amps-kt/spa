@@ -3,9 +3,12 @@
 import { type JSX } from "react";
 
 import MDEditor, { type MDEditorProps } from "@uiw/react-md-editor";
+import { type ClassValue } from "clsx";
 import rehypeKatex from "rehype-katex";
 import rehypeSanitize from "rehype-sanitize";
 import remarkMath from "remark-math";
+
+import { cn } from "@/lib/utils";
 
 export function MarkdownEditor(props: JSX.IntrinsicAttributes & MDEditorProps) {
   return (
@@ -27,7 +30,13 @@ export function MarkdownEditor(props: JSX.IntrinsicAttributes & MDEditorProps) {
   );
 }
 
-export function MarkdownRenderer({ source }: { source: string }) {
+export function MarkdownRenderer({
+  source,
+  className,
+}: {
+  source: string;
+  className?: ClassValue;
+}) {
   return (
     <>
       <link
@@ -35,7 +44,7 @@ export function MarkdownRenderer({ source }: { source: string }) {
         href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
       />
       <MDEditor.Markdown
-        className="prose max-w-full prose-code:text-foreground"
+        className={cn("prose max-w-full prose-code:text-foreground", className)}
         source={source}
         remarkPlugins={[[remarkMath]]}
         rehypePlugins={[[rehypeSanitize], [rehypeKatex]]}

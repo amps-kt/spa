@@ -1,12 +1,21 @@
+import { Grade } from "@/logic/grading";
+
 import {
   type StudentDTO,
   type ProjectDTO,
   type SupervisorDTO,
   type ReaderDTO,
+  type UnitOfAssessmentDTO,
+  type UnitGradeDTO,
+  type FullMarkingSubmissionDTO,
+  type UnitGradingLifecycleState,
+  type DraftMarkingSubmissionDTO,
+  type MarkingSubmissionDTO,
+  type UserDTO,
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { AllocationMethod, PreferenceType } from "@/db/types";
+import { AllocationMethod, type MarkerType, PreferenceType } from "@/db/types";
 import { type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/general/instance-params";
@@ -413,6 +422,7 @@ export class Student extends User {
   public async getReader(): Promise<ReaderDTO> {
     const data = await this.db.readerDetails.findFirstOrThrow({
       where: {
+        ...expand(this.instance.params),
         projectAllocations: {
           some: {
             project: { studentAllocations: { some: { userId: this.id } } },
@@ -423,5 +433,153 @@ export class Student extends User {
     });
 
     return T.toReaderDTO(data);
+  }
+
+  public async getSupervisor(): Promise<SupervisorDTO> {
+    const data = await this.db.supervisorDetails.findFirstOrThrow({
+      where: {
+        ...expand(this.instance.params),
+        projects: {
+          some: {
+            studentAllocations: { some: { student: { userId: this.id } } },
+          },
+        },
+      },
+      include: { userInInstance: { include: { user: true } } },
+    });
+
+    return T.toSupervisorDTO(data);
+  }
+
+  public async getMarkingData({
+    user,
+    markerTypeFilter,
+  }: {
+    user?: UserDTO;
+    markerTypeFilter?: MarkerType;
+  }): Promise<
+    {
+      unit: UnitOfAssessmentDTO;
+      grade?: UnitGradeDTO;
+      status: UnitGradingLifecycleState;
+    }[]
+  > {
+    const data = await this.db.studentDetails.findFirstOrThrow({
+      where: { ...expand(this.instance.params), userId: this.id },
+      include: {
+        unitGrades: {
+          include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+        },
+        unitSubmissions: true,
+        studentFlag: {
+          include: {
+            unitsOfAssessment: {
+              include: { flag: true, markingComponents: true },
+              where: markerTypeFilter && {
+                allowedMarkerTypes: { has: markerTypeFilter },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    type UnitId = string;
+
+    // Will replace with:
+    // keyBy(
+    //   data.unitGrades,
+    //  x => x.unitOfAssessmentId,
+    //  T.toUnitGradeDTO
+    // )
+
+    const gradesDict: Record<UnitId, UnitGradeDTO> = data.unitGrades.reduce(
+      (acc, val) => ({
+        ...acc,
+        [val.unitOfAssessmentId]: T.toUnitGradeDTO(val),
+      }),
+      {},
+    );
+
+    const submissionsDict: Record<UnitId, MarkingSubmissionDTO[]> =
+      data.unitSubmissions.reduce(
+        (acc, val) => {
+          const old = acc[val.unitOfAssessmentId] ?? [];
+
+          return {
+            ...acc,
+            [val.unitOfAssessmentId]: [...old, T.toMarkingSubmissionDTO(val)],
+          };
+        },
+        {} as Record<UnitId, MarkingSubmissionDTO[]>,
+      );
+
+    return data.studentFlag.unitsOfAssessment.map((data) => {
+      const unit = T.toUnitOfAssessmentDTO(data);
+      const grade = gradesDict[data.id];
+      const submissions = submissionsDict[data.id] ?? [];
+
+      const status = Grade.getUnitStatus(unit, grade, submissions, user);
+
+      return { unit, grade, status };
+    });
+  }
+
+  async getMarkerIds(): Promise<{ readerId?: string; supervisorId: string }> {
+    const spa = await this.db.studentProjectAllocation.findFirstOrThrow({
+      where: { ...expand(this.instance.params), student: { userId: this.id } },
+      select: {
+        project: {
+          select: {
+            supervisorId: true,
+            readerAllocations: { select: { readerId: true } },
+          },
+        },
+      },
+    });
+
+    const supervisorId = spa.project.supervisorId;
+    const readerId = spa.project.readerAllocations.at(0)?.readerId;
+
+    return { supervisorId, readerId };
+  }
+
+  public async getMarkerMarksByUnitId({
+    markerId,
+    unitId,
+  }: {
+    markerId: string;
+    unitId: string;
+  }): Promise<
+    FullMarkingSubmissionDTO | DraftMarkingSubmissionDTO | undefined
+  > {
+    const data = await this.db.unitOfAssessmentSubmission.findUnique({
+      where: {
+        uoaSubmissionId: {
+          markerId,
+          studentId: this.id,
+          unitOfAssessmentId: unitId,
+        },
+      },
+      include: { criterionScores: true },
+    });
+
+    if (!data) return undefined;
+
+    return T.toMarkingSubmissionDTO(data);
+  }
+
+  public async getUnitGrade({
+    unitId,
+  }: {
+    unitId: string;
+  }): Promise<UnitGradeDTO> {
+    const grade = await this.db.unitOfAssessmentGrade.findUniqueOrThrow({
+      where: { uoaGradeId: { studentId: this.id, unitOfAssessmentId: unitId } },
+      include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+    });
+
+    // if (grade === null) return undefined;
+    return T.toUnitGradeDTO(grade);
   }
 }
