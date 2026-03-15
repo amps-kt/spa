@@ -114,17 +114,22 @@ export class Marker extends User {
         {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
       );
 
-      const units = flag.unitsOfAssessment.map((x) => {
-        const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
-        const status = Grade.getUnitStatus(
-          unit,
-          unitGrades[unit.id],
-          unitSubmissions[unit.id] ?? [],
-          asAdmin ? undefined : user,
-        );
+      const isSupervisor = user.id === project.supervisorId;
+      const userRole = isSupervisor ? MarkerType.SUPERVISOR : MarkerType.READER;
 
-        return { unit, status };
-      });
+      const units = flag.unitsOfAssessment
+        .map((x) => {
+          const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
+          const status = Grade.getUnitStatus(
+            unit,
+            unitGrades[unit.id],
+            unitSubmissions[unit.id] ?? [],
+            asAdmin ? undefined : user,
+          );
+
+          return { unit, status };
+        })
+        .filter((u) => asAdmin || u.unit.allowedMarkerTypes.includes(userRole));
 
       const status = markingStatusMin(
         units.map((x) => unitToOverall(x.status)),
