@@ -9,7 +9,7 @@ import React, {
   type JSX,
 } from "react";
 
-import { Check, Pen } from "lucide-react";
+import { CheckIcon, PenIcon } from "lucide-react";
 
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
@@ -86,7 +86,7 @@ export function EditableText({
               onClick={handleSave}
               className="rounded-full p-1 hover:bg-gray-100"
             >
-              <Check className="h-4 w-4 text-green-600" />
+              <CheckIcon className="h-4 w-4 text-green-600" />
             </button>
           </WithTooltip>
         </>
@@ -100,7 +100,7 @@ export function EditableText({
               onClick={() => setIsEditing(true)}
               className="rounded-full p-1 hover:bg-gray-100"
             >
-              <Pen className="h-4 w-4 text-gray-600" />
+              <PenIcon className="h-4 w-4 text-gray-600" />
             </button>
           </WithTooltip>
         </>

@@ -3,7 +3,7 @@
 import { useState, type KeyboardEvent, type ClipboardEvent } from "react";
 import { useFormContext } from "react-hook-form";
 
-import { X, Plus, Tag } from "lucide-react";
+import { XIcon, PlusIcon, TagIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -121,7 +121,7 @@ export default function TagInput({
               className="flex flex-col rounded-md border bg-background p-2 focus-within:ring-1 focus-within:ring-ring"
             >
               <div className="mb-2 flex items-center gap-2">
-                <Tag className="h-4 w-4 text-muted-foreground" />
+                <TagIcon className="h-4 w-4 text-muted-foreground" />
                 <FormControl>
                   <Input
                     name={field.name}
@@ -148,7 +148,7 @@ export default function TagInput({
                   disabled={inputValue.trim() === ""}
                   className="h-7 w-7 p-0"
                 >
-                  <Plus className="h-4 w-4" />
+                  <PlusIcon className="h-4 w-4" />
                   <span className="sr-only">Add tag</span>
                 </Button>
               </div>
@@ -170,7 +170,7 @@ export default function TagInput({
                         onClick={() => handleRemoveTag(tag.title)}
                         className="ml-1 h-4 w-4 p-0 text-muted-foreground hover:text-foreground"
                       >
-                        <X className="h-3 w-3" />
+                        <XIcon className="h-3 w-3" />
                         <span className="sr-only">Remove {tag.title}</span>
                       </Button>
                     </Badge>

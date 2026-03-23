@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type ClassValue } from "clsx";
-import { Check, ChevronsUpDown, PlusIcon } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -146,7 +146,7 @@ export function NewPreferenceButton({
                             {field.value === "" || !field.value
                               ? "Enter Project ID or Title"
                               : field.value}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </FormControl>
                       </PopoverTrigger>
@@ -163,7 +163,7 @@ export function NewPreferenceButton({
                                   form.setValue("projectId", project.id);
                                 }}
                               >
-                                <Check
+                                <CheckIcon
                                   className={cn(
                                     "mr-2 h-4 w-4",
                                     project.id === field.value

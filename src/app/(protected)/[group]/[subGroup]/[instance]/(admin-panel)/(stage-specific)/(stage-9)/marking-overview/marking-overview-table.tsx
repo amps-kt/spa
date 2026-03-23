@@ -10,7 +10,7 @@ import {
   getPaginationRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ChevronDown, ChevronRight, Send } from "lucide-react";
+import { ChevronDownIcon, ChevronRightIcon, SendIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { CopyButton } from "@/components/copy-button";
@@ -114,7 +114,7 @@ export function MarkingOverviewTable({
           description={`You are about to send a late reminder to ${overdueMarkerEmails.length} markers. Do you wish to proceed?`}
           trigger={
             <Button className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
+              <SendIcon className="h-4 w-4" />
               <p>send marking overdue reminder</p>
             </Button>
           }
@@ -125,7 +125,7 @@ export function MarkingOverviewTable({
           description={`You are about to send a late reminder to ${requiresNegotiationEmails.length} markers. Do you wish to proceed?`}
           trigger={
             <Button className="flex items-center gap-2">
-              <Send className="h-4 w-4" />
+              <SendIcon className="h-4 w-4" />
               <p>send negotiation overdue reminder</p>
             </Button>
           }
@@ -219,9 +219,9 @@ export function MarkingOverviewTable({
                     onClick={() => row.toggleExpanded()}
                   >
                     {row.getIsExpanded() ? (
-                      <ChevronDown className="h-4 w-4" />
+                      <ChevronDownIcon className="h-4 w-4" />
                     ) : (
-                      <ChevronRight className="h-4 w-4" />
+                      <ChevronRightIcon className="h-4 w-4" />
                     )}
                   </Button>
                 </TableCell>
