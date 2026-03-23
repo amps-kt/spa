@@ -1,7 +1,7 @@
 // TODO kill this file, replace with other stuff.
 import { Heading, Section, Text } from "@react-email/components";
 
-import { format } from "@/lib/utils/date/format";
+import { format } from "@/lib/formatting/date";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { EmailLink } from "../components/email-link";

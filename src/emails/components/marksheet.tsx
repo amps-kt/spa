@@ -7,7 +7,7 @@ import { type MarkingComponentDTO } from "@/dto";
 
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { FormatPercent } from "@/lib/utils/format-percent";
+import { FormatPercent } from "@/lib/formatting/percent";
 
 function MarkingComponentDisplay({
   title,
