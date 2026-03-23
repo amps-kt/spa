@@ -2,12 +2,12 @@
 
 import { createContext, type ReactNode, useContext } from "react";
 
-import { ArrowUpLeft } from "lucide-react";
+import { ArrowUpLeftIcon } from "lucide-react";
 import Link from "next/link";
 
 import { type Role, type Stage } from "@/db/types";
 
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
+import { formatParamsAsPath } from "@/lib/utils/general/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 type InstanceData = { params: InstanceParams; stage: Stage; roles: Set<Role> };
@@ -74,7 +74,7 @@ export function InstanceHomeRedirectButton() {
       className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
       prefetch={false}
     >
-      <ArrowUpLeft className="h-4 w-4" />
+      <ArrowUpLeftIcon className="h-4 w-4" />
       <span>Go to Instance Home</span>
     </Link>
   );
