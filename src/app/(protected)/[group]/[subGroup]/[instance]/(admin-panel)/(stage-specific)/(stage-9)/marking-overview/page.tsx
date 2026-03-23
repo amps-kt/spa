@@ -16,7 +16,7 @@ import { type InstanceParams } from "@/lib/validations/params";
 //   };
 // }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page({}: { params: InstanceParams }) {
   // const data = await api.marking.byProjectMarkingSummary({ params });
 
   return <PanelWrapper className="gap-10">WIP</PanelWrapper>;

@@ -147,7 +147,7 @@ const algorithmMiddleware = t.middleware(
  */
 const unitOfAssessmentMiddleware = t.middleware(
   async ({ ctx: { db }, input, next }) => {
-    const { params, studentId, unitId } = z
+    const { params, unitId } = z
       .object({
         params: instanceParamsSchema,
         studentId: z.string(),
