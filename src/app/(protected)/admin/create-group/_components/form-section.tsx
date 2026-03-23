@@ -48,7 +48,7 @@ export function FormSection({
   function onSubmit({ groupName }: NewAllocationGroupForm) {
     void toast.promise(
       createGroupAsync({ groupName }).then(() => {
-        router.push(`/${slugify(groupName)}`);
+        router.push(`/${encodeURIComponent(groupName)}`);
         router.refresh();
       }),
       {

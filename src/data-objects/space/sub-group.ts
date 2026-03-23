@@ -52,7 +52,7 @@ export class AllocationSubGroup extends DataObject {
     flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
-    const instanceSlug = slugify(newInstance.displayName);
+    const instanceSlug = encodeURIComponent(newInstance.displayName);
 
     const params = { ...this.params, instance: instanceSlug };
 

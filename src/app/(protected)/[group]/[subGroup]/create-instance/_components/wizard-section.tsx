@@ -61,7 +61,7 @@ export function WizardSection({
         const newPath = formatParamsAsPath({
           group: params.group,
           subGroup: params.subGroup,
-          instance: slugify(newInstance.displayName),
+          instance: encodeURIComponent(newInstance.displayName),
         });
         router.push(newPath);
       }),

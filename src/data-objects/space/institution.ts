@@ -23,7 +23,7 @@ export class Institution extends DataObject {
   // WARNING bug see group.createSubroup
   public async createGroup(displayName: string): Promise<GroupDTO> {
     return await this.db.allocationGroup
-      .create({ data: { id: slugify(displayName), displayName } })
+      .create({ data: { id: encodeURIComponent(displayName), displayName } })
       .then(T.toAllocationGroupDTO);
   }
 

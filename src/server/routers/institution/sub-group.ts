@@ -15,8 +15,6 @@ import {
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import { slugify } from "@/lib/utils/general/slugify";
-
 export const subGroupRouter = createTRPCRouter({
   exists: procedure.subgroup.user
     .output(z.boolean())
@@ -67,7 +65,7 @@ export const subGroupRouter = createTRPCRouter({
       }) => {
         await subGroup.createInstance({ newInstance, flags, tags });
         audit("Created instance", {
-          instance: slugify(newInstance.displayName),
+          instance: encodeURIComponent(newInstance.displayName),
         });
       },
     ),

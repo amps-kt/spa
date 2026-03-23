@@ -54,7 +54,7 @@ export function FormSection({
   const onSubmit = ({ subGroupName }: { subGroupName: string }) => {
     void toast.promise(
       createSubGroupAsync({ params, name: subGroupName }).then(() => {
-        router.push(`/${params.group}/${slugify(subGroupName)}`);
+        router.push(`/${params.group}/${encodeURIComponent(subGroupName)}`);
         router.refresh();
       }),
       {
