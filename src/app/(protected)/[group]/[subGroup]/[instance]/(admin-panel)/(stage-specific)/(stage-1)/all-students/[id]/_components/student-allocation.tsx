@@ -9,8 +9,6 @@ import {
   UserIcon,
 } from "lucide-react";
 
-import { PAGES } from "@/config/pages";
-
 import { type ProjectDTO, type SupervisorDTO } from "@/dto";
 
 import { AllocationMethod } from "@/db/types";
@@ -19,7 +17,7 @@ import { CircleCheckSolidIcon } from "@/components/icons/circle-check";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export function StudentAllocationCard({
@@ -50,28 +48,30 @@ export function StudentAllocationCard({
               <BookOpenIcon className="mr-2 size-4 flex-none text-muted-foreground" />
               <span className="mr-2 font-medium">Title:</span>
             </span>
-            <Link
+            <AppInstanceLink
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "mr-2 h-max p-0 text-base font-medium leading-5",
               )}
-              href={`../projects/${project.id}`}
+              page="projectById"
+              linkArgs={{ projectId: project.id }}
             >
               {project.title}
-            </Link>
+            </AppInstanceLink>
           </div>
           <div className="flex items-center">
             <UserIcon className="mr-2 size-4 opacity-70" />
             <span className="mr-2 font-medium">Supervisor:</span>
-            <Link
+            <AppInstanceLink
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "mr-2 h-max p-0 text-base font-medium leading-5",
               )}
-              href={`../${PAGES.allSupervisors.href}/${supervisor.id}`}
+              page="supervisorById"
+              linkArgs={{ supervisorId: supervisor.id }}
             >
               {supervisor.name}
-            </Link>
+            </AppInstanceLink>
           </div>
           <AllocationMethodLabel
             allocationMethod={allocationMethod}

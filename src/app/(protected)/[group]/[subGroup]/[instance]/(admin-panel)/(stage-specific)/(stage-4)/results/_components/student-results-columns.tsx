@@ -3,7 +3,6 @@
 import { type ColumnDef } from "@tanstack/react-table";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO } from "@/dto";
 
@@ -11,7 +10,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 
 export const studentResultsColumns: ColumnDef<{
   student: StudentDTO;
@@ -41,12 +40,13 @@ export const studentResultsColumns: ColumnDef<{
         original: { student },
       },
     }) => (
-      <Link
+      <AppInstanceLink
         className={buttonVariants({ variant: "link" })}
-        href={`./${PAGES.allStudents.href}/${student.id}`}
+        page="studentById"
+        linkArgs={{ studentId: student.id }}
       >
         {student.name}
-      </Link>
+      </AppInstanceLink>
     ),
   },
   {
@@ -79,12 +79,13 @@ export const studentResultsColumns: ColumnDef<{
         original: { project },
       },
     }) => (
-      <Link
+      <AppInstanceLink
         className={buttonVariants({ variant: "link" })}
-        href={`./projects/${project.id}`}
+        page="projectById"
+        linkArgs={{ projectId: project.id }}
       >
         {project.title}
-      </Link>
+      </AppInstanceLink>
     ),
   },
   {

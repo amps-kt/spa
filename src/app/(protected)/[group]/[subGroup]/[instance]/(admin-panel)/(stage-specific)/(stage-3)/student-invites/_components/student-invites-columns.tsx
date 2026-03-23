@@ -7,7 +7,6 @@ import {
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type StudentDTO } from "@/dto";
 
@@ -27,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
@@ -46,12 +45,13 @@ export function useStudentInvitesColumns(): ColumnDef<StudentDTO>[] {
           original: { name, id },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={cn(buttonVariants({ variant: "link" }), "pl-0")}
-          href={`./${PAGES.allStudents.href}/${id}`}
+          page="studentById"
+          linkArgs={{ studentId: id }}
         >
           {name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -219,13 +219,14 @@ export function useStudentInvitesColumns(): ColumnDef<StudentDTO>[] {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`./${PAGES.allStudents.href}/${id}`}
+                  page="studentById"
+                  linkArgs={{ studentId: id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View student details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               {/* // TODO: make the actual email be click-copyable instead */}
               <DropdownMenuItem className="group/item">

@@ -2,19 +2,16 @@ import { type ColumnDef } from "@tanstack/react-table";
 import {
   CopyIcon,
   CornerDownRightIcon,
-  FilePlus2,
+  FilePlus2Icon,
   MoreHorizontalIcon as MoreIcon,
   PenIcon,
 } from "lucide-react";
-
-import { PAGES } from "@/config/pages";
 
 import { type SupervisorDTO } from "@/dto";
 
 import { ExportCSVButton } from "@/components/export-csv";
 import { CircleCheckSolidIcon } from "@/components/icons/circle-check";
 import { CircleXIcon } from "@/components/icons/circle-x";
-import { usePathInInstance } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -29,7 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 type ProjectSubmissionDto = {
@@ -40,7 +37,6 @@ type ProjectSubmissionDto = {
 };
 
 export function useProjectSubmissionColumns(): ColumnDef<ProjectSubmissionDto>[] {
-  const { getPath } = usePathInInstance();
   const selectCol = getSelectColumn<ProjectSubmissionDto>();
 
   const baseCols: ColumnDef<ProjectSubmissionDto>[] = [
@@ -55,12 +51,13 @@ export function useProjectSubmissionColumns(): ColumnDef<ProjectSubmissionDto>[]
           original: { supervisor },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={getPath(`${PAGES.allSupervisors.href}/${supervisor.id}`)}
+          page="supervisorById"
+          linkArgs={{ supervisorId: supervisor.id }}
         >
           {supervisor.name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -256,26 +253,24 @@ export function useProjectSubmissionColumns(): ColumnDef<ProjectSubmissionDto>[]
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getPath(
-                    `${PAGES.allSupervisors.href}/${supervisor.id}`,
-                  )}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: supervisor.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getPath(
-                    `${PAGES.allSupervisors.href}/${supervisor.id}?edit=true`,
-                  )}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: supervisor.id }}
                 >
                   <PenIcon className="h-4 w-4" />
                   <span>Edit supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
                 <button
@@ -287,15 +282,14 @@ export function useProjectSubmissionColumns(): ColumnDef<ProjectSubmissionDto>[]
                 </button>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getPath(
-                    `${PAGES.allSupervisors.href}/${supervisor.id}/new-project`,
-                  )}
+                  page="newSupervisorProject"
+                  linkArgs={{ supervisorId: supervisor.id }}
                 >
-                  <FilePlus2 className="h-4 w-4" />
+                  <FilePlus2Icon className="h-4 w-4" />
                   <span>Create new project</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

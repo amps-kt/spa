@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 
 import { StepIndicator } from "./step-indicator";
 
@@ -95,7 +95,9 @@ export function FormWizard<
                     tabIndex={1}
                     asChild
                   >
-                    <Link href="./settings">Cancel</Link>
+                    <AppInstanceLink page="settings" linkArgs={undefined}>
+                      Cancel
+                    </AppInstanceLink>
                   </Button>
                 )}
               </div>

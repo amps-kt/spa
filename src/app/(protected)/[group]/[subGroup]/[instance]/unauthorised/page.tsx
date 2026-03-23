@@ -2,7 +2,7 @@ import { ShieldXIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 
 export default function UnauthorisedPage() {
   return (
@@ -22,7 +22,9 @@ export default function UnauthorisedPage() {
 
         <div className="space-y-4">
           <Button asChild className="w-full">
-            <Link href=".">Go Back Home</Link>
+            <AppInstanceLink page="instanceHome" linkArgs={{}}>
+              Go Back Home
+            </AppInstanceLink>
           </Button>
         </div>
       </div>

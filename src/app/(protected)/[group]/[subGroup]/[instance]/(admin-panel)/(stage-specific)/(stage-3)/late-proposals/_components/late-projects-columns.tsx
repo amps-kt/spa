@@ -11,7 +11,6 @@ import { INSTITUTION } from "@/config/institution";
 
 import { flagDtoSchema, type ProjectDTO } from "@/dto";
 
-import { useInstancePath } from "@/components/params-context";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -31,7 +30,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export function useLateProjectColumns({
@@ -41,8 +40,6 @@ export function useLateProjectColumns({
   deleteProject: (id: string) => Promise<void>;
   deleteSelectedProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<ProjectDTO>[] {
-  const instancePath = useInstancePath();
-
   const selectCol = getSelectColumn<ProjectDTO>();
 
   const userCols: ColumnDef<ProjectDTO>[] = [
@@ -71,15 +68,16 @@ export function useLateProjectColumns({
         },
       }) => (
         <WithTooltip tip={<p className="w-96">{title}</p>}>
-          <Link
+          <AppInstanceLink
             className={cn(
               buttonVariants({ variant: "link" }),
               "inline-block w-60 truncate px-0 text-start",
             )}
-            href={`${instancePath}/projects/${id}`}
+            page="projectById"
+            linkArgs={{ projectId: id }}
           >
             {title}
-          </Link>
+          </AppInstanceLink>
         </WithTooltip>
       ),
     },
@@ -259,9 +257,10 @@ export function useLateProjectColumns({
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={`${instancePath}/projects/${id}`}
+                    page="projectById"
+                    linkArgs={{ projectId: id }}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <p className="flex items-center">
@@ -269,16 +268,17 @@ export function useLateProjectColumns({
                       <p className="max-w-40 truncate">{title}</p>
                       &quot;
                     </p>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={`${instancePath}/projects/${id}/edit`}
+                    page="editProject"
+                    linkArgs={{ projectId: id }}
                   >
                     <PenIcon className="h-4 w-4" />
                     <span>Edit Project details</span>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
                   <YesNoActionTrigger

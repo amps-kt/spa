@@ -3,8 +3,6 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { PAGES } from "@/config/pages";
-
 import {
   type TagDTO,
   type FlagDTO,
@@ -15,10 +13,7 @@ import {
 import { type PreferenceType, type Role } from "@/db/types";
 
 import { MyPreferencesButton } from "@/components/my-preferences-button";
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
 import DataTable from "@/components/ui/data-table/data-table";
 
@@ -48,7 +43,6 @@ export function AllProjectsDataTable({
 }) {
   const router = useRouter();
   const params = useInstanceParams();
-  const { getPath } = usePathInInstance();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
@@ -95,9 +89,7 @@ export function AllProjectsDataTable({
         success: (
           <ToastSuccessCard
             message="Successfully updated project preference"
-            action={
-              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
-            }
+            action={<MyPreferencesButton />}
           />
         ),
       })
@@ -118,9 +110,7 @@ export function AllProjectsDataTable({
           success: (
             <ToastSuccessCard
               message={`Successfully updated ${projectIds.length} project preferences`}
-              action={
-                <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
-              }
+              action={<MyPreferencesButton />}
             />
           ),
         },

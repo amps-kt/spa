@@ -2,6 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { EditIcon } from "lucide-react";
+import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
@@ -11,7 +12,6 @@ import { type UserDTO } from "@/dto";
 import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export const useUserManagementColumns = [

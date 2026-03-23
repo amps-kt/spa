@@ -1,9 +1,10 @@
 import { Settings, Users, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 
 import { InstanceCard } from "./instance-card";
@@ -22,12 +23,17 @@ export async function UserSpacesGrid() {
             </h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {instances.map((instance) => (
-                <Link
-                  href={`/${instance.group.id}/${instance.subGroup.id}/${instance.instance.id}`}
+                <AppLink
+                  page="instance"
+                  linkArgs={{
+                    group: instance.group.id,
+                    subGroup: instance.subGroup.id,
+                    instance: instance.instance.id,
+                  }}
                   key={instance.instance.id}
                 >
                   <InstanceCard instanceData={instance} />
-                </Link>
+                </AppLink>
               ))}
             </div>
           </section>
