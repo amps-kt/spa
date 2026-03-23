@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import { type ClassValue } from "clsx";
 import {
-  Check,
-  ChevronsUpDown,
+  CheckIcon,
+  ChevronsUpDownIcon,
   GraduationCapIcon,
   HashIcon,
   UserIcon,
@@ -91,7 +91,7 @@ export function StudentDetailsCard({
                   className="justify-between"
                 >
                   {selectedFlag ? selectedFlag.displayName : "Select flag..."}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="p-0">
@@ -112,7 +112,7 @@ export function StudentDetailsCard({
                             setOpen(false);
                           }}
                         >
-                          <Check
+                          <CheckIcon
                             className={cn(
                               "mr-2 h-4 w-4",
                               studentFlag === flag.id

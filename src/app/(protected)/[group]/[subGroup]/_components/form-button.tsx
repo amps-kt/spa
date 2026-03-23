@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
-import { Plus } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -75,7 +75,7 @@ export function FormButton({ params }: { params: SubGroupParams }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-3">
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           <p>add Sub-Group Admin</p>
         </Button>
       </DialogTrigger>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Plus } from "lucide-react";
+import { PlusIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -73,7 +73,7 @@ export function FormButton({ params }: { params: GroupParams }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-3">
-          <Plus className="h-4 w-4" />
+          <PlusIcon className="h-4 w-4" />
           <p>add {spacesLabels.group.short} Admin</p>
         </Button>
       </DialogTrigger>

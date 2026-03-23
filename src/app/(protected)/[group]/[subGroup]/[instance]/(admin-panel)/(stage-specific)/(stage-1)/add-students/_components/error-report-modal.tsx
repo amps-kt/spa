@@ -1,9 +1,9 @@
 import {
-  Download,
-  FileText,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
+  DownloadIcon,
+  FileTextIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  ClockIcon,
 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -80,7 +80,7 @@ export function ErrorReportModal({
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            <FileTextIcon className="h-5 w-5" />
             CSV Upload Results
           </DialogTitle>
           <DialogDescription>
@@ -91,7 +91,7 @@ export function ErrorReportModal({
         <div className="space-y-6">
           <div className="grid grid-cols-3 gap-4">
             <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border border-green-200">
-              <CheckCircle className="h-5 w-5 text-green-600" />
+              <CheckCircleIcon className="h-5 w-5 text-green-600" />
               <div>
                 <div className="font-semibold text-green-900">
                   {result.created}
@@ -101,7 +101,7 @@ export function ErrorReportModal({
             </div>
 
             <div className="flex items-center gap-3 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-              <Clock className="h-5 w-5 text-yellow-600" />
+              <ClockIcon className="h-5 w-5 text-yellow-600" />
               <div>
                 <div className="font-semibold text-yellow-900">
                   {result.preExisting}
@@ -111,7 +111,7 @@ export function ErrorReportModal({
             </div>
 
             <div className="flex items-center gap-3 p-4 bg-red-50 rounded-lg border border-red-200">
-              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <AlertTriangleIcon className="h-5 w-5 text-red-600" />
               <div>
                 <div className="font-semibold text-red-900">
                   {result.failed}
@@ -132,7 +132,7 @@ export function ErrorReportModal({
                   size="sm"
                   disabled={result.invalidRows.length === 0}
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <DownloadIcon className="h-4 w-4 mr-2" />
                   Download Failed Rows CSV
                 </Button>
                 <Button
@@ -140,7 +140,7 @@ export function ErrorReportModal({
                   variant="outline"
                   size="sm"
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <DownloadIcon className="h-4 w-4 mr-2" />
                   Download Error Report
                 </Button>
                 <Button onClick={copyErrorReport} variant="ghost" size="sm">
@@ -160,7 +160,7 @@ export function ErrorReportModal({
                   {result.fileErrors.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTriangleIcon className="h-4 w-4" />
                         File Errors ({result.fileErrors.length})
                       </h4>
                       <div className="space-y-1">
@@ -180,7 +180,7 @@ export function ErrorReportModal({
                   {result.invalidRows.length > 0 && (
                     <div>
                       <h4 className="font-semibold text-red-900 mb-2 flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTriangleIcon className="h-4 w-4" />
                         Row Errors ({result.invalidRows.length})
                       </h4>
                       <div className="space-y-3">

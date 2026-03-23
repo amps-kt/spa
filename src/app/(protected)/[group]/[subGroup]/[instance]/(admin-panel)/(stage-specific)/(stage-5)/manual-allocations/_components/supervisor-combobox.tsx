@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -70,7 +70,7 @@ export function SupervisorCombobox({
           ) : (
             <span className="text-muted-foreground">Select supervisor...</span>
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[380px] p-0">
@@ -97,7 +97,7 @@ export function SupervisorCombobox({
                 >
                   <div className="flex w-full items-center justify-between">
                     <SupervisorCell supervisor={supervisor} />
-                    <Check
+                    <CheckIcon
                       className={cn(
                         "ml-2 h-4 w-4 shrink-0",
                         value === supervisor.id ? "opacity-100" : "opacity-0",
