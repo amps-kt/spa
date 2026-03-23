@@ -5,7 +5,6 @@ import { Fragment } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVerticalIcon, XIcon } from "lucide-react";
-import Link from "next/link";
 
 import { PreferenceType, Stage } from "@/db/types";
 
@@ -14,6 +13,7 @@ import { useInstancePath, useInstanceStage } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { stageGte } from "@/lib/utils/permissions/stage-check";
 import {

@@ -1,9 +1,8 @@
-import Link from "next/link";
-
 import { PAGES } from "@/config/pages";
 
 import { buttonVariants } from "@/components/ui/button";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export function MyPreferencesButton({ href }: { href: string }) {

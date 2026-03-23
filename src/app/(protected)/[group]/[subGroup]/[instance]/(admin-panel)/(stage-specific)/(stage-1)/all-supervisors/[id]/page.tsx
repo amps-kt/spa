@@ -1,5 +1,4 @@
 import { FilePlus2Icon, FolderIcon } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -10,6 +9,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { buttonVariants } from "@/components/ui/button";
 import { UserDetailsCard } from "@/components/user-details-card";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
 import { type PageParams } from "@/lib/validations/params";

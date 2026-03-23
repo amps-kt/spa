@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { buttonVariants } from "@/components/ui/button";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { stripTrailingSlash } from "@/lib/utils/trim";
 import { type TabGroup, type TabType } from "@/lib/validations/tabs";

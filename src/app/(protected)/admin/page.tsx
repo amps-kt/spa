@@ -1,6 +1,5 @@
 import { Plus, SquareLibraryIcon } from "lucide-react";
 import { type Metadata } from "next";
-import Link from "next/link";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -13,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 
 export const dynamic = "force-dynamic";

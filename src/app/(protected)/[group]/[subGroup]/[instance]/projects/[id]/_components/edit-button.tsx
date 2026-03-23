@@ -1,7 +1,6 @@
 "use client";
 
 import { PenIcon } from "lucide-react";
-import Link from "next/link";
 
 import { type ProjectDTO } from "@/dto";
 
@@ -13,6 +12,7 @@ import { usePathInInstance } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 

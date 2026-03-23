@@ -1,9 +1,9 @@
 import { Settings, Users, ChevronRight } from "lucide-react";
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 
 import { InstanceCard } from "./instance-card";

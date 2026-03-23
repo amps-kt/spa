@@ -4,7 +4,6 @@ import {
   FileBadgeIcon,
   ZapIcon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
 
@@ -17,6 +16,7 @@ import DataTable from "@/components/ui/data-table/data-table";
 import { TableBody, TableRow, TableCell, Table } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
