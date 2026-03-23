@@ -1,7 +1,8 @@
 import { ShieldXIcon } from "lucide-react";
-import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 export default function UnauthorisedPage() {
   return (

@@ -3,7 +3,6 @@
 import { Fragment } from "react";
 
 import { MoreHorizontalIcon as MoreIcon } from "lucide-react";
-import Link from "next/link";
 
 import {
   Breadcrumb,
@@ -19,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 import { useBreadcrumbData } from "./use-breadcrumb-data";
 

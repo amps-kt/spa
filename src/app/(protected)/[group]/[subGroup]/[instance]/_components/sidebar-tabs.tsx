@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { useInstancePath } from "@/components/params-context";
@@ -22,6 +21,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { stripTrailingSlash } from "@/lib/utils/trim";
 import { type TabGroup, type TabType } from "@/lib/validations/tabs";

@@ -3,7 +3,6 @@
 import * as React from "react";
 
 import { HomeIcon, LifeBuoyIcon } from "lucide-react";
-import Link from "next/link";
 
 import { app } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -27,6 +26,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 import SidebarTabs from "./sidebar-tabs";
 

@@ -1,7 +1,8 @@
 import { ArrowUpLeft } from "lucide-react";
-import Link from "next/link";
 
 import { PanelWrapper } from "@/components/panel-wrapper";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 export default async function NotFound() {
   return (

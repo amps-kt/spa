@@ -5,7 +5,6 @@ import {
   MoreHorizontalIcon as MoreIcon,
   PenIcon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
@@ -29,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export function useSupervisorInvitesColumns(): ColumnDef<InstanceUserDTO>[] {

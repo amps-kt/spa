@@ -1,10 +1,11 @@
 import { UnplugIcon } from "lucide-react";
-import Link from "next/link";
 
 import { app } from "@/config/meta";
 
 import { Separator } from "@/components/ui/separator";
 import { ToggleSidebarButton } from "@/components/ui/sidebar";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 import { Breadcrumbs } from "./breadcrumbs";
 import { UserButton } from "./user-button";

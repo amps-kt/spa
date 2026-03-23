@@ -4,7 +4,6 @@ import {
   CornerDownRightIcon,
   MoreHorizontalIcon as MoreIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
@@ -30,6 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 import { type StudentPreferenceSubmissionDto } from "@/lib/validations/dto/preference";

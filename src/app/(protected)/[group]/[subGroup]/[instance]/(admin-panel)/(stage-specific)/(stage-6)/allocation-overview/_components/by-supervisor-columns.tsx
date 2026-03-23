@@ -1,7 +1,6 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
 import { PAGES } from "@/config/pages";
@@ -10,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { type AllocationBySupervisorDto } from "@/lib/validations/allocation/data-table-dto";
 
