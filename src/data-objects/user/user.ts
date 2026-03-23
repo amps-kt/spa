@@ -16,7 +16,7 @@ import {
   type GroupParams,
   type SubGroupParams,
   type InstanceParams,
-  ProjectParams,
+  type ProjectParams,
 } from "@/lib/validations/params";
 
 import { DataObject } from "../data-object";
