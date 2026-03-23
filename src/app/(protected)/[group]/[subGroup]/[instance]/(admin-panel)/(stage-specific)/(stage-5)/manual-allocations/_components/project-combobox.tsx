@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 import { type ManualAllocationProject } from "./manual-allocation-types";
 
@@ -49,11 +48,10 @@ export function ProjectCombobox({
     project: ManualAllocationProject,
   ) => {
     const search = searchTerm.toLowerCase();
-
-    const titleMatch = fuzzyMatch(search, project.title);
-    if (titleMatch) return true;
-
-    return fuzzyMatch(search, project.id);
+    return (
+      project.title.toLowerCase().includes(search) ||
+      project.id.toLowerCase().includes(search)
+    );
   };
 
   return (

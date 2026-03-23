@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 import { type ManualReadingAllocationReader } from "./manual-allocation-types";
 
@@ -52,11 +51,10 @@ export function ReaderCombobox({
     reader: ManualReadingAllocationReader,
   ) => {
     const search = searchTerm.toLowerCase();
-
-    const nameMatch = fuzzyMatch(search, reader.name);
-    if (nameMatch) return true;
-
-    return fuzzyMatch(search, reader.id);
+    return (
+      reader.name.toLowerCase().includes(search) ||
+      reader.id.toLowerCase().includes(search)
+    );
   };
 
   return (
