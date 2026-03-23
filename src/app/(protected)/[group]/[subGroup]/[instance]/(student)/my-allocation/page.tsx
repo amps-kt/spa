@@ -18,7 +18,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { toPositional } from "@/lib/formatting/to-positional";
+import { numberToOrdinal } from "@/lib/formatting/number-to-ordinal";
 import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -56,7 +56,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 <span>
                   You got your{" "}
                   <span className="font-semibold text-indigo-600">
-                    {toPositional(allocation.rank)}
+                    {numberToOrdinal(allocation.rank)}
                   </span>{" "}
                   choice
                 </span>

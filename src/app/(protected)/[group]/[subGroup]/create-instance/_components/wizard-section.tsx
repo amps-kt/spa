@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -14,6 +13,7 @@ import {
   type WizardFormData,
 } from "@/components/instance-wizard/instance-wizard";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { type SubGroupParams } from "@/lib/validations/params";
@@ -25,7 +25,7 @@ export function WizardSection({
   takenNames: Set<string>;
   params: SubGroupParams;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
 
   const { mutateAsync: createInstanceAsync } =
     api.institution.subGroup.createInstance.useMutation();
@@ -57,12 +57,11 @@ export function WizardSection({
         flags: data.flags,
         tags: data.tags,
       }).then(() => {
-        const newPath = formatParamsAsPath({
-          group: params.group,
-          subGroup: params.subGroup,
-          instance: encodeURIComponent(newInstance.displayName),
-        });
-        router.push(newPath);
+        router.push(
+          "instance",
+          { ...params, instance: encodeURIComponent(newInstance.displayName) },
+          undefined,
+        );
       }),
       {
         loading: `Creating ${spacesLabels.instance.full}...`,

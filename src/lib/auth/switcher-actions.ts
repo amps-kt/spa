@@ -2,13 +2,14 @@
 
 import { env } from "@/env";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { type UserDTO } from "@/dto";
 
 import { User } from "@/data-objects";
 
 import { db } from "@/db";
+
+import { redirect } from "@/lib/routing";
 
 const DEV_USER_COOKIE_KEY = "dev-selected-user-id";
 
@@ -32,7 +33,7 @@ export async function switchDevUser(userId: string): Promise<void> {
   });
 
   // redirect to refresh the page and trigger re-authentication
-  redirect("/");
+  redirect("home", undefined);
 }
 
 /**
@@ -66,5 +67,5 @@ export async function clearDevUser() {
   const cookieStore = cookies();
   cookieStore.delete(DEV_USER_COOKIE_KEY);
 
-  redirect("/");
+  redirect("home", undefined);
 }

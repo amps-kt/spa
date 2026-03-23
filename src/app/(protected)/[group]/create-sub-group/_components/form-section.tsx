@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -22,6 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -32,7 +32,7 @@ export function FormSection({
   takenNames: Set<string>;
   params: GroupParams;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const FormSchema = z.object({
     subGroupName: z
       .string()
@@ -53,7 +53,11 @@ export function FormSection({
   const onSubmit = ({ subGroupName }: { subGroupName: string }) => {
     void toast.promise(
       createSubGroupAsync({ params, name: subGroupName }).then(() => {
-        router.push(`/${params.group}/${encodeURIComponent(subGroupName)}`);
+        router.push(
+          "subGroup",
+          { ...params, subGroup: encodeURIComponent(subGroupName) },
+          undefined,
+        );
         router.refresh();
       }),
       {
