@@ -21,11 +21,10 @@ import {
 } from "@/components/ui/destructive-action";
 
 import { api } from "@/lib/trpc/client";
-import {
-  formatProfile,
-  formatSize,
-  formatWeight,
-} from "@/lib/utils/algorithm/format";
+
+import { ProfileCell } from "./cells/profile-cell";
+import { SizeCell } from "./cells/size-cell";
+import { WeightCell } from "./cells/weight-cell";
 
 import { useAlgorithmUtils } from "./algorithm-context";
 
@@ -76,11 +75,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-12 text-center">
-          {formatWeight(matchingResults.weight)}
-        </p>
-      ),
+      }) => <WeightCell weight={matchingResults.weight} />,
     },
     {
       id: "Size",
@@ -90,9 +85,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-12 text-center">{formatSize(matchingResults.size)}</p>
-      ),
+      }) => <SizeCell size={matchingResults.size} />,
     },
     {
       id: "Profile",
@@ -102,11 +95,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-28 text-center">
-          {formatProfile(matchingResults.profile)}
-        </p>
-      ),
+      }) => <ProfileCell profile={matchingResults.profile} />,
     },
     {
       id: "selection",
