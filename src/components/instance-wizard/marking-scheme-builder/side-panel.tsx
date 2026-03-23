@@ -59,10 +59,7 @@ export function SidePanel() {
   }
 
   return (
-    <Sidebar
-      className="w-68 flex-none bg-background pt-6"
-      collapsible="none"
-    >
+    <Sidebar className="w-68 flex-none bg-background pt-6" collapsible="none">
       <SidebarHeader className="mb-5 flex flex-row items-center justify-between px-2">
         <Button
           variant="outline"
