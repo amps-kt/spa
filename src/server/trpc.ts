@@ -55,6 +55,7 @@ export const createTRPCContext = async (opts: {
 
   return {
     session,
+    user: session.user,
     db,
     mailer: new Mailer(sendMail),
     logger: trpcLogger,
