@@ -1,18 +1,15 @@
 import { env } from "@/env";
-import { User2 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/user-avatar";
 
 import { auth } from "@/lib/auth";
 import { api } from "@/lib/trpc/server";
-import { cn } from "@/lib/utils";
-import { getColorFromName, getInitials } from "@/lib/utils/avatar-icon-helpers";
 
 import { UserSwitcher } from "./user-switcher";
 
@@ -25,16 +22,7 @@ export async function UserButton() {
     <div className="relative">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Avatar className="cursor-pointer">
-            <AvatarFallback
-              className={cn(
-                "bg-gray-100 text-gray-600",
-                getColorFromName(user.name),
-              )}
-            >
-              {user?.name ? getInitials(user.name) : <User2 />}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar name={user.name} className="cursor-pointer" />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="mr-4 mt-3 w-fit min-w-40 max-w-80">
           {user && (
