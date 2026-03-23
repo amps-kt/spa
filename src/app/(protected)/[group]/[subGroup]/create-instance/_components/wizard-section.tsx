@@ -15,7 +15,6 @@ import {
 
 import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { type SubGroupParams } from "@/lib/validations/params";
 
 export function WizardSection({
