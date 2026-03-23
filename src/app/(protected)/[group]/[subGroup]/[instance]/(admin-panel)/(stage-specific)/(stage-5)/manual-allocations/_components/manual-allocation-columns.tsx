@@ -4,15 +4,12 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { RotateCcwIcon, SaveIcon, Trash2Icon } from "lucide-react";
 import { z } from "zod";
 
-import { PAGES } from "@/config/pages";
-
-import { usePathInInstance } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 import {
@@ -43,7 +40,6 @@ export function useManualAllocationColumns({
   onSave,
   onReset,
 }: ManualAllocationColumnsProps): ColumnDef<ManualAllocationStudent>[] {
-  const { getPath } = usePathInInstance();
   return [
     {
       id: "student",
@@ -55,15 +51,16 @@ export function useManualAllocationColumns({
         const student = row.original;
         return (
           <div className="space-y-2">
-            <Link
-              href={getPath(`${PAGES.allStudents.href}/${student.id}`)}
+            <AppInstanceLink
+              page="studentById"
+              linkArgs={{ studentId: student.id }}
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "p-0 text-sm font-medium",
               )}
             >
               {student.name}
-            </Link>
+            </AppInstanceLink>
             <div className="text-xs text-muted-foreground">{student.id}</div>
             <Badge variant="accent" className="rounded-md">
               {student.flag.displayName}

@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { z } from "zod";
 
-import { PAGES } from "@/config/pages";
 import { spacesLabels } from "@/config/spaces";
 
 import { flagDtoSchema, type ProjectDTO, type SupervisorDTO } from "@/dto";
@@ -20,10 +19,7 @@ import { type PreferenceType, Role, Stage } from "@/db/types";
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
 import { ExportCSVButton } from "@/components/export-csv";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { StudentPreferenceActionSubMenu } from "@/components/student-preference-action-menu";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -46,7 +42,7 @@ import {
 } from "@/components/yes-no-action";
 
 import { type User } from "@/lib/auth/types";
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
@@ -78,7 +74,6 @@ export function useAllProjectsColumns({
     projectIds: string[],
   ) => Promise<void>;
 }): ColumnDef<ProjectData>[] {
-  const { getInstancePath } = usePathInInstance();
   const stage = useInstanceStage();
 
   const selectCol = getSelectColumn<ProjectData>();
@@ -95,15 +90,16 @@ export function useAllProjectsColumns({
           original: { project },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block h-max min-w-60 px-0 text-start",
           )}
-          href={getInstancePath([PAGES.allProjects.href, project.id])}
+          page="projectById"
+          linkArgs={{ projectId: project.id }}
         >
           {project.title}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -118,12 +114,13 @@ export function useAllProjectsColumns({
         },
       }) =>
         roles.has(Role.ADMIN) ? (
-          <Link
+          <AppInstanceLink
             className={buttonVariants({ variant: "link" })}
-            href={getInstancePath([PAGES.allSupervisors.href, supervisor.id])}
+            page="supervisorById"
+            linkArgs={{ supervisorId: supervisor.id }}
           >
             {supervisor.name}
-          </Link>
+          </AppInstanceLink>
         ) : (
           <p className="font-medium">{supervisor.name}</p>
         ),
@@ -406,12 +403,10 @@ export function useAllProjectsColumns({
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem className="group/item">
-                    <Link
+                    <AppInstanceLink
                       className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                      href={getInstancePath([
-                        PAGES.allProjects.href,
-                        project.id,
-                      ])}
+                      page="projectById"
+                      linkArgs={{ projectId: project.id }}
                     >
                       <CornerDownRightIcon className="h-4 w-4" />
                       <p className="flex items-center">
@@ -419,7 +414,7 @@ export function useAllProjectsColumns({
                         <p className="max-w-40 truncate">{project.title}</p>
                         &quot;
                       </p>
-                    </Link>
+                    </AppInstanceLink>
                   </DropdownMenuItem>
                   <ConditionalRender
                     allowedRoles={[Role.STUDENT]}
@@ -466,17 +461,14 @@ export function useAllProjectsColumns({
                         allowedStages={previousStages(Stage.STUDENT_BIDDING)}
                         allowed={
                           <DropdownMenuItem className="group/item">
-                            <Link
+                            <AppInstanceLink
                               className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                              href={getInstancePath([
-                                PAGES.allProjects.href,
-                                project.id,
-                                PAGES.editProject.href,
-                              ])}
+                              page="editProject"
+                              linkArgs={{ projectId: project.id }}
                             >
                               <PenIcon className="h-4 w-4" />
                               <span>Edit Project details</span>
-                            </Link>
+                            </AppInstanceLink>
                           </DropdownMenuItem>
                         }
                         denied={(data) => (

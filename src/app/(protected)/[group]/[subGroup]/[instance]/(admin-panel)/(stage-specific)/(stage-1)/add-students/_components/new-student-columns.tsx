@@ -9,7 +9,6 @@ import {
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type StudentDTO } from "@/dto";
 
@@ -17,7 +16,6 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import { usePathInInstance } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -47,8 +45,6 @@ export function useNewStudentColumns({
   deleteStudent: (id: string) => Promise<void>;
   deleteManyStudents: (ids: string[]) => Promise<void>;
 }): ColumnDef<StudentDTO>[] {
-  const { getInstancePath } = usePathInInstance();
-
   const selectCol = getSelectColumn<StudentDTO>();
 
   const userCols: ColumnDef<StudentDTO>[] = [

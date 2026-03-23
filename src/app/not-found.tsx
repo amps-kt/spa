@@ -1,8 +1,8 @@
-import { ArrowUpLeft } from "lucide-react";
+import { ArrowUpLeftIcon } from "lucide-react";
 
 import { PanelWrapper } from "@/components/panel-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppLink } from "@/lib/routing";
 
 export default async function NotFound() {
   return (
@@ -16,14 +16,14 @@ export default async function NotFound() {
           The page you are looking for does not exist or has been moved.
         </p>
         <div className="mt-6">
-          <Link
-            href="/"
+          <AppLink
+            page="home"
+            linkArgs={undefined}
             className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            prefetch={false}
           >
-            <ArrowUpLeft className="h-4 w-4" />
+            <ArrowUpLeftIcon className="h-4 w-4" />
             <span>Go to Homepage</span>
-          </Link>
+          </AppLink>
         </div>
       </div>
     </PanelWrapper>

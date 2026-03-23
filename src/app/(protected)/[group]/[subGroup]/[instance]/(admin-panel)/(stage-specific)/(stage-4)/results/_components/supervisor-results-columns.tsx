@@ -1,15 +1,13 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { HelpCircleIcon } from "lucide-react";
 
-import { PAGES } from "@/config/pages";
-
 import { type UserDTO } from "@/dto";
 
 import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { type SupervisorMatchingDetailsDTO } from "@/lib/validations/matching";
 
 export function useSupervisorResultsColumns(): ColumnDef<{
@@ -29,12 +27,13 @@ export function useSupervisorResultsColumns(): ColumnDef<{
         },
       }) => (
         <div className="flex flex-col gap-2 items-start">
-          <Link
+          <AppInstanceLink
             className={buttonVariants({ variant: "link" })}
-            href={`./${PAGES.allSupervisors.href}/${supervisor.id}`}
+            page="supervisorById"
+            linkArgs={{ supervisorId: supervisor.id }}
           >
             {supervisor.name}
-          </Link>
+          </AppInstanceLink>
           <p className="font-mono text-muted-foreground ml-4">
             {supervisor.id}
           </p>
