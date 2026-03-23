@@ -1,8 +1,8 @@
 import { type ReactNode } from "react";
 
 import { type ClassValue } from "clsx";
-import Link from "next/link";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 import { buttonVariants } from "../ui/button";

@@ -5,12 +5,13 @@ import React, { useState } from "react";
 import { FormProvider, type Path, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { type z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+
+import { AppInstanceLink as Link } from "@/lib/routing";
 
 import { StepIndicator } from "./step-indicator";
 

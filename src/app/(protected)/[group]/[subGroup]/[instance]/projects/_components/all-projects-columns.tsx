@@ -8,7 +8,6 @@ import {
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { PAGES } from "@/config/pages";
@@ -47,6 +46,7 @@ import {
 } from "@/components/yes-no-action";
 
 import { type User } from "@/lib/auth/types";
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";

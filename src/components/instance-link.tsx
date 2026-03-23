@@ -2,8 +2,7 @@
 
 import { type ReactNode } from "react";
 
-import Link from "next/link";
-
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 import { usePathInInstance } from "./params-context";

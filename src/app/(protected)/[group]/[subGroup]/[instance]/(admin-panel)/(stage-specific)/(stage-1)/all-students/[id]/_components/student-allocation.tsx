@@ -8,7 +8,6 @@ import {
   MousePointerSquareDashedIcon,
   UserIcon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
 
@@ -20,6 +19,7 @@ import { CircleCheckSolidIcon } from "@/components/icons/circle-check";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export function StudentAllocationCard({
