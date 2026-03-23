@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 import { type ManualAllocationSupervisor } from "./manual-allocation-types";
 
@@ -48,11 +47,10 @@ export function SupervisorCombobox({
     supervisor: ManualAllocationSupervisor,
   ) => {
     const search = searchTerm.toLowerCase();
-
-    const nameMatch = fuzzyMatch(search, supervisor.name);
-    if (nameMatch) return true;
-
-    return fuzzyMatch(search, supervisor.id);
+    return (
+      supervisor.name.toLowerCase().includes(search) ||
+      supervisor.id.toLowerCase().includes(search)
+    );
   };
 
   return (
