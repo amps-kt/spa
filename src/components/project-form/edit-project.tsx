@@ -17,7 +17,7 @@ import { Role } from "@/db/types";
 import { Button } from "@/components/ui/button";
 
 import { api } from "@/lib/trpc/client";
-import { toPP1 } from "@/lib/utils/general/instance-params";
+import { toPP1 } from "@/lib/utils/instance-params";
 import { type PageParams } from "@/lib/validations/params";
 
 import { usePathInInstance } from "../params-context";

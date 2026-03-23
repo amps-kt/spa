@@ -22,7 +22,7 @@ import { Role } from "@/db/types";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import { expand, toPP2 } from "@/lib/utils/general/instance-params";
+import { expand, toPP2 } from "@/lib/utils/instance-params";
 import {
   previousStages,
   subsequentStages,

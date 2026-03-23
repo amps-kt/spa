@@ -3,7 +3,7 @@
 import { type ClassValue } from "clsx";
 
 import { cn } from "@/lib/utils";
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 import { buttonVariants } from "./ui/button";
 

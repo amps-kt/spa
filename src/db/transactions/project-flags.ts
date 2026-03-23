@@ -1,6 +1,6 @@
 import { AllocationMethod, type TX } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { type ProjectParams } from "@/lib/validations/params";
 
 export async function linkProjectFlagIds(

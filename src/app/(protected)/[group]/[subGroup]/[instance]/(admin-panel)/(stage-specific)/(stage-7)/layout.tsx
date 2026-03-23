@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Stage } from "@/db/types";
 
 import { api } from "@/lib/trpc/server";
-import { formatParamsAsPath } from "@/lib/utils/general/instance-params";
+import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { stageLt } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 

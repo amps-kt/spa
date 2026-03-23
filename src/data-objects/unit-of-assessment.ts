@@ -11,8 +11,8 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { ConsensusMethod, ConsensusStage, type DB } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
-import { keyBy } from "@/lib/utils/general/key-by";
+import { expand } from "@/lib/utils/instance-params";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { DataObject } from "./data-object";

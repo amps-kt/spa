@@ -10,7 +10,7 @@ import { app } from "@/config/meta";
 
 import { Button } from "@/components/ui/button";
 
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export default function ForbiddenPage({
   searchParams: { next },
