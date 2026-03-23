@@ -29,7 +29,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export function useSupervisorInvitesColumns(): ColumnDef<InstanceUserDTO>[] {
   const { getPath } = usePathInInstance();

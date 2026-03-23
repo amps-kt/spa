@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/general/fuzzy-match";
+import { fuzzyMatch } from "@/lib/utils/fuzzy-match";
 
 import { type ManualReadingAllocationReader } from "./manual-allocation-types";
 

@@ -46,10 +46,7 @@ import {
   matchingOutputSchema,
   matchingReaderSchema,
 } from "@/lib/services/reader-allocation/types";
-import {
-  expand,
-  formatParamsAsPath,
-} from "@/lib/utils/general/instance-params";
+import { expand, formatParamsAsPath } from "@/lib/utils/instance-params";
 import { previousStages, stageGte } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";

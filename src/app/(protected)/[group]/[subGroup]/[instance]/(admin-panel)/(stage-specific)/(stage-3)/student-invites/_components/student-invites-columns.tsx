@@ -29,7 +29,7 @@ import {
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
 import { cn } from "@/lib/utils";
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export function useStudentInvitesColumns(): ColumnDef<StudentDTO>[] {
   const selectCol = getSelectColumn<StudentDTO>();

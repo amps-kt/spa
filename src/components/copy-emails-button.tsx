@@ -4,7 +4,7 @@ import { type ClassValue } from "clsx";
 import { CopyIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 import { Button } from "./ui/button";
 

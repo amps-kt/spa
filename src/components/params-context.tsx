@@ -7,7 +7,7 @@ import Link from "next/link";
 
 import { type Role, type Stage } from "@/db/types";
 
-import { formatParamsAsPath } from "@/lib/utils/general/instance-params";
+import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 type InstanceData = { params: InstanceParams; stage: Stage; roles: Set<Role> };

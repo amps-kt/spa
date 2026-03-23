@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { spacesLabels } from "@/config/spaces";
 
-import { isSameInstance } from "@/lib/utils/general/instance-params";
+import { isSameInstance } from "@/lib/utils/instance-params";
 import { nubsById } from "@/lib/utils/list-unique";
 import type { InstanceParams } from "@/lib/validations/params";
 

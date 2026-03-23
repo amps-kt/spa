@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 
 import { cn } from "@/lib/utils";
-import { stripTrailingSlash } from "@/lib/utils/general/trim";
+import { stripTrailingSlash } from "@/lib/utils/trim";
 import { type TabGroup, type TabType } from "@/lib/validations/tabs";
 
 export default function SidebarTabs({ tabGroups }: { tabGroups: TabGroup[] }) {

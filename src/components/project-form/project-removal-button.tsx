@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 import { api } from "@/lib/trpc/client";
-import { toPP3 } from "@/lib/utils/general/instance-params";
+import { toPP3 } from "@/lib/utils/instance-params";
 
 export function ProjectRemovalButton({
   projectId,

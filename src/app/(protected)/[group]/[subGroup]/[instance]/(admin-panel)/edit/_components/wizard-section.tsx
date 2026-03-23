@@ -14,7 +14,7 @@ import {
 import { useInstanceParams } from "@/components/params-context";
 
 import { api } from "@/lib/trpc/client";
-import { formatParamsAsPath } from "@/lib/utils/general/instance-params";
+import { formatParamsAsPath } from "@/lib/utils/instance-params";
 
 export function WizardSection({
   formDetails,

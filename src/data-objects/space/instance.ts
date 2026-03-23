@@ -40,7 +40,7 @@ import {
   type MatchingReader,
   type ReaderMatchingPair,
 } from "@/lib/services/reader-allocation/types";
-import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
+import { expand, toInstanceId } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { setDiff } from "@/lib/utils/set";
 import { type InstanceParams } from "@/lib/validations/params";

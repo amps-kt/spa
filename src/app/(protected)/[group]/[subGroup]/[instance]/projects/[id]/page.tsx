@@ -29,7 +29,7 @@ import { toPositional } from "@/lib/formatting/to-positional";
 import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
-import { toPP1, toPP4 } from "@/lib/utils/general/instance-params";
+import { toPP1, toPP4 } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { EditButton } from "./_components/edit-button";

@@ -15,7 +15,7 @@ import {
 } from "@/components/instance-wizard/instance-wizard";
 
 import { api } from "@/lib/trpc/client";
-import { formatParamsAsPath } from "@/lib/utils/general/instance-params";
+import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { type SubGroupParams } from "@/lib/validations/params";
 
 export function WizardSection({

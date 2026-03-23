@@ -3,10 +3,7 @@ import { z } from "zod";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import {
-  fetchRandomItemFromArray,
-  getRandomInt,
-} from "@/lib/utils/general/random";
+import { fetchRandomItemFromArray, getRandomInt } from "@/lib/utils/random";
 import { allocationCsvDataSchema } from "@/lib/validations/allocation-csv-data";
 import { instanceParamsSchema } from "@/lib/validations/params";
 
