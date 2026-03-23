@@ -5,17 +5,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { PAGES } from "@/config/pages";
-
 import { type ProjectDTO } from "@/dto";
 
 import { PreferenceType } from "@/db/types";
 
 import { MyPreferencesButton } from "@/components/my-preferences-button";
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,7 +38,6 @@ export function StudentPreferenceButton({
 }) {
   const router = useRouter();
   const params = useInstanceParams();
-  const { getPath } = usePathInInstance();
 
   const [selectStatus, setSelectStatus] =
     useState<StudentPreferenceType>(defaultStatus);
@@ -58,9 +52,7 @@ export function StudentPreferenceButton({
         success: (
           <ToastSuccessCard
             message="Successfully updated project preference"
-            action={
-              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
-            }
+            action={<MyPreferencesButton />}
           />
         ),
         error: "Something went wrong",

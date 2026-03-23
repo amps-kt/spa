@@ -9,11 +9,11 @@ import { GripVerticalIcon, XIcon } from "lucide-react";
 import { PreferenceType, Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
-import { useInstancePath, useInstanceStage } from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { stageGte } from "@/lib/utils/permissions/stage-check";
 import {
@@ -34,7 +34,6 @@ export function ProjectPreferenceCard({
   deletePreference: (id: string) => Promise<void>;
 }) {
   const stage = useInstanceStage();
-  const instancePath = useInstancePath();
 
   const {
     setNodeRef,
@@ -104,15 +103,16 @@ export function ProjectPreferenceCard({
           )}
           <CardTitle className="text-sm font-medium">
             <Comp tip={<p className="max-w-96">{project.title}</p>}>
-              <Link
+              <AppInstanceLink
+                page="projectById"
+                linkArgs={{ projectId: project.id }}
                 className={cn(
                   buttonVariants({ variant: "link" }),
                   "inline-block w-80 truncate px-0 text-start text-lg",
                 )}
-                href={`${instancePath}/projects/${project.id}`}
               >
                 {project.title}
-              </Link>
+              </AppInstanceLink>
             </Comp>
           </CardTitle>
           <ConditionalRender

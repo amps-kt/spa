@@ -3,13 +3,15 @@
 import { useEffect, useState } from "react";
 
 import { CopyIcon, ShieldXIcon } from "lucide-react";
+// eslint-disable-next-line no-restricted-imports
+import Link from "next/link";
+// eslint-disable-next-line no-restricted-imports
 import { useRouter } from "next/navigation";
 
 import { app } from "@/config/meta";
 
 import { Button } from "@/components/ui/button";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export default function ForbiddenPage({

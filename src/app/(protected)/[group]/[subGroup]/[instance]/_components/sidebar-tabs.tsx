@@ -1,6 +1,9 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRightIcon } from "lucide-react";
+// eslint-disable-next-line no-restricted-imports
+import Link from "next/link";
+// eslint-disable-next-line no-restricted-imports
 import { usePathname } from "next/navigation";
 
 import { useInstancePath } from "@/components/params-context";
@@ -21,7 +24,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { stripTrailingSlash } from "@/lib/utils/trim";
 import { type TabGroup, type TabType } from "@/lib/validations/tabs";
@@ -48,7 +50,7 @@ export default function SidebarTabs({ tabGroups }: { tabGroups: TabGroup[] }) {
                 >
                   <CollapsibleTrigger>
                     {group.title}{" "}
-                    <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                    <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
                   </CollapsibleTrigger>
                 </SidebarGroupLabel>
                 <CollapsibleContent>

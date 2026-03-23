@@ -1,14 +1,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 
-import { PAGES } from "@/config/pages";
-
 import { Role } from "@/db/types";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { AppInstanceLink } from "@/lib/routing";
 
 import { useInstanceRoles } from "../params-context";
 
@@ -48,12 +46,13 @@ export function useSavedPreferencesColumns(): ColumnDef<SavedPreferenceData>[] {
         <DataTableColumnHeader column={column} title="Title" />
       ),
       cell: ({ row: { original: project } }) => (
-        <Link
+        <AppInstanceLink
+          page="projectById"
+          linkArgs={{ projectId: project.id }}
           className={buttonVariants({ variant: "link" })}
-          href={`../projects/${project.id}`}
         >
           {project.title}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -70,12 +69,13 @@ export function useSavedPreferencesColumns(): ColumnDef<SavedPreferenceData>[] {
         },
       }) =>
         roles.has(Role.ADMIN) ? (
-          <Link
+          <AppInstanceLink
+            page="supervisorById"
+            linkArgs={{ supervisorId: id }}
             className={buttonVariants({ variant: "link" })}
-            href={`../${PAGES.allSupervisors.href}/${id}`}
           >
             {name}
-          </Link>
+          </AppInstanceLink>
         ) : (
           <div className="font-medium">{name}</div>
         ),

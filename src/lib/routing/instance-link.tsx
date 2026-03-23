@@ -2,9 +2,9 @@
 
 import { type ReactNode } from "react";
 
-import { type PageName } from "@/config/pages";
+import Link from "next/link";
 
-import { AppInstanceLink as Link } from "@/lib/routing";
+import { type PageName } from "@/config/pages";
 
 import { cn } from "../utils";
 
