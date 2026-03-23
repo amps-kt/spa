@@ -31,7 +31,11 @@
     "db:push": "eval $(grep '^DATABASE_URL' .env) && prisma db push",
     "db:drop": "eval $(grep '^DATABASE_URL' .env) && prisma migrate reset",
     "check": "pnpm lint:errs && pnpm tc",
-    "clearLogs": "rm *.log"
+    "clearLogs": "rm *.log",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": "prettier --write"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -128,7 +132,9 @@
     "eslint": "9.22.0",
     "eslint-config-next": "15.2.2",
     "fast-check": "^4.5.3",
+    "husky": "9.1.7",
     "jiti": "^2.4.2",
+    "lint-staged": "16.4.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "prisma": "^6.10.1",
     "react-email": "4.0.4",
@@ -139,5 +145,5 @@
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^3.2.0"
   },
-  "packageManager": "pnpm@9.15.1"
+  "packageManager": "pnpm@10.32.1"
 }
