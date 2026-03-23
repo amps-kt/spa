@@ -19,7 +19,7 @@ import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
 import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
-import { procedure } from "@/server/middleware";
+import { anyOf, procedure, projectGuard } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
 import { expand, toPP2 } from "@/lib/utils/instance-params";
@@ -34,10 +34,16 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { project } }) => await project.exists()),
 
   edit: procedure.project
-    .withAC({
-      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
-      allowedStages: previousStages(Stage.STUDENT_BIDDING),
-    })
+
+    .withAC({ allowedStages: previousStages(Stage.STUDENT_BIDDING) })
+    .use(
+      projectGuard(
+        anyOf(
+          ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+          ({ user, params }) => user.isProjectSupervisor(params.projectId),
+        ),
+      ),
+    )
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
@@ -206,8 +212,8 @@ export const projectRouter = createTRPCRouter({
         }));
     }),
 
-  // Pin -> this should be stricter than member, but we need a better withAC impl
-  getById: procedure.project.member
+  getById: procedure.project
+    .guard(({ user, params }) => user.canViewProject(params))
     .output(projectDtoSchema)
     .query(async ({ ctx: { project } }) => await project.get()),
 
@@ -222,9 +228,13 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  // Pin => AC check is not quite strict enough - should only be supervisor for *this* project
   getStudentPreferencesForProject: procedure.project
-    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
+    .guard(
+      anyOf(
+        ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+        ({ user, params }) => user.isProjectSupervisor(params.projectId),
+      ),
+    )
     .output(z.array(z.object({ student: studentDtoSchema, rank: z.number() })))
     .query(
       async ({ ctx: { project } }) =>
@@ -232,30 +242,26 @@ export const projectRouter = createTRPCRouter({
     ),
 
   delete: procedure.project
-    .withAC({
-      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
-      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
-    })
+    .withAC({ allowedStages: previousStages(Stage.PROJECT_ALLOCATION) })
+    .use(
+      projectGuard(
+        anyOf(
+          ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+          ({ user, params }) => user.isProjectSupervisor(params.projectId),
+        ),
+      ),
+    )
     .output(permissionResultSchema)
-    .mutation(async ({ ctx: { project, user, audit } }) => {
+    .mutation(async ({ ctx: { project, audit } }) => {
       audit("Delete project");
-      if (await user.isSubGroupAdminOrBetter(project.params)) {
-        await project.delete();
-        return PermissionResult.OK;
-      }
-
-      if (await user.isProjectSupervisor(project.params.projectId)) {
-        await project.delete();
-        return PermissionResult.OK;
-      }
-
-      return PermissionResult.UNAUTHORISED;
+      await project.delete();
+      return PermissionResult.OK;
     }),
 
   deleteMany: procedure.instance
     .withAC({
       allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
-      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
+      allowedRoles: [Role.ADMIN, Role.SUPERVISOR], // the checks here kinda have to live in the business logic
     })
     .input(z.object({ projectIds: z.array(z.string()) }))
     .output(z.array(permissionResultSchema))
@@ -382,9 +388,13 @@ export const projectRouter = createTRPCRouter({
       };
     }),
 
-  // Pin -> technically AC should be stricter
   getAllocation: procedure.project
-    .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
+    .guard(
+      anyOf(
+        ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+        ({ user, params }) => user.isProjectSupervisor(params.projectId),
+      ),
+    )
     .output(
       z
         .object({
