@@ -5,16 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { type UserDTO } from "@/dto";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/user-avatar";
 
 import { switchDevUser } from "@/lib/auth/switcher-actions";
-import { cn } from "@/lib/utils";
-import { getColorFromName, getInitials } from "@/lib/utils/avatar-icon-helpers";
 
 interface UserSwitcherProps {
   users: UserDTO[];
@@ -50,13 +48,11 @@ export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
             className="flex cursor-pointer items-center justify-between"
           >
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback
-                  className={cn("text-xs", getColorFromName(account.name))}
-                >
-                  {getInitials(account.name)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                name={account.name}
+                className="h-8 w-8"
+                fallbackClassName="text-xs"
+              />
               <div className="flex flex-col">
                 <span className="text-sm">{account.name}</span>
                 <span className="text-xs text-muted-foreground">
