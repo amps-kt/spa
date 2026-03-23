@@ -10,7 +10,6 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { type DB } from "@/db/types";
 
-import { slugify } from "@/lib/utils/general/slugify";
 import { uniqueById } from "@/lib/utils/list-unique";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -54,7 +53,7 @@ export class AllocationGroup extends DataObject {
     return await this.db.allocationSubGroup
       .create({
         data: {
-          id: slugify(displayName),
+          id: encodeURIComponent(displayName),
           displayName,
           allocationGroupId: this.params.group,
         },
