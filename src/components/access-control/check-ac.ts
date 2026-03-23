@@ -2,7 +2,7 @@ import type { Stage } from "@prisma/client";
 
 import type { Role } from "@/db/types";
 
-import { hasOverlap } from "@/lib/utils/general/set-intersection";
+import { hasOverlap } from "@/lib/utils/set";
 
 import {
   type ACOverrides,

@@ -41,8 +41,8 @@ import {
   type ReaderMatchingPair,
 } from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
-import { setDiff } from "@/lib/utils/general/set-difference";
 import { keyBy } from "@/lib/utils/key-by";
+import { setDiff } from "@/lib/utils/set";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 

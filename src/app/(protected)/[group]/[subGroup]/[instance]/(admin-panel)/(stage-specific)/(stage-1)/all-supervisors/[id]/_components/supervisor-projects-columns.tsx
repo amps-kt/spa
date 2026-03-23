@@ -47,12 +47,12 @@ import {
 } from "@/components/yes-no-action";
 
 import { cn } from "@/lib/utils";
-import { setIntersection } from "@/lib/utils/general/set-intersection";
 import {
   previousStages,
   stageGte,
   stageLt,
 } from "@/lib/utils/permissions/stage-check";
+import { setIntersection } from "@/lib/utils/set";
 
 type ProjectWithAllocation = {
   project: ProjectDTO;

@@ -1,4 +1,3 @@
-// MOVE to 'lib/format'
 /**
  *
  * @param n the number to convert to positional notation

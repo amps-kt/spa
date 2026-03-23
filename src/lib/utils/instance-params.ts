@@ -31,6 +31,11 @@ export function toInstanceId(params: InstanceParams, instanceId?: string) {
   };
 }
 
+export function formatParamsAsPath(instanceParams: InstanceParams) {
+  const { group, subGroup, instance } = instanceParams;
+  return `/${group}/${subGroup}/${instance}`;
+}
+
 export function toAlgID(params: AlgorithmInstanceParams) {
   return { algorithmId: params.algConfigId, ...expand(params) };
 }
