@@ -22,7 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/client";
-import { slugify } from "@/lib/utils/general/slugify";
 import {
   buildNewAllocationGroupFormSchema,
   type NewAllocationGroupForm,

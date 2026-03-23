@@ -9,7 +9,6 @@ import { Transformers as T } from "@/db/transformers";
 import { type DB } from "@/db/types";
 
 import { toInstanceId } from "@/lib/utils/general/instance-params";
-import { slugify } from "@/lib/utils/general/slugify";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { DataObject } from "../data-object";
