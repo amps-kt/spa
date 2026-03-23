@@ -57,6 +57,7 @@ export const createTRPCContext = async (opts: {
 
   return {
     session,
+    user: session.user,
     db,
     mailer: new Mailer(
       env.MAIL_USE_RATE_LIMIT === "ON" ? queueEmail : sendMail,
