@@ -56,29 +56,24 @@ export const unitOfAssessmentRouter = createTRPCRouter({
   getConsensus: procedure.unitOfAssessment.user
     .input(z.object({ studentId: z.string(), unitId: z.string() }))
     .output(unitGradeDtoSchema)
-    .query(
-      async ({
-        ctx: { instance, user },
-        input: { studentId, unitId, params },
-      }) => {
-        // const isAdmin = await user.isSubGroupAdminOrBetter(params);
-        // const markerType = await user.getMarkerType(studentId);
-        // const { allowedMarkerTypes } =
-        //   await instance.getUnitOfAssessment(unitId);
+    .query(async ({ ctx: { instance }, input: { studentId, unitId } }) => {
+      // const isAdmin = await user.isSubGroupAdminOrBetter(params);
+      // const markerType = await user.getMarkerType(studentId);
+      // const { allowedMarkerTypes } =
+      //   await instance.getUnitOfAssessment(unitId);
 
-        // if (!allowedMarkerTypes.includes(markerType) && !isAdmin) {
-        //   throw new TRPCError({
-        //     code: "UNAUTHORIZED",
-        //     message: "User is not correct marker type",
-        //   });
-        // }
+      // if (!allowedMarkerTypes.includes(markerType) && !isAdmin) {
+      //   throw new TRPCError({
+      //     code: "UNAUTHORIZED",
+      //     message: "User is not correct marker type",
+      //   });
+      // }
 
-        const student = await instance.getStudent(studentId);
-        const unitGrade = await student.getUnitGrade({ unitId });
+      const student = await instance.getStudent(studentId);
+      const unitGrade = await student.getUnitGrade({ unitId });
 
-        return unitGrade;
-      },
-    ),
+      return unitGrade;
+    }),
 
   // [#22d3ee] - revisit middleware
   saveMarks: procedure.unitOfAssessment.marker
