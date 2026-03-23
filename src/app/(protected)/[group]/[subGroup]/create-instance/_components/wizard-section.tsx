@@ -16,7 +16,6 @@ import {
 
 import { api } from "@/lib/trpc/client";
 import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
-import { slugify } from "@/lib/utils/general/slugify";
 import { type SubGroupParams } from "@/lib/validations/params";
 
 export function WizardSection({

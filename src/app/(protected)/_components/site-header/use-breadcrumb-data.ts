@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 
 import { api } from "@/lib/trpc/client";
-import { unSlugify } from "@/lib/utils/general/slugify";
 
 export function useBreadcrumbData() {
   const pathname = usePathname();
