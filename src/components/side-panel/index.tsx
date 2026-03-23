@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { buttonVariants } from "@/components/ui/button";
 
 import { cn } from "@/lib/utils";
-import { stripTrailingSlash } from "@/lib/utils/general/trim";
+import { stripTrailingSlash } from "@/lib/utils/trim";
 import { type TabGroup, type TabType } from "@/lib/validations/tabs";
 
 import { useInstancePath } from "../params-context";

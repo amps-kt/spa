@@ -9,7 +9,7 @@ import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { api } from "@/lib/trpc/client";
-import { toPP3 } from "@/lib/utils/general/instance-params";
+import { toPP3 } from "@/lib/utils/instance-params";
 
 import { useLateProjectColumns } from "./late-projects-columns";
 

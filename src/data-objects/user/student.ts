@@ -19,7 +19,7 @@ import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod, type MarkerType, PreferenceType } from "@/db/types";
 import { type DB } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
 import { type InstanceParams } from "@/lib/validations/params";
 

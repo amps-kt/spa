@@ -6,7 +6,7 @@ import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 import { Transformers as T } from "@/db/transformers";
 import { type DB, ExtendedReaderPreferenceType } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { institutionIdSchema } from "@/lib/validations/institution-id";
 import { type InstanceParams } from "@/lib/validations/params";
 

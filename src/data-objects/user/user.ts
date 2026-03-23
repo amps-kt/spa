@@ -11,7 +11,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { type DB, Role } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import {
   type GroupParams,
   type SubGroupParams,
