@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -21,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import {
   buildNewAllocationGroupFormSchema,
@@ -32,7 +32,7 @@ export function FormSection({
 }: {
   takenGroupNames: Set<string>;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
 
   const formSchema = buildNewAllocationGroupFormSchema(takenGroupNames);
 
@@ -47,7 +47,11 @@ export function FormSection({
   function onSubmit({ groupName }: NewAllocationGroupForm) {
     void toast.promise(
       createGroupAsync({ groupName }).then(() => {
-        router.push(`/${encodeURIComponent(groupName)}`);
+        router.push(
+          "group",
+          { group: encodeURIComponent(groupName) },
+          undefined,
+        );
         router.refresh();
       }),
       {

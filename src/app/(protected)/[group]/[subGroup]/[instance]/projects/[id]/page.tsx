@@ -6,7 +6,6 @@ import {
   TextIcon,
   UserIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -25,7 +24,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { toPositional } from "@/lib/formatting/to-positional";
+import { numberToOrdinal } from "@/lib/formatting/number-to-ordinal";
+import { AppInstanceLink } from "@/lib/routing";
 import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
@@ -176,15 +176,16 @@ async function ProjectDetailsCard({
               Supervisor
             </h3>
             {isAdmin ? (
-              <Link
+              <AppInstanceLink
                 className={cn(
                   buttonVariants({ variant: "link" }),
                   "p-0 text-lg",
                 )}
-                href={`../${PAGES.allSupervisors.href}/${projectData.supervisor.id}`}
+                page="supervisorById"
+                linkArgs={{ supervisorId: projectData.supervisor.id }}
               >
                 {projectData.supervisor.name}
-              </Link>
+              </AppInstanceLink>
             ) : (
               <p className="text-lg font-semibold">
                 {projectData.supervisor.name}
@@ -256,15 +257,16 @@ function AllocatedStudentSection({
                 <h3 className="-mb-1 text-sm font-medium text-muted-foreground">
                   Student
                 </h3>
-                <Link
+                <AppInstanceLink
                   className={cn(
                     buttonVariants({ variant: "link" }),
                     "text-nowrap p-0 text-base",
                   )}
-                  href={`../${PAGES.allStudents.href}/${student.id}`}
+                  page="studentById"
+                  linkArgs={{ studentId: student.id }}
                 >
                   {student.name}
-                </Link>
+                </AppInstanceLink>
               </div>
             </div>
           </CardContent>
@@ -275,7 +277,7 @@ function AllocatedStudentSection({
           <p>
             This was the student&apos;s{" "}
             <span className="font-semibold text-indigo-600">
-              {toPositional(rank)}
+              {numberToOrdinal(rank)}
             </span>{" "}
             choice.
           </p>

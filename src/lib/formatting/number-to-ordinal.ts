@@ -4,7 +4,7 @@
  * @returns the number in positional notation
  * @example toPositional(1) => 1st
  */
-export function toPositional(n: number): string {
+export function numberToOrdinal(n: number): string {
   if (n < 1) throw new Error("Input number must be positive");
 
   const lastTwoDigits = n % 100;

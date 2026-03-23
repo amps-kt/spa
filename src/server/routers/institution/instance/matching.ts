@@ -3,7 +3,6 @@ import { z } from "zod";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import { fetchRandomItemFromArray, getRandomInt } from "@/lib/utils/random";
 import { allocationCsvDataSchema } from "@/lib/validations/allocation-csv-data";
 import { instanceParamsSchema } from "@/lib/validations/params";
 
@@ -79,3 +78,22 @@ export const matchingRouter = createTRPCRouter({
       await instance.deleteStudentAllocation(studentId);
     }),
 });
+
+/**
+ * @deprecated use MaxFlow algorithm from matching-service
+ */
+function getRandomInt(max: number) {
+  return Math.floor(Math.random() * max);
+}
+
+/**
+ * @deprecated use MaxFlow algorithm from matching-service
+ */
+function fetchRandomItemFromArray<T>(array: T[]): { item: T; remaining: T[] } {
+  if (array.length === 0) {
+    throw new Error("Array must not be empty");
+  }
+
+  const index = getRandomInt(array.length);
+  return { item: array[index], remaining: array.toSpliced(index, 1) };
+}

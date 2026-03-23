@@ -94,6 +94,14 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
+  group: {
+    title: "",
+    href: "",
+    mkUrl: ({ group }: GroupParams) => `/${group}`,
+    level: 1,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: true,
+  },
   newSubGroup: {
     title: "New Sub-Group",
     href: "create-sub-group",
@@ -101,6 +109,14 @@ export const PAGES = {
     level: 2,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
+  },
+  subGroup: {
+    title: "",
+    href: "",
+    mkUrl: ({ group, subGroup }: SubGroupParams) => `/${group}/${subGroup}`,
+    level: 2,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: true,
   },
   newInstance: {
     title: "New Instance",
@@ -112,6 +128,15 @@ export const PAGES = {
     hasSubRoute: false,
   },
 
+  instance: {
+    title: "",
+    href: "",
+    mkUrl: ({ group, subGroup, instance }: InstanceParams) =>
+      `/${group}/${subGroup}/${instance}`,
+    level: 3,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: true,
+  },
   settings: {
     title: "Settings",
     href: "settings",
