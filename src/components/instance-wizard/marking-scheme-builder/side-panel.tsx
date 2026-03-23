@@ -4,7 +4,7 @@ import { useState } from "react";
 
 import { addWeeks } from "date-fns";
 import {
-  ChevronDown,
+  ChevronDownIcon,
   MoreHorizontalIcon,
   PlusIcon,
   Trash2Icon,
@@ -170,7 +170,7 @@ function CollapsibleClassificationTab({
               className="h-6 w-6 flex-none hover:bg-slate-400/20"
               onClick={() => setOpen(undefined)}
             >
-              <ChevronDown className="h-4 w-4 -rotate-90 transition-transform group-data-[state=open]/collapsible:rotate-0" />
+              <ChevronDownIcon className="h-4 w-4 -rotate-90 transition-transform group-data-[state=open]/collapsible:rotate-0" />
             </Button>
           </CollapsibleTrigger>
           <button

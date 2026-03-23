@@ -3,7 +3,7 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  MoreHorizontal as MoreIcon,
+  MoreHorizontalIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
@@ -116,7 +116,7 @@ export function useNewReaderColumns({
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost">
                   <span className="sr-only">Open menu</span>
-                  <MoreIcon className="h-4 w-4" />
+                  <MoreHorizontalIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <YesNoActionContainer
@@ -185,7 +185,7 @@ export function useNewReaderColumns({
             <DropdownMenuTrigger asChild>
               <Button size="icon" variant="ghost">
                 <span className="sr-only">Open menu</span>
-                <MoreIcon className="h-4 w-4" />
+                <MoreHorizontalIcon className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <YesNoActionContainer

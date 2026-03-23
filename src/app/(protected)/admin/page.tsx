@@ -1,4 +1,4 @@
-import { Plus, SquareLibraryIcon } from "lucide-react";
+import { PlusIcon, SquareLibraryIcon } from "lucide-react";
 import { type Metadata } from "next";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -75,7 +75,7 @@ export default async function Page() {
           asChild
         >
           <AppLink page="newGroup" linkArgs={undefined}>
-            <Plus className="h-6 w-6" />{" "}
+            <PlusIcon className="h-6 w-6" />{" "}
             <span className="text-lg">Create {spacesLabels.group.short}</span>
           </AppLink>
         </Button>

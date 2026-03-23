@@ -3,7 +3,7 @@
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, RotateCcw } from "lucide-react";
+import { SaveIcon, RotateCcwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -107,7 +107,7 @@ export function EditUserDetailsForm({ user }: { user: UserDTO }) {
             disabled={!hasChanges || isSubmitting}
             variant="outline"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcwIcon className="h-4 w-4 mr-2" />
             Reset
           </Button>
           <Button
@@ -115,7 +115,7 @@ export function EditUserDetailsForm({ user }: { user: UserDTO }) {
             disabled={!hasChanges || isSubmitting}
             variant={hasChanges ? "default" : "secondary"}
           >
-            <Save className="h-4 w-4 mr-2" />
+            <SaveIcon className="h-4 w-4 mr-2" />
             {isSubmitting
               ? "Saving..."
               : hasChanges

@@ -1,4 +1,4 @@
-import { Plus, SquareLibraryIcon } from "lucide-react";
+import { PlusIcon, SquareLibraryIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -91,7 +91,7 @@ export default async function Page({ params }: { params: SubGroupParams }) {
           asChild
         >
           <AppLink page="newInstance" linkArgs={{ group, subGroup }}>
-            <Plus className="h-6 w-6 stroke-[3px]" />
+            <PlusIcon className="h-6 w-6 stroke-[3px]" />
             <p className="text-lg">Create {spacesLabels.instance.short}</p>
           </AppLink>
         </Button>

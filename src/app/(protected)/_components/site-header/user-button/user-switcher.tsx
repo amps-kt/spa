@@ -1,6 +1,6 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { type UserDTO } from "@/dto";
@@ -63,7 +63,7 @@ export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
                 </span>
               </div>
             </div>
-            {account.id === user.id && <Check className="h-4 w-4" />}
+            {account.id === user.id && <CheckIcon className="h-4 w-4" />}
           </DropdownMenuItem>
         ))}
       </>

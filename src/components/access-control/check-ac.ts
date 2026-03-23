@@ -1,6 +1,4 @@
-import type { Stage } from "@prisma/client";
-
-import type { Role } from "@/db/types";
+import { type Role, type Stage } from "@/db/types";
 
 import { hasOverlap } from "@/lib/utils/set";
 

@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { TRPCClientError } from "@trpc/client";
-import { FileSpreadsheetIcon, FileText, RotateCcw } from "lucide-react";
+import { FileSpreadsheetIcon, FileTextIcon, RotateCcwIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -184,7 +184,7 @@ export function AddSupervisorsSection() {
               disabled={!processingResult}
               className="flex items-center gap-2"
             >
-              <FileText className="h-4 w-4" />
+              <FileTextIcon className="h-4 w-4" />
               View Upload Results
             </Button>
             <Button
@@ -194,7 +194,7 @@ export function AddSupervisorsSection() {
               disabled={!processingResult}
               className="flex items-center gap-2"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcwIcon className="h-4 w-4" />
               Clear & Upload New
             </Button>
           </div>
