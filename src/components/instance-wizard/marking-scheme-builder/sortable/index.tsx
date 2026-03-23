@@ -17,7 +17,7 @@ import {
 
 import { type MarkerType } from "@/db/types";
 
-import { computeUpdatedRank } from "@/lib/utils/sorting/compute-updated-rank";
+import { computeUpdatedRank } from "@/components/kanban-board/compute-updated-rank";
 
 import { useMarkingSchemeStore } from "../state";
 import { type AssessmentCriterion } from "../state/store";

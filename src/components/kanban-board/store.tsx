@@ -6,7 +6,7 @@ import { createStore, useStore } from "zustand";
 
 import { PreferenceType } from "@/db/types";
 
-import { computeUpdatedRank } from "@/lib/utils/sorting/compute-updated-rank";
+import { computeUpdatedRank } from "./compute-updated-rank";
 import {
   type PreferenceBoard,
   type ProjectPreferenceCardDto,
