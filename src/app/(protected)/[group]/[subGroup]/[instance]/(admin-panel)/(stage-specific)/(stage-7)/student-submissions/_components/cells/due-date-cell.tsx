@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { format, set } from "date-fns";
+import { format, getHours, getMinutes, set } from "date-fns";
 import { CalendarIcon, Clock2Icon, PencilIcon, SaveIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,12 @@ import {
 } from "@/components/ui/tooltip";
 
 import { cn } from "@/lib/utils";
-import { updateDateOnly } from "@/lib/utils/date/update-date-only";
+
+function updateDateOnly(oldDate: Date, newDate: Date) {
+  const hours = getHours(oldDate);
+  const minutes = getMinutes(oldDate);
+  return set(newDate, { hours, minutes });
+}
 
 export function DueDateCell({
   value,

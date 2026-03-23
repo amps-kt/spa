@@ -16,7 +16,7 @@ export function useBreadcrumbData() {
   const fallbackData = useMemo(
     () =>
       segments.map((segment, index) => ({
-        segment: unSlugify(segment),
+        segment: decodeURIComponent(segment),
         access: false,
         path: `/${segments.slice(0, index + 1).join("/")}`,
       })),
