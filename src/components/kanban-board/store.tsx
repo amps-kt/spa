@@ -6,11 +6,12 @@ import { createStore, useStore } from "zustand";
 
 import { PreferenceType } from "@/db/types";
 
-import { computeUpdatedRank } from "./compute-updated-rank";
 import {
   type PreferenceBoard,
   type ProjectPreferenceCardDto,
 } from "@/lib/validations/board";
+
+import { computeUpdatedRank } from "./compute-updated-rank";
 
 interface KanbanBoardProps {
   projects: PreferenceBoard;

@@ -7,6 +7,7 @@ import { type User } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
 
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+
 import { UserAvatar } from "./user-avatar";
 
 export function UserDetailsCard({

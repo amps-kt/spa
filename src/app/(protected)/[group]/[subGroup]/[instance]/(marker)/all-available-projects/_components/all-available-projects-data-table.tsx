@@ -2,7 +2,12 @@
 
 import { readingPreferenceOptions } from "@/config/reading-preference";
 
-import { type TagDTO, type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
+import {
+  type TagDTO,
+  type FlagDTO,
+  type ProjectDTO,
+  type StudentDTO,
+} from "@/dto";
 
 import { type ExtendedReaderPreferenceType } from "@/db/types";
 
