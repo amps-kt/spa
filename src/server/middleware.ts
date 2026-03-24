@@ -117,9 +117,9 @@ const stageMiddleware = (allowedStages: Stage[]) =>
  * @requires a preceding `.input(z.object({ params: projectParamsSchema }))`
  */
 const projectMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: projectParamsSchema }).parse(input);
-    const project = new Project(db, params);
+    const project = new Project(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { projectId: params.projectId });
