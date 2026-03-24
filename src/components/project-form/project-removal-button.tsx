@@ -3,8 +3,6 @@
 import { Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
-import { PAGES } from "@/config/pages";
-
 import { useInstanceParams } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 

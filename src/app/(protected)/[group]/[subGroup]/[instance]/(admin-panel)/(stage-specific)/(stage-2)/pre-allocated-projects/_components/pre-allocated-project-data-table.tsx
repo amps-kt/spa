@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -14,6 +13,7 @@ import {
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { toPP3 } from "@/lib/utils/instance-params";
 
@@ -31,7 +31,7 @@ export function PreAllocatedProjectDataTable({
   projectDescriptors: { flags: FlagDTO[]; tags: TagDTO[] };
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
   const { mutateAsync: api_deleteManyProjects } =

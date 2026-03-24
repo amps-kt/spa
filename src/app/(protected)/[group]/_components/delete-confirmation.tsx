@@ -1,10 +1,10 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { DangerZone } from "@/components/danger-zone";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -17,14 +17,14 @@ export function DeleteConfirmation({
   params: GroupParams;
   name: string;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
   const { mutateAsync: deleteAsync } =
     api.institution.deleteGroup.useMutation();
 
   async function destructiveAction() {
     void toast.promise(
       deleteAsync({ params }).then(() => {
-        router.push(`/admin`);
+        router.push("superAdminPanel", undefined, undefined);
         router.refresh();
       }),
       {

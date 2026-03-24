@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { CHAPTER } from "@/config/stages";
@@ -13,13 +12,14 @@ import { type Stage } from "@/db/types";
 import { useInstanceParams } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { StageButton } from "./stage-button";
 
 export function StageControl({ stage }: { stage: Stage }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const stages = stageSchema.options;
   const [selectedIdx, setSelectedIdx] = useState(-1);
   const [confirmedIdx, setConfirmedIdx] = useState(stages.indexOf(stage) + 1);

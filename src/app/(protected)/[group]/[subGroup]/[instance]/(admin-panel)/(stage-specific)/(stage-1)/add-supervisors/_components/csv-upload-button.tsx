@@ -2,7 +2,6 @@
 
 import { type RefObject } from "react";
 
-import { type NewSupervisor } from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-1)/add-supervisors/_components/new-supervisor-schema";
 import { parse } from "papaparse";
 import { toast } from "sonner";
 
@@ -19,6 +18,7 @@ import {
   type ProcessingResult,
 } from "./csv-validation-utils";
 import { ErrorReportModal } from "./error-report-modal";
+import { type NewSupervisor } from "./new-supervisor-schema";
 
 interface CSVUploadButtonProps {
   handleUpload: (data: SupervisorDTO[]) => Promise<LinkUserResult[]>;

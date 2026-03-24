@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -10,6 +9,7 @@ import { type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { useAllStudentsColumns } from "./all-students-columns";
@@ -22,7 +22,7 @@ export function StudentsDataTable({
   flags: FlagDTO[];
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_deleteStudent } =
     api.institution.instance.deleteStudent.useMutation();

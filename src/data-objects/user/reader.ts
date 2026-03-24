@@ -1,10 +1,13 @@
-import { ReaderPreferenceType } from "@prisma/client";
 import { z } from "zod";
 
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB, ExtendedReaderPreferenceType } from "@/db/types";
+import {
+  type DB,
+  ExtendedReaderPreferenceType,
+  DB_ReaderPreferenceType,
+} from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { institutionIdSchema } from "@/lib/validations/institution-id";
@@ -91,7 +94,7 @@ export class Reader extends Marker {
       where: {
         ...expand(this.instance.params),
         readerId: this.id,
-        type: ReaderPreferenceType.PREFERRED,
+        type: DB_ReaderPreferenceType.PREFERRED,
       },
     });
   }

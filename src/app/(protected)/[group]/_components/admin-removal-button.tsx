@@ -1,7 +1,6 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -9,6 +8,7 @@ import { spacesLabels } from "@/config/spaces";
 import { Button } from "@/components/ui/button";
 import { YesNoAction } from "@/components/yes-no-action";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { type GroupParams } from "@/lib/validations/params";
 
@@ -19,7 +19,7 @@ export function AdminRemovalButton({
   params: GroupParams;
   userId: string;
 }) {
-  const router = useRouter();
+  const router = useAppRouter();
 
   const { mutateAsync } = api.institution.group.removeGroupAdmin.useMutation();
 

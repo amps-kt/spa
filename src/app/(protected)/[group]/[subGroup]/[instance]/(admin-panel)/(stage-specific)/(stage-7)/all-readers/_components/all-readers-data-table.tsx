@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -12,6 +11,7 @@ import { type Role } from "@/db/types";
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { useAllReadersColumns } from "./all-readers-columns";
@@ -24,7 +24,7 @@ export function ReadersDataTable({
   data: ReaderDTO[];
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_deleteAsync } =
     api.institution.instance.deleteReader.useMutation();

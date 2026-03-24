@@ -46,7 +46,7 @@ import {
   matchingOutputSchema,
   matchingReaderSchema,
 } from "@/lib/services/reader-allocation/types";
-import { expand, formatParamsAsPath } from "@/lib/utils/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { previousStages, stageGte } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
@@ -1081,7 +1081,7 @@ export const instanceRouter = createTRPCRouter({
 
       const roles = await ctx.user.getRolesInInstance(instance.params);
 
-      const instancePath = formatParamsAsPath(instance.params);
+      const instancePath = `/${instance.params.group}/${instance.params.subGroup}/${instance.params.instance}`;
 
       if (!roles.has(Role.ADMIN)) {
         return {
