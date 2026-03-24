@@ -1,7 +1,6 @@
 "use client";
 
 import { CheckIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 import { type UserDTO } from "@/dto";
 
@@ -13,6 +12,7 @@ import {
 import { UserAvatar } from "@/components/user-avatar";
 
 import { switchDevUser } from "@/lib/auth/switcher-actions";
+import { useAppRouter } from "@/lib/routing";
 
 interface UserSwitcherProps {
   users: UserDTO[];
@@ -20,7 +20,7 @@ interface UserSwitcherProps {
 }
 
 export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const user = users.find((a) => a.id === currentUserId);
 
   if (!user) {

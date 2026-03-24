@@ -81,8 +81,16 @@ export const PAGES = {
   userManagement: {
     title: "User Management",
     href: "all-users",
-    mkUrl: () => "/all-users",
+    mkUrl: () => "/admin/all-users",
     level: 2,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
+  userById: {
+    title: "",
+    href: "",
+    mkUrl: ({ userId }: { userId: string }) => `/admin/all-users/${userId}`,
+    level: 3,
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },

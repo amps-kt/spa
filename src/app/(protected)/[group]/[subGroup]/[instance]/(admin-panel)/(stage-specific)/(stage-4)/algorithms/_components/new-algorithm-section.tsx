@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { type z } from "zod";
 
@@ -51,6 +50,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
@@ -89,7 +89,7 @@ function NewAlgorithmForm({
   setShowForm: (s: boolean) => void;
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const utils = useAlgorithmUtils();
 
   const { mutateAsync: createAlgorithmAsync } =

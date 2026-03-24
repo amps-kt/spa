@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { TRPCClientError } from "@trpc/client";
 import { PlusIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { INSTITUTION } from "@/config/institution";
@@ -33,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import {
   type NewAdmin,
@@ -42,7 +42,7 @@ import { type SubGroupParams } from "@/lib/validations/params";
 
 export function FormButton({ params }: { params: SubGroupParams }) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const router = useAppRouter();
 
   const form = useForm<NewAdmin>({ resolver: zodResolver(newAdminSchema) });
 

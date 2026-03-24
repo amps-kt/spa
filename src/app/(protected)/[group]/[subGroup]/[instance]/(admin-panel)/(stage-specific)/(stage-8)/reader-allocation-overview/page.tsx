@@ -4,7 +4,6 @@ import {
   FileBadgeIcon,
   ZapIcon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { PAGES } from "@/config/pages";
 
@@ -54,14 +53,14 @@ export default async function ReaderAllocationOverview({
                 className="w-50 flex justify-start gap-3"
                 asChild
               >
-                <Link
+                <a
                   href="reader-allocation-overview/reader-matching.csv"
                   target="_blank"
                   download
                 >
                   <DownloadIcon className="size-4" />
                   Download Allocation
-                </Link>
+                </a>
               </Button>
             </div>
           </CardContent>

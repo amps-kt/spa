@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import {
@@ -18,6 +17,7 @@ import { ToastSuccessCard } from "@/components/toast-success-card";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { type User } from "@/lib/auth/types";
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { toPP3 } from "@/lib/utils/instance-params";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
@@ -41,7 +41,7 @@ export function AllProjectsDataTable({
   usedFlags: FlagDTO[];
   usedTags: TagDTO[];
 }) {
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const params = useInstanceParams();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();

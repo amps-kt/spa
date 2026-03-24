@@ -7,7 +7,6 @@ import { ArrowUpLeftIcon } from "lucide-react";
 import { type Role, type Stage } from "@/db/types";
 
 import { AppInstanceLink } from "@/lib/routing";
-import { formatParamsAsPath } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 type InstanceData = { params: InstanceParams; stage: Stage; roles: Set<Role> };
@@ -78,4 +77,9 @@ export function InstanceHomeRedirectButton() {
       <span>Go to Instance Home</span>
     </AppInstanceLink>
   );
+}
+
+function formatParamsAsPath(instanceParams: InstanceParams) {
+  const { group, subGroup, instance } = instanceParams;
+  return `/${group}/${subGroup}/${instance}`;
 }

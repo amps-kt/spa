@@ -2,16 +2,15 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { EditIcon } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type UserDTO } from "@/dto";
 
 import { buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 
+import { AppLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 export const useUserManagementColumns = [
@@ -41,15 +40,16 @@ export const useUserManagementColumns = [
     header: "Actions",
     cell: ({ row: { original: user } }) => (
       <div className="flex w-14 items-center justify-center gap-2">
-        <Link
+        <AppLink
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),
             "w-10 h-10",
           )}
-          href={`/${PAGES.superAdminPanel.href}/${PAGES.userManagement.href}/${user.id}`}
+          page="userById"
+          linkArgs={{ userId: user.id }}
         >
           <EditIcon className="h-4 w-4" />
-        </Link>
+        </AppLink>
       </div>
     ),
   },
