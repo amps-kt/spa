@@ -24,8 +24,19 @@ import {
   instanceParamsSchema,
   projectParamsSchema,
   subGroupParamsSchema,
+  type InstanceParams,
+  type ProjectParams,
 } from "@/lib/validations/params";
 
+import {
+  type GuardPredicate,
+  type GuardCtx,
+  instanceGuard,
+  projectGuard,
+  anyOf,
+  allOf,
+  not,
+} from "./guard";
 import { t } from "./trpc";
 
 const institutionMiddleware = t.middleware(async ({ ctx: { db }, next }) => {
@@ -160,6 +171,7 @@ const unitOfAssessmentMiddleware = t.middleware(
     return next({ ctx: { unit } });
   },
 );
+
 // ----
 
 const authedMiddleware = t.middleware(({ ctx: { db, session }, next }) => {
@@ -489,6 +501,10 @@ export const procedure = {
     member: instanceProcedure.use(instanceMemberMiddleware),
     withAC: (condition: AccessCondition) =>
       instanceProcedure.use(accessControlMiddleware(condition)),
+
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      instanceProcedure.use(authedMiddleware).use(instanceGuard(predicate)),
+
     // sort of makes these two irrelevant now,
     // Maybe we should deprecate?
 
@@ -534,6 +550,9 @@ export const procedure = {
     withAC: (condition: AccessCondition) =>
       projectProcedure.use(accessControlMiddleware(condition)),
 
+    guard: <TInput>(predicate: GuardPredicate<ProjectParams, TInput>) =>
+      projectProcedure.use(authedMiddleware).use(projectGuard(predicate)),
+
     withRoles: (allowedRoles: Role[]) =>
       projectProcedure.use(mkRoleMiddleware(allowedRoles)),
 
@@ -566,6 +585,9 @@ export const procedure = {
     groupAdmin: algorithmProcedure.use(GroupAdminMiddleware),
     subGroupAdmin: algorithmProcedure.use(SubGroupAdminMiddleware),
 
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      algorithmProcedure.use(authedMiddleware).use(instanceGuard(predicate)),
+
     inStage: (allowedStages: Stage[]) => {
       const proc = institutionProcedure
         .input(z.object({ params: instanceParamsSchema, algId: z.string() }))
@@ -589,5 +611,20 @@ export const procedure = {
     groupAdmin: unitOfAssessmentProcedure.use(GroupAdminMiddleware),
     subGroupAdmin: unitOfAssessmentProcedure.use(SubGroupAdminMiddleware),
     marker: unitOfAssessmentProcedure.use(unitMarkerMiddleware),
+
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      unitOfAssessmentProcedure
+        .use(authedMiddleware)
+        .use(instanceGuard(predicate)),
   },
+};
+
+export {
+  type GuardPredicate,
+  type GuardCtx,
+  instanceGuard,
+  projectGuard,
+  anyOf,
+  allOf,
+  not,
 };
