@@ -1,9 +1,10 @@
-import { Settings, Users, ChevronRight } from "lucide-react";
+import { SettingsIcon, UsersIcon, ChevronRightIcon } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
+import { AppLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 
 import { InstanceCard } from "./instance-card";
@@ -22,12 +23,17 @@ export async function UserSpacesGrid() {
             </h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {instances.map((instance) => (
-                <Link
-                  href={`/${instance.group.id}/${instance.subGroup.id}/${instance.instance.id}`}
+                <AppLink
+                  page="instance"
+                  linkArgs={{
+                    group: instance.group.id,
+                    subGroup: instance.subGroup.id,
+                    instance: instance.instance.id,
+                  }}
                   key={instance.instance.id}
                 >
                   <InstanceCard instanceData={instance} />
-                </Link>
+                </AppLink>
               ))}
             </div>
           </section>
@@ -44,7 +50,7 @@ export async function UserSpacesGrid() {
                   <Card className="group cursor-pointer border-l-4 border-l-orange-500 transition-shadow hover:shadow-lg">
                     <CardHeader className="pb-3">
                       <div className="flex items-center space-x-2">
-                        <Settings className="h-4 w-4 text-orange-600" />
+                        <SettingsIcon className="h-4 w-4 text-orange-600" />
                         <CardTitle className="text-lg">
                           {panel.displayName}
                         </CardTitle>
@@ -63,7 +69,7 @@ export async function UserSpacesGrid() {
                           className="transition-colors group-hover:bg-orange-600 group-hover:text-white"
                         >
                           Open Admin Panel
-                          <ChevronRight className="ml-1 h-3 w-3" />
+                          <ChevronRightIcon className="ml-1 h-3 w-3" />
                         </Button>
                       </div>
                     </CardContent>
@@ -77,7 +83,7 @@ export async function UserSpacesGrid() {
         {instances.length === 0 && adminPanels.length === 0 && (
           <div className="py-12 text-center">
             <div className="mb-4 text-gray-400">
-              <Users className="mx-auto h-16 w-16" />
+              <UsersIcon className="mx-auto h-16 w-16" />
             </div>
             <h3 className="mb-2 text-lg font-medium text-gray-900">
               No instances available

@@ -1,15 +1,13 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  FilePlus2,
-  LucideMoreHorizontal as MoreIcon,
+  FilePlus2Icon,
+  MoreHorizontalIcon as MoreIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type SupervisorDTO } from "@/dto";
 
@@ -17,10 +15,7 @@ import { Role, Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -39,6 +34,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import {
   previousStages,
   stageLt,
@@ -55,7 +51,6 @@ export function useAllSupervisorsColumns({
   deleteSelectedSupervisors: (ids: string[]) => Promise<void>;
 }): ColumnDef<SupervisorDTO>[] {
   const stage = useInstanceStage();
-  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<SupervisorDTO>();
 
@@ -82,12 +77,13 @@ export function useAllSupervisorsColumns({
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row: { original: supervisor } }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={getInstancePath([PAGES.allSupervisors.href, supervisor.id])}
+          page="supervisorById"
+          linkArgs={{ supervisorId: supervisor.id }}
         >
           {supervisor.name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -213,44 +209,37 @@ export function useAllSupervisorsColumns({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath([
-                    PAGES.allSupervisors.href,
-                    supervisor.id,
-                  ])}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: supervisor.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath(
-                    [PAGES.allSupervisors.href, supervisor.id],
-                    "edit=true",
-                  )}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: supervisor.id }}
                 >
                   <PenIcon className="h-4 w-4" />
                   <span>Edit supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <ConditionalRender
                 allowedStages={previousStages(Stage.STUDENT_BIDDING)}
                 allowed={
                   <DropdownMenuItem className="group/item">
-                    <Link
+                    <AppInstanceLink
                       className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                      href={getInstancePath([
-                        PAGES.allSupervisors.href,
-                        supervisor.id,
-                        PAGES.newProject.href,
-                      ])}
+                      page="newSupervisorProject"
+                      linkArgs={{ supervisorId: supervisor.id }}
                     >
-                      <FilePlus2 className="h-4 w-4" />
+                      <FilePlus2Icon className="h-4 w-4" />
                       <span>Create new project</span>
-                    </Link>
+                    </AppInstanceLink>
                   </DropdownMenuItem>
                 }
                 denied={(denialData) => (
@@ -268,7 +257,7 @@ export function useAllSupervisorsColumns({
                       disabled
                     >
                       <button className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline">
-                        <FilePlus2 className="h-4 w-4" />
+                        <FilePlus2Icon className="h-4 w-4" />
                         <span>Create new project</span>
                       </button>
                     </DropdownMenuItem>

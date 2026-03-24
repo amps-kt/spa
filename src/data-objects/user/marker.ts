@@ -17,7 +17,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { MarkerType, type DB } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationInstance } from "../space/instance";

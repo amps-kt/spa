@@ -1,5 +1,5 @@
 import { cva } from "class-variance-authority";
-import { X } from "lucide-react";
+import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -123,7 +123,7 @@ export const Tag: React.FC<TagProps> = ({
         }}
         className={cn("h-full px-3 py-1 hover:bg-transparent")}
       >
-        <X size={14} />
+        <XIcon size={14} />
       </Button>
     </span>
   );

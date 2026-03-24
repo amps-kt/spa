@@ -5,11 +5,9 @@ import {
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import {
   flagDtoSchema,
@@ -18,7 +16,6 @@ import {
   type SupervisorDTO,
 } from "@/dto";
 
-import { useInstancePath } from "@/components/params-context";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -39,6 +36,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 type PreAllocation = {
@@ -54,8 +52,6 @@ export function usePreAllocatedProjectColumns({
   deleteProject: (id: string) => Promise<void>;
   deleteSelectedProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<PreAllocation>[] {
-  const instancePath = useInstancePath();
-
   const selectCol = getSelectColumn<PreAllocation>();
 
   const userCols: ColumnDef<PreAllocation>[] = [
@@ -88,15 +84,16 @@ export function usePreAllocatedProjectColumns({
         },
       }) => (
         <WithTooltip tip={<p className="max-w-96">{project.title}</p>}>
-          <Link
+          <AppInstanceLink
             className={cn(
               buttonVariants({ variant: "link" }),
               "inline-block w-40 truncate px-0 text-start",
             )}
-            href={`${instancePath}/projects/${project.id}`}
+            page="projectById"
+            linkArgs={{ projectId: project.id }}
           >
             {project.title}
-          </Link>
+          </AppInstanceLink>
         </WithTooltip>
       ),
     },
@@ -116,12 +113,13 @@ export function usePreAllocatedProjectColumns({
           original: { supervisor },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={`${instancePath}/${PAGES.allSupervisors.href}/${supervisor.id}`}
+          page="supervisorById"
+          linkArgs={{ supervisorId: supervisor.id }}
         >
           {supervisor.id}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -259,12 +257,13 @@ export function usePreAllocatedProjectColumns({
           original: { student },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={`${instancePath}/${PAGES.allStudents.href}/${student.id}`}
+          page="studentById"
+          linkArgs={{ studentId: student.id }}
         >
           {student.id}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -346,9 +345,10 @@ export function usePreAllocatedProjectColumns({
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={`${instancePath}/projects/${project.id}`}
+                    page="projectById"
+                    linkArgs={{ projectId: project.id }}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <p className="flex items-center">
@@ -356,16 +356,17 @@ export function usePreAllocatedProjectColumns({
                       <p className="max-w-40 truncate">{project.title}</p>
                       &quot;
                     </p>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={`${instancePath}/projects/${project.id}/edit`}
+                    page="editProject"
+                    linkArgs={{ projectId: project.id }}
                   >
                     <PenIcon className="h-4 w-4" />
                     <span>Edit Project details</span>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-destructive focus:bg-red-100/40 focus:text-destructive">
                   <YesNoActionTrigger

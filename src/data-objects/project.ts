@@ -8,7 +8,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod, type DB } from "@/db/types";
 
-import { expand, toPP2 } from "@/lib/utils/general/instance-params";
+import { expand, toPP2 } from "@/lib/utils/instance-params";
 import { type ProjectParams } from "@/lib/validations/params";
 
 import { AllocationGroup } from "./space/group";

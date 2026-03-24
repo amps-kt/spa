@@ -10,8 +10,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { type DB, type New } from "@/db/types";
 
-import { toInstanceId, expand } from "@/lib/utils/general/instance-params";
-import { slugify } from "@/lib/utils/general/slugify";
+import { toInstanceId, expand } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { uniqueById } from "@/lib/utils/list-unique";
 import { type SubGroupParams } from "@/lib/validations/params";
@@ -52,7 +51,7 @@ export class AllocationSubGroup extends DataObject {
     flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
-    const instanceSlug = slugify(newInstance.displayName);
+    const instanceSlug = encodeURIComponent(newInstance.displayName);
 
     const params = { ...this.params, instance: instanceSlug };
 

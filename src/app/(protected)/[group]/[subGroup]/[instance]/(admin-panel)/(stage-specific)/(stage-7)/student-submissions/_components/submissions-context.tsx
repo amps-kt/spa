@@ -20,9 +20,8 @@ import {
   type StudentSubmissionInfoDTO,
 } from "@/dto/marking/student-submissions";
 
-import { setDiff } from "@/lib/utils/general/set-difference";
-import { setIntersection } from "@/lib/utils/general/set-intersection";
 import { keyBy } from "@/lib/utils/key-by";
+import { setDiff, setIntersection } from "@/lib/utils/set";
 
 import {
   StudentSelectionMode,

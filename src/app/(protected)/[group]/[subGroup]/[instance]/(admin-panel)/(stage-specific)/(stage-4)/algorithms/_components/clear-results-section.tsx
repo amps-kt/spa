@@ -1,7 +1,6 @@
 "use client";
 
 import { BookmarkXIcon, DatabaseZapIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useInstanceParams } from "@/components/params-context";
@@ -23,6 +22,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableCell, TableRow } from "@/components/ui/table";
 import { YesNoAction } from "@/components/yes-no-action";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { useAlgorithmUtils, useSelectedAlgorithm } from "./algorithm-context";
@@ -34,7 +34,7 @@ export function ClearResultsSection({
 }) {
   const { selectedAlgName, setSelectedAlgName } = useSelectedAlgorithm();
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const utils = useAlgorithmUtils();
 
   async function refetchResults() {

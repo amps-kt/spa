@@ -1,5 +1,4 @@
-import { Plus, SquareLibraryIcon } from "lucide-react";
-import Link from "next/link";
+import { PlusIcon, SquareLibraryIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { AppLink } from "@/lib/routing";
 import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type GroupParams } from "@/lib/validations/params";
@@ -76,21 +76,26 @@ export default async function Page({ params }: { params: GroupParams }) {
         Manage {spacesLabels.subGroup.full}s
       </SectionHeading>
       <div className="flex w-full flex-col gap-6">
-        <Link href={`/${params.group}/create-sub-group`} className="w-fit">
+        <AppLink
+          page="newSubGroup"
+          linkArgs={{ group: params.group }}
+          className="w-fit"
+        >
           <Button
             size="lg"
             variant="outline"
             className="flex h-20 w-full items-center justify-center gap-3 rounded-lg bg-accent/60 hover:bg-accent"
           >
-            <Plus className="h-6 w-6 stroke-[3px]" />
+            <PlusIcon className="h-6 w-6 stroke-[3px]" />
             <p className="text-lg">Create {spacesLabels.subGroup.short}</p>
           </Button>
-        </Link>
+        </AppLink>
         <div className="grid grid-cols-3 gap-6">
           {subGroups.map(({ subGroup, displayName }, i) => (
-            <Link
+            <AppLink
+              page="subGroup"
+              linkArgs={{ group: params.group, subGroup }}
               className="col-span-1"
-              href={`/${params.group}/${subGroup}`}
               key={i}
             >
               <Button
@@ -100,7 +105,7 @@ export default async function Page({ params }: { params: GroupParams }) {
               >
                 {displayName}
               </Button>
-            </Link>
+            </AppLink>
           ))}
         </div>
       </div>

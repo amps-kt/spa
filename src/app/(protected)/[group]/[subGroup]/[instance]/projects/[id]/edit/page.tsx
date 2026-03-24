@@ -9,7 +9,7 @@ import { EditProjectForm } from "@/components/project-form/edit-project";
 import { Unauthorised } from "@/components/unauthorised";
 
 import { api } from "@/lib/trpc/server";
-import { toPP1 } from "@/lib/utils/general/instance-params";
+import { toPP1 } from "@/lib/utils/instance-params";
 import { stageGte } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 

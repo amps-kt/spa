@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/general/fuzzy-match";
 
 import { type ManualReadingAllocationReader } from "./manual-allocation-types";
 
@@ -52,11 +51,10 @@ export function ReaderCombobox({
     reader: ManualReadingAllocationReader,
   ) => {
     const search = searchTerm.toLowerCase();
-
-    const nameMatch = fuzzyMatch(search, reader.name);
-    if (nameMatch) return true;
-
-    return fuzzyMatch(search, reader.id);
+    return (
+      reader.name.toLowerCase().includes(search) ||
+      reader.id.toLowerCase().includes(search)
+    );
   };
 
   return (
@@ -76,7 +74,7 @@ export function ReaderCombobox({
           ) : (
             <span className="text-muted-foreground">Select reader...</span>
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[380px] p-0">
@@ -104,7 +102,7 @@ export function ReaderCombobox({
                 >
                   <div className="flex w-full items-center justify-between">
                     <ReaderCell reader={reader} />
-                    <Check
+                    <CheckIcon
                       className={cn(
                         "ml-2 h-4 w-4 shrink-0",
                         value === reader.id ? "opacity-100" : "opacity-0",

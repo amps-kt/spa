@@ -1,31 +1,40 @@
 import { type ReactNode } from "react";
 
 import { type ClassValue } from "clsx";
-import Link from "next/link";
 
+import { type PageName } from "@/config/pages";
+
+import {
+  AppInstanceLink,
+  type InstancePopulated,
+  type LinkArgs,
+} from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 import { buttonVariants } from "../ui/button";
 
-export function SideButton({
-  href,
+export function SideButton<T extends PageName>({
+  page,
+  linkArgs,
   children: title,
   className,
 }: {
-  href: string;
+  page: T;
+  linkArgs: InstancePopulated<LinkArgs<T>>;
   children: ReactNode;
   className?: ClassValue;
 }) {
   return (
-    <Link
+    <AppInstanceLink
+      page={page}
+      linkArgs={linkArgs}
       className={cn(
         buttonVariants({ variant: "outline" }),
         "w-full",
         className,
       )}
-      href={href}
     >
       {title}
-    </Link>
+    </AppInstanceLink>
   );
 }

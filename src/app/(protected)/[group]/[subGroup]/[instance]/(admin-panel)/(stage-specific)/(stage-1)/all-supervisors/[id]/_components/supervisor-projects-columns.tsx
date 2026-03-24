@@ -1,14 +1,11 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  LucideMoreHorizontal as MoreIcon,
+  MoreHorizontalIcon as MoreIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
-
-import { PAGES } from "@/config/pages";
 
 import {
   flagDtoSchema,
@@ -22,10 +19,7 @@ import { Stage } from "@/db/types";
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
 import { CircleCheckSolidIcon } from "@/components/icons/circle-check";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { tagTypeSchema } from "@/components/tag/tag-input";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -46,13 +40,14 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
-import { setIntersection } from "@/lib/utils/general/set-intersection";
 import {
   previousStages,
   stageGte,
   stageLt,
 } from "@/lib/utils/permissions/stage-check";
+import { setIntersection } from "@/lib/utils/set";
 
 type ProjectWithAllocation = {
   project: ProjectDTO;
@@ -67,7 +62,6 @@ export function useSupervisorProjectsColumns({
   deleteManyProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<ProjectWithAllocation>[] {
   const stage = useInstanceStage();
-  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<ProjectWithAllocation>();
 
@@ -103,15 +97,16 @@ export function useSupervisorProjectsColumns({
           original: { project },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block h-max w-60 px-0 text-start",
           )}
-          href={getInstancePath([PAGES.allProjects.href, project.id])}
+          page="projectById"
+          linkArgs={{ projectId: project.id }}
         >
           {project.title}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -253,15 +248,13 @@ export function useSupervisorProjectsColumns({
       }) => {
         if (allocatedStudent) {
           return (
-            <Link
+            <AppInstanceLink
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "items-center gap-2",
               )}
-              href={getInstancePath([
-                PAGES.allStudents.href,
-                allocatedStudent.id,
-              ])}
+              page="studentById"
+              linkArgs={{ studentId: allocatedStudent.id }}
             >
               <span>{allocatedStudent.id}</span>
               {allocatedStudent.id === project.preAllocatedStudentId && (
@@ -271,7 +264,7 @@ export function useSupervisorProjectsColumns({
                   </div>
                 </WithTooltip>
               )}
-            </Link>
+            </AppInstanceLink>
           );
         }
       },
@@ -379,9 +372,10 @@ export function useSupervisorProjectsColumns({
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={getInstancePath([PAGES.allProjects.href, project.id])}
+                    page="projectById"
+                    linkArgs={{ projectId: project.id }}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <p className="flex items-center">
@@ -389,23 +383,20 @@ export function useSupervisorProjectsColumns({
                       <p className="max-w-40 truncate">{project.title}</p>
                       &quot;
                     </p>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <ConditionalRender
                   allowedStages={previousStages(Stage.STUDENT_BIDDING)}
                   allowed={
                     <DropdownMenuItem className="group/item">
-                      <Link
+                      <AppInstanceLink
                         className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                        href={getInstancePath([
-                          PAGES.allProjects.href,
-                          project.id,
-                          PAGES.editProject.href,
-                        ])}
+                        page="editProject"
+                        linkArgs={{ projectId: project.id }}
                       >
                         <PenIcon className="h-4 w-4" />
                         <span>Edit Project details</span>
-                      </Link>
+                      </AppInstanceLink>
                     </DropdownMenuItem>
                   }
                   denied={(denialData) => (

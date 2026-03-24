@@ -2,19 +2,18 @@
 
 import { createContext, type ReactNode, useContext } from "react";
 
-import { ArrowUpLeft } from "lucide-react";
-import Link from "next/link";
+import { ArrowUpLeftIcon } from "lucide-react";
 
 import { type Role, type Stage } from "@/db/types";
 
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
+import { AppInstanceLink } from "@/lib/routing";
 import { type InstanceParams } from "@/lib/validations/params";
 
 type InstanceData = { params: InstanceParams; stage: Stage; roles: Set<Role> };
 
 const InstanceContext = createContext<InstanceData | undefined>(undefined);
 
-// move this stuff
+// todo: this needs to be cleaned up a lot
 
 export function InstanceParamsProvider({
   children,
@@ -67,15 +66,20 @@ export function useInstanceRoles() {
 }
 
 export function InstanceHomeRedirectButton() {
-  const instancePath = useInstancePath();
+  const params = useInstanceParams();
   return (
-    <Link
-      href={instancePath}
+    <AppInstanceLink
+      page="instanceHome"
+      linkArgs={params}
       className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs transition-colors hover:bg-primary/90 focus:outline-hidden focus:ring-2 focus:ring-primary focus:ring-offset-2"
-      prefetch={false}
     >
-      <ArrowUpLeft className="h-4 w-4" />
+      <ArrowUpLeftIcon className="h-4 w-4" />
       <span>Go to Instance Home</span>
-    </Link>
+    </AppInstanceLink>
   );
+}
+
+function formatParamsAsPath(instanceParams: InstanceParams) {
+  const { group, subGroup, instance } = instanceParams;
+  return `/${group}/${subGroup}/${instance}`;
 }

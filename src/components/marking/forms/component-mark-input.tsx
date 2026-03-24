@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 
-import { FormatPercent } from "@/lib/utils/format-percent";
+import { FormatPercent } from "@/lib/formatting/percent";
 
 import { GradeInput } from "./grade-input";
 

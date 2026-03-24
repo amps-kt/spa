@@ -5,7 +5,7 @@ import { type StudentDTO, type SupervisorDTO, type ProjectDTO } from "@/dto";
 import { Transformers as T } from "@/db/transformers";
 import { type AllocationMethod, type DB } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { DataObject } from "./data-object";

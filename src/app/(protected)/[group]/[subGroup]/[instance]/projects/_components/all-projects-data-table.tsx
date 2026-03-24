@@ -1,9 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-import { PAGES } from "@/config/pages";
 
 import {
   type TagDTO,
@@ -15,16 +12,14 @@ import {
 import { type PreferenceType, type Role } from "@/db/types";
 
 import { MyPreferencesButton } from "@/components/my-preferences-button";
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { ToastSuccessCard } from "@/components/toast-success-card";
 import DataTable from "@/components/ui/data-table/data-table";
 
 import { type User } from "@/lib/auth/types";
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import { toPP3 } from "@/lib/utils/general/instance-params";
+import { toPP3 } from "@/lib/utils/instance-params";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
 import { useAllProjectsColumns } from "./all-projects-columns";
@@ -46,9 +41,8 @@ export function AllProjectsDataTable({
   usedFlags: FlagDTO[];
   usedTags: TagDTO[];
 }) {
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const params = useInstanceParams();
-  const { getPath } = usePathInInstance();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
@@ -95,9 +89,7 @@ export function AllProjectsDataTable({
         success: (
           <ToastSuccessCard
             message="Successfully updated project preference"
-            action={
-              <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
-            }
+            action={<MyPreferencesButton />}
           />
         ),
       })
@@ -118,9 +110,7 @@ export function AllProjectsDataTable({
           success: (
             <ToastSuccessCard
               message={`Successfully updated ${projectIds.length} project preferences`}
-              action={
-                <MyPreferencesButton href={getPath(PAGES.myPreferences.href)} />
-              }
+              action={<MyPreferencesButton />}
             />
           ),
         },
