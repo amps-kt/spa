@@ -54,7 +54,7 @@ import {
 } from "../student-project-allocation-data";
 import { type Reader, User, type Student, type Supervisor } from "../user";
 
-import { Project } from "..";
+import { ProjectOld } from "..";
 
 import { AllocationGroup } from "./group";
 import { AllocationSubGroup } from "./sub-group";
@@ -1304,8 +1304,8 @@ export class AllocationInstance extends DataObject {
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 
-  public getProject(projectId: string): Project {
-    return new Project(this.db, { projectId, ...this.params });
+  public getProject(projectId: string): ProjectOld {
+    return new ProjectOld(this.db, { projectId, ...this.params });
   }
 
   public async getLateProjects(): Promise<ProjectDTO[]> {
