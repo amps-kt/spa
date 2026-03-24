@@ -2,7 +2,6 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type FlagDTO } from "@/dto";
@@ -10,6 +9,7 @@ import { type FlagDTO } from "@/dto";
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { useManualReadingAllocationColumns } from "./manual-allocation-columns";
@@ -32,7 +32,7 @@ export function ManualReadingAllocationDataTableSection({
   projectDescriptors: { flags },
 }: ManualReadingAllocationDataTableSectionProps) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const [projects, setProjects] = useState(initialProjects);
   const [baseReaders] = useState(initialReaders);

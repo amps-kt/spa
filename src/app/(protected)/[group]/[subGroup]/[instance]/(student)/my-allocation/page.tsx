@@ -32,11 +32,11 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  if (
-    !(await api.institution.instance.getStudentAllocationAccess({ params }))
-  ) {
-    unauthorised({ params });
-  }
+  const { studentAllocationAccess } = await api.institution.instance.get({
+    params,
+  });
+
+  if (!studentAllocationAccess) unauthorised({ params });
 
   const allocation = await api.user.student.getMaybeAllocation({ params });
 

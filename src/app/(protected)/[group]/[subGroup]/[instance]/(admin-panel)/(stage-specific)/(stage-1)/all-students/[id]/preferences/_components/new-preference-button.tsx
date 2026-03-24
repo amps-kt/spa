@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type ClassValue } from "clsx";
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon } from "lucide-react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
 
 import { type ProjectDTO } from "@/dto";
@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 import {
@@ -62,7 +63,7 @@ export function NewPreferenceButton({
   className?: ClassValue;
 }) {
   const params = useParams<PageParams>();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const [open, setOpen] = useState(false);
 

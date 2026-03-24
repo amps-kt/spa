@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type ProjectDTO } from "@/dto";
@@ -23,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import {
   studentPreferenceSchema,
@@ -36,7 +36,7 @@ export function StudentPreferenceButton({
   project: ProjectDTO;
   defaultStatus: StudentPreferenceType;
 }) {
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const params = useInstanceParams();
 
   const [selectStatus, setSelectStatus] =

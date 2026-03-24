@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type PreferenceType } from "@/db/types";
@@ -9,11 +8,12 @@ import { KanbanBoard } from "@/components/kanban-board";
 import { useBoardDetails } from "@/components/kanban-board/store";
 import { useInstanceParams } from "@/components/params-context";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 export function KanbanBoardSection({ studentId }: { studentId: string }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const deleteProject = useBoardDetails((s) => s.deleteProject);
 

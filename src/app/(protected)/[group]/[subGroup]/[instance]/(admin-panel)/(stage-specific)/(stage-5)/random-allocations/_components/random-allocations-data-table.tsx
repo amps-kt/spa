@@ -2,7 +2,6 @@
 
 import { useCallback } from "react";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type FlagDTO, type ProjectDTO, type StudentDTO } from "@/dto";
@@ -12,6 +11,7 @@ import { AllocationMethod } from "@/db/types";
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { useRandomAllocationColumns } from "./random-allocation-column";
@@ -24,7 +24,7 @@ export function RandomAllocationsDataTable({
   flags: FlagDTO[];
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: getRandomAllocAsync } =
     api.institution.instance.matching.allocateRandomProjectToStudent.useMutation();

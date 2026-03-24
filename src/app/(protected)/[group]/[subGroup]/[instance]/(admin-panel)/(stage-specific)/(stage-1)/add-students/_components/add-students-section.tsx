@@ -2,13 +2,8 @@
 
 import { useRef, useState } from "react";
 
-import {
-  buildNewStudentSchema,
-  type NewStudent,
-} from "@/app/(protected)/[group]/[subGroup]/[instance]/(admin-panel)/(stage-specific)/(stage-1)/add-students/_components/new-student-schema";
 import { TRPCClientError } from "@trpc/client";
 import { FileSpreadsheetIcon, FileTextIcon, RotateCcwIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -25,15 +20,17 @@ import { LabelledSeparator } from "@/components/ui/labelled-separator";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { CSVUploadButton } from "./csv-upload-button";
 import { type ProcessingResult } from "./csv-validation-utils";
 import { FormSection } from "./form-section";
 import { useNewStudentColumns } from "./new-student-columns";
+import { buildNewStudentSchema, type NewStudent } from "./new-student-schema";
 
 export function AddStudentsSection({ flags }: { flags: FlagDTO[] }) {
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const params = useInstanceParams();
 
   const fileInputRef = useRef<HTMLInputElement>(null);

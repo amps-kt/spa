@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import {
@@ -19,7 +19,7 @@ export function MyProjectsDataTable({
   projects: SupervisorProjectDataDto[];
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
   const { mutateAsync: api_deleteManyProjects } =
