@@ -253,50 +253,54 @@ export class Project extends ScopedDataObject {
 
   /** Sync flags: removes flags not in the list, adds missing ones. */
   public async linkFlags(flagIds: string[]): Promise<void> {
-    await this.sc.db.flagOnProject.deleteMany({
-      where: { projectId: this.params.projectId, flagId: { notIn: flagIds } },
-    });
+    await this.sc.batch([
+      this.sc.db.flagOnProject.deleteMany({
+        where: { projectId: this.params.projectId, flagId: { notIn: flagIds } },
+      }),
 
-    await this.sc.db.flagOnProject.createMany({
-      data: flagIds.map((id) => ({
-        ...expand(this.params),
-        projectId: this.params.projectId,
-        flagId: id,
-      })),
-      skipDuplicates: true,
-    });
+      this.sc.db.flagOnProject.createMany({
+        data: flagIds.map((id) => ({
+          ...expand(this.params),
+          projectId: this.params.projectId,
+          flagId: id,
+        })),
+        skipDuplicates: true,
+      }),
+    ]);
   }
 
   /** Sync tags: removes tags not in the list, adds missing ones. */
   public async linkTags(tagIds: string[]): Promise<void> {
-    await this.sc.db.tagOnProject.deleteMany({
-      where: { projectId: this.params.projectId, tagId: { notIn: tagIds } },
-    });
-
-    await this.sc.db.tagOnProject.createMany({
-      data: tagIds.map((id) => ({
-        projectId: this.params.projectId,
-        tagId: id,
-      })),
-      skipDuplicates: true,
-    });
+    await this.sc.batch([
+      this.db.tagOnProject.deleteMany({
+        where: { projectId: this.params.projectId, tagId: { notIn: tagIds } },
+      }),
+      this.sc.db.tagOnProject.createMany({
+        data: tagIds.map((id) => ({
+          projectId: this.params.projectId,
+          tagId: id,
+        })),
+        skipDuplicates: true,
+      }),
+    ]);
   }
 
   /** Set the pre-allocated student and create the allocation record. */
   public async linkPreAllocatedStudent(userId: string): Promise<void> {
-    await this.sc.db.studentProjectAllocation.deleteMany({
-      where: { ...expand(this.params), projectId: this.params.projectId },
-    });
-
-    await this.sc.db.studentProjectAllocation.create({
-      data: {
-        ...expand(this.params),
-        projectId: this.params.projectId,
-        userId,
-        studentRanking: 1,
-        allocationMethod: AllocationMethod.PRE_ALLOCATED,
-      },
-    });
+    await this.sc.batch([
+      this.sc.db.studentProjectAllocation.deleteMany({
+        where: { ...expand(this.params), projectId: this.params.projectId },
+      }),
+      this.sc.db.studentProjectAllocation.create({
+        data: {
+          ...expand(this.params),
+          projectId: this.params.projectId,
+          userId,
+          studentRanking: 1,
+          allocationMethod: AllocationMethod.PRE_ALLOCATED,
+        },
+      }),
+    ]);
   }
 
   /** Clear the pre-allocated student reference on the project. */

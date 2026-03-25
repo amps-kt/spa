@@ -42,20 +42,39 @@ export class Scope {
    * If the scope is already inside a transaction, the callback runs
    * directly against the existing transaction client.
    *
-   * The callback receives a new Scope bound to the transaction client.
-   * Any data objects created from that scope will use the transaction
-   * client automatically.
-   *
    * @example
    * ```ts
-   * await scope.transaction({ project, instance }, async ({ project, instance }) => {
-   *   await project.update({ ... });
-   *   await project.linkFlags(flagIds);
-   *   // all queries run in the same transaction
+   * await this.sc.transaction(async (tx) => {
+   *   await tx.db.project.update({ ... });
+   *   await tx.db.flag.deleteMany({ ... });
    * });
    * ```
    */
-  async transaction<T, D extends Record<string, ScopedDataObject>>(
+  async transaction<T>(fn: (sc: Scope) => Promise<T>): Promise<T> {
+    if (this._inTransaction) {
+      return fn(this);
+    }
+
+    return (this._db as DB).$transaction(async (tx) => {
+      return fn(new Scope(tx, true));
+    });
+  }
+
+  /**
+   * Run a callback inside a database transaction with re-scoped data objects.
+   *
+   * Calls `withScope` on each DO so they all use the transaction client.
+   * If already in a transaction, runs the callback directly.
+   *
+   * @example
+   * ```ts
+   * await sc.scoped({ project, instance }, async ({ project, instance }) => {
+   *   await project.update({ ... });
+   *   await project.linkFlags(flagIds);
+   * });
+   * ```
+   */
+  async scoped<T, D extends Record<string, ScopedDataObject>>(
     dos: D,
     fn: (scoped: D) => Promise<T>,
   ): Promise<T> {
