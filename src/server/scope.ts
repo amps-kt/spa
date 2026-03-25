@@ -48,23 +48,28 @@ export class Scope {
    *
    * @example
    * ```ts
-   * await scope.transaction(async (tx) => {
-   *   // tx.db is the transaction client
-   *   await tx.db.project.create({ ... });
-   *   await tx.db.flag.deleteMany({ ... });
+   * await scope.transaction({ project, instance }, async ({ project, instance }) => {
+   *   await project.update({ ... });
+   *   await project.linkFlags(flagIds);
    *   // all queries run in the same transaction
    * });
    * ```
    */
-  async transaction<T>(fn: (scope: Scope) => Promise<T>): Promise<T> {
+  async transaction<T, D extends Record<string, ScopedDataObject>>(
+    dos: D,
+    fn: (scoped: D) => Promise<T>,
+  ): Promise<T> {
     if (this._inTransaction) {
-      // Already in a transaction - run directly, no nesting
-      return fn(this);
+      return fn(dos);
     }
 
-    // Start a new interactive transaction
     return (this._db as DB).$transaction(async (tx) => {
-      return fn(new Scope(tx, true));
+      const txScope = new Scope(tx, true);
+      const scopedDos = Object.fromEntries(
+        Object.entries(dos).map(([k, v]) => [k, v.withScope(txScope)]),
+      ) as D;
+
+      return fn(scopedDos);
     });
   }
 
@@ -110,6 +115,8 @@ export abstract class ScopedDataObject {
   constructor(scope: Scope) {
     this.sc = scope;
   }
+
+  abstract withScope(sc: Scope): ScopedDataObject;
 
   /** Shorthand for accessing the database client. */
   protected get db(): DB | TX {

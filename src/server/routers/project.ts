@@ -10,8 +10,6 @@ import {
   permissionResultSchema,
 } from "@/dto/result/permission-result";
 
-import { Project } from "@/data-objects";
-
 import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
 import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
@@ -38,7 +36,7 @@ export const projectRouter = createTRPCRouter({
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
-      async ({ ctx: { sc, project, audit }, input: { updatedProject } }) => {
+      async ({ ctx: { sc, audit, dal }, input: { updatedProject } }) => {
         audit("Updated project", { data: updatedProject });
 
         const {
@@ -51,10 +49,8 @@ export const projectRouter = createTRPCRouter({
           flagIds,
         } = updatedProject;
 
-        await sc.transaction(async (tx) => {
-          const txProject = new Project(tx, project.params);
-
-          await txProject.update({
+        await sc.transaction(dal, async ({ project }) => {
+          await project.update({
             title,
             description,
             capacityUpperBound,
@@ -64,13 +60,13 @@ export const projectRouter = createTRPCRouter({
 
           if (preAllocatedStudentId && preAllocatedStudentId.trim() !== "") {
             // ! would just override another pre-allocated student - bad probably
-            await txProject.linkPreAllocatedStudent(preAllocatedStudentId);
+            await project.linkPreAllocatedStudent(preAllocatedStudentId);
           } else {
-            await txProject.clearPreAllocation();
+            await project.clearPreAllocation();
           }
 
-          await txProject.linkFlags(flagIds);
-          await txProject.linkTags(tagIds);
+          await project.linkFlags(flagIds);
+          await project.linkTags(tagIds);
         });
       },
     ),
@@ -254,36 +250,33 @@ export const projectRouter = createTRPCRouter({
     })
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
-    .mutation(
-      async ({ ctx: { sc, instance, audit }, input: { newProject } }) => {
-        audit("Create project", { project: newProject });
+    .mutation(async ({ ctx: { sc, audit, dal }, input: { newProject } }) => {
+      audit("Create project", { project: newProject });
 
-        return sc.transaction(async (tx) => {
-          // Project.create returns a new Project with the generated id
-          const project = await Project.create(tx, instance.params, {
-            title: newProject.title,
-            description: newProject.description,
-            capacityUpperBound: newProject.capacityUpperBound,
-            preAllocatedStudentId: newProject.preAllocatedStudentId,
-            supervisorId: newProject.supervisorId,
-          });
-
-          if (
-            newProject.preAllocatedStudentId &&
-            newProject.preAllocatedStudentId.trim() !== ""
-          ) {
-            await project.linkPreAllocatedStudent(
-              newProject.preAllocatedStudentId,
-            );
-          }
-
-          await project.linkFlags(newProject.flagIds);
-          await project.linkTags(newProject.tagIds);
-
-          return project.params.projectId;
+      return sc.transaction(dal, async ({ instance }) => {
+        const project = await instance.createProject({
+          title: newProject.title,
+          description: newProject.description,
+          capacityUpperBound: newProject.capacityUpperBound,
+          preAllocatedStudentId: newProject.preAllocatedStudentId,
+          supervisorId: newProject.supervisorId,
         });
-      },
-    ),
+
+        if (
+          newProject.preAllocatedStudentId &&
+          newProject.preAllocatedStudentId.trim() !== ""
+        ) {
+          await project.linkPreAllocatedStudent(
+            newProject.preAllocatedStudentId,
+          );
+        }
+
+        await project.linkFlags(newProject.flagIds);
+        await project.linkTags(newProject.tagIds);
+
+        return project.params.projectId;
+      });
+    }),
 
   getFormInitialisationData: procedure.instance
     .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })
