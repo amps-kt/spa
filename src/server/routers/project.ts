@@ -54,7 +54,7 @@ export const projectRouter = createTRPCRouter({
           flagIds,
         } = updatedProject;
 
-        await sc.transaction(dal, async ({ project }) => {
+        await sc.scoped(dal, async ({ project }) => {
           await project.update({
             title,
             description,
@@ -252,7 +252,7 @@ export const projectRouter = createTRPCRouter({
     .mutation(async ({ ctx: { sc, audit, dal }, input: { newProject } }) => {
       audit("Create project", { project: newProject });
 
-      return sc.transaction(dal, async ({ instance }) => {
+      return sc.scoped(dal, async ({ instance }) => {
         const project = await instance.createProject({
           title: newProject.title,
           description: newProject.description,
