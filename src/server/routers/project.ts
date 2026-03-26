@@ -29,10 +29,15 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { project } }) => await project.exists()),
 
   edit: procedure.project
-    .withAC({
-      allowedRoles: [Role.ADMIN, Role.SUPERVISOR],
-      allowedStages: previousStages(Stage.STUDENT_BIDDING),
-    })
+    .withAC({ allowedStages: previousStages(Stage.STUDENT_BIDDING) })
+    .use(
+      projectGuard(
+        anyOf(
+          ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+          ({ user, params }) => user.isProjectSupervisor(params.projectId),
+        ),
+      ),
+    )
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
