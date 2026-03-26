@@ -1,4 +1,4 @@
-import { type Scope, ScopedDataObject } from "@/server/scope";
+import { type DataAccessScope, ScopedDataObject } from "@/server/scope";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -8,12 +8,12 @@ import { Project } from "../project";
 export class AllocationInstance extends ScopedDataObject {
   public params: InstanceParams;
 
-  constructor(scope: Scope, params: InstanceParams) {
-    super(scope);
+  constructor(sc: DataAccessScope, params: InstanceParams) {
+    super(sc);
     this.params = params;
   }
 
-  public withScope(sc: Scope): AllocationInstance {
+  public withScope(sc: DataAccessScope): AllocationInstance {
     return new AllocationInstance(sc, this.params);
   }
 

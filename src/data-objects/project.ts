@@ -8,7 +8,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod, type DB } from "@/db/types";
 
-import { type Scope, ScopedDataObject } from "@/server/scope";
+import { type DataAccessScope, ScopedDataObject } from "@/server/scope";
 
 import { expand, toPP2 } from "@/lib/utils/instance-params";
 import {
@@ -26,12 +26,12 @@ export class Project extends ScopedDataObject {
   private _subgroup: AllocationSubGroup | undefined;
   private _instance: AllocationInstance | undefined;
 
-  constructor(scope: Scope, params: ProjectParams) {
-    super(scope);
+  constructor(sc: DataAccessScope, params: ProjectParams) {
+    super(sc);
     this.params = params;
   }
 
-  public withScope(sc: Scope): Project {
+  public withScope(sc: DataAccessScope): Project {
     return new Project(sc, this.params);
   }
 
@@ -177,7 +177,7 @@ export class Project extends ScopedDataObject {
   // --- Writes ----------------------------------------------------------------
 
   public static async create(
-    sc: Scope,
+    sc: DataAccessScope,
     params: InstanceParams,
     data: {
       title: string;
