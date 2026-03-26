@@ -1,10 +1,10 @@
 import { type DB, type TX, type DB_Promise } from "@/db/types";
 
 /**
- * Scope holds a database client (either the root PrismaClient or a
+ * DataAccessScope holds a database client (either the root PrismaClient or a
  * transaction client) and provides transaction management.
  *
- * Data objects receive a Scope instead of a raw DB client. This gives us:
+ * Data objects receive a DataAccessScope instead of a raw DB client. This gives us:
  *
  * 1. **Transaction ergonomics** - call `scope.transaction(async (tx) => { ... })`
  *    and all data objects created from `tx` share the same transaction client.
@@ -13,11 +13,11 @@ import { type DB, type TX, type DB_Promise } from "@/db/types";
  *    `this.scope.transaction(...)` and the scope is already inside a
  *    transaction, it just runs the callback directly
  *
- * 3. **Testability** - in tests, we can create a Scope with a test database
+ * 3. **Testability** - in tests, we can create a DataAccessScope with a test database
  *    client, wrap each test in a transaction that rolls back, etc.
  *
  */
-export class Scope {
+export class DataAccessScope {
   private _db: DB | TX;
   private _inTransaction: boolean;
 
@@ -50,13 +50,13 @@ export class Scope {
    * });
    * ```
    */
-  async transaction<T>(fn: (sc: Scope) => Promise<T>): Promise<T> {
+  async transaction<T>(fn: (sc: DataAccessScope) => Promise<T>): Promise<T> {
     if (this._inTransaction) {
       return fn(this);
     }
 
     return (this._db as DB).$transaction(async (tx) => {
-      return fn(new Scope(tx, true));
+      return fn(new DataAccessScope(tx, true));
     });
   }
 
@@ -83,7 +83,7 @@ export class Scope {
     }
 
     return (this._db as DB).$transaction(async (tx) => {
-      const txScope = new Scope(tx, true);
+      const txScope = new DataAccessScope(tx, true);
       const scopedDos = Object.fromEntries(
         Object.entries(dos).map(([k, v]) => [k, v.withScope(txScope)]),
       ) as D;
@@ -129,13 +129,13 @@ export class Scope {
  * (and the same transaction, if one is active).
  */
 export abstract class ScopedDataObject {
-  protected sc: Scope;
+  protected sc: DataAccessScope;
 
-  constructor(scope: Scope) {
-    this.sc = scope;
+  constructor(sc: DataAccessScope) {
+    this.sc = sc;
   }
 
-  abstract withScope(sc: Scope): ScopedDataObject;
+  abstract withScope(sc: DataAccessScope): ScopedDataObject;
 
   /** Shorthand for accessing the database client. */
   protected get db(): DB | TX {
