@@ -39,56 +39,33 @@ export class DataAccessScope {
   /**
    * Run a callback inside a database transaction.
    *
-   * If the scope is already inside a transaction, the callback runs
-   * directly against the existing transaction client.
+   * Mutates this scope's db client to the transaction client for the
+   * duration of the callback. All data objects sharing this scope
+   * automatically participate in the transaction.
    *
-   * @example
-   * ```ts
-   * await this.sc.transaction(async (tx) => {
-   *   await tx.db.project.update({ ... });
-   *   await tx.db.flag.deleteMany({ ... });
-   * });
-   * ```
-   */
-  async transaction<T>(fn: (sc: DataAccessScope) => Promise<T>): Promise<T> {
-    if (this._inTransaction) {
-      return fn(this);
-    }
-
-    return (this._db as DB).$transaction(async (tx) => {
-      return fn(new DataAccessScope(tx, true));
-    });
-  }
-
-  /**
-   * Run a callback inside a database transaction with re-scoped data objects.
-   *
-   * Calls `withScope` on each DO so they all use the transaction client.
    * If already in a transaction, runs the callback directly.
    *
    * @example
    * ```ts
-   * await sc.scoped({ project, instance }, async ({ project, instance }) => {
+   * await sc.transaction(async () => {
    *   await project.update({ ... });
    *   await project.linkFlags(flagIds);
    * });
    * ```
    */
-  async scoped<T, D extends Record<string, ScopedDataObject>>(
-    dos: D,
-    fn: (scoped: D) => Promise<T>,
-  ): Promise<T> {
+  async transaction<T>(fn: () => Promise<T>): Promise<T> {
     if (this._inTransaction) {
-      return fn(dos);
+      return fn();
     }
 
+    const originalDb = this._db;
     return (this._db as DB).$transaction(async (tx) => {
-      const txScope = new DataAccessScope(tx, true);
-      const scopedDos = Object.fromEntries(
-        Object.entries(dos).map(([k, v]) => [k, v.withScope(txScope)]),
-      ) as D;
-
-      return fn(scopedDos);
+      this._db = tx;
+      this._inTransaction = true;
+      const result = await fn();
+      this._db = originalDb;
+      this._inTransaction = false;
+      return result;
     });
   }
 
@@ -134,8 +111,6 @@ export abstract class ScopedDataObject {
   constructor(sc: DataAccessScope) {
     this.sc = sc;
   }
-
-  abstract withScope(sc: DataAccessScope): ScopedDataObject;
 
   /** Shorthand for accessing the database client. */
   protected get db(): DB | TX {

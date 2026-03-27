@@ -41,7 +41,7 @@ export const projectRouter = createTRPCRouter({
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
-      async ({ ctx: { sc, audit, dal }, input: { updatedProject } }) => {
+      async ({ ctx: { sc, audit, project }, input: { updatedProject } }) => {
         audit("Updated project", { data: updatedProject });
 
         const {
@@ -54,7 +54,7 @@ export const projectRouter = createTRPCRouter({
           flagIds,
         } = updatedProject;
 
-        await sc.scoped(dal, async ({ project }) => {
+        await sc.transaction(async () => {
           await project.update({
             title,
             description,
@@ -255,33 +255,38 @@ export const projectRouter = createTRPCRouter({
     })
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
-    .mutation(async ({ ctx: { sc, audit, dal }, input: { newProject } }) => {
-      audit("Create project", { project: newProject });
+    .mutation(
+      async ({
+        ctx: { sc, audit, instanceNew: instance },
+        input: { newProject },
+      }) => {
+        audit("Create project", { project: newProject });
 
-      return sc.scoped(dal, async ({ instance }) => {
-        const project = await instance.createProject({
-          title: newProject.title,
-          description: newProject.description,
-          capacityUpperBound: newProject.capacityUpperBound,
-          preAllocatedStudentId: newProject.preAllocatedStudentId,
-          supervisorId: newProject.supervisorId,
+        return sc.transaction(async () => {
+          const project = await instance.createProject({
+            title: newProject.title,
+            description: newProject.description,
+            capacityUpperBound: newProject.capacityUpperBound,
+            preAllocatedStudentId: newProject.preAllocatedStudentId,
+            supervisorId: newProject.supervisorId,
+          });
+
+          if (
+            newProject.preAllocatedStudentId &&
+            newProject.preAllocatedStudentId.trim() !== ""
+          ) {
+            await project.linkPreAllocatedStudent(
+              newProject.preAllocatedStudentId,
+            );
+          }
+
+          await project.linkFlags(newProject.flagIds);
+          await project.linkTags(newProject.tagIds);
+
+          return project.params.projectId;
         });
-
-        if (
-          newProject.preAllocatedStudentId &&
-          newProject.preAllocatedStudentId.trim() !== ""
-        ) {
-          await project.linkPreAllocatedStudent(
-            newProject.preAllocatedStudentId,
-          );
-        }
-
-        await project.linkFlags(newProject.flagIds);
-        await project.linkTags(newProject.tagIds);
-
-        return project.params.projectId;
-      });
-    }),
+      },
+    ),
 
   getFormInitialisationData: procedure.instance
     .withAC({ allowedRoles: [Role.ADMIN, Role.SUPERVISOR] })

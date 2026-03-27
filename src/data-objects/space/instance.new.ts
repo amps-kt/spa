@@ -13,10 +13,6 @@ export class AllocationInstance extends ScopedDataObject {
     this.params = params;
   }
 
-  public withScope(sc: DataAccessScope): AllocationInstance {
-    return new AllocationInstance(sc, this.params);
-  }
-
   public async createProject(data: {
     title: string;
     description: string;
