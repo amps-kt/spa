@@ -10,11 +10,6 @@ import {
   permissionResultSchema,
 } from "@/dto/result/permission-result";
 
-import {
-  linkPreAllocatedStudent,
-  linkProjectFlagIds,
-  linkProjectTagIds,
-} from "@/db/transactions/project-flags";
 import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
 import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
@@ -22,7 +17,7 @@ import { Role } from "@/db/types";
 import { anyOf, procedure, projectGuard } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import { expand, toPP2 } from "@/lib/utils/instance-params";
+import { keyBy } from "@/lib/utils/key-by";
 import {
   previousStages,
   subsequentStages,
@@ -34,7 +29,6 @@ export const projectRouter = createTRPCRouter({
     .query(async ({ ctx: { project } }) => await project.exists()),
 
   edit: procedure.project
-
     .withAC({ allowedStages: previousStages(Stage.STUDENT_BIDDING) })
     .use(
       projectGuard(
@@ -47,71 +41,37 @@ export const projectRouter = createTRPCRouter({
     .input(z.object({ updatedProject: projectForm.editApiInputSchema }))
     .output(z.void())
     .mutation(
-      async ({
-        ctx: { db, project, audit },
-        input: {
-          updatedProject: {
-            title,
-            description,
-            capacityUpperBound,
-            preAllocatedStudentId,
-            supervisorId,
-            tagIds,
-            flagIds,
-          },
-        },
-      }) => {
-        audit("Updated project", {
-          data: {
-            title,
-            description,
-            capacityUpperBound,
-            preAllocatedStudentId,
-            supervisorId,
-            tagIds,
-            flagIds,
-          },
-        });
+      async ({ ctx: { sc, audit, project }, input: { updatedProject } }) => {
+        audit("Updated project", { data: updatedProject });
 
-        await db.$transaction(async (tx) => {
-          await tx.project.update({
-            where: toPP2(project.params),
-            data: {
-              title,
-              description,
-              capacityUpperBound,
-              supervisorId,
-              preAllocatedStudentId: preAllocatedStudentId ?? null,
-              latestEditDateTime: new Date(),
-            },
+        const {
+          title,
+          description,
+          capacityUpperBound,
+          supervisorId,
+          preAllocatedStudentId,
+          tagIds,
+          flagIds,
+        } = updatedProject;
+
+        await sc.transaction(async () => {
+          await project.update({
+            title,
+            description,
+            capacityUpperBound,
+            supervisorId,
+            preAllocatedStudentId: preAllocatedStudentId ?? null,
           });
 
           if (preAllocatedStudentId && preAllocatedStudentId.trim() !== "") {
             // ! would just override another pre-allocated student - bad probably
-            await linkPreAllocatedStudent(
-              tx,
-              project.params,
-              preAllocatedStudentId,
-            );
+            await project.linkPreAllocatedStudent(preAllocatedStudentId);
           } else {
-            const { preAllocatedStudentId } = await project.get();
-            if (preAllocatedStudentId) {
-              await tx.studentProjectAllocation.deleteMany({
-                where: {
-                  userId: preAllocatedStudentId,
-                  projectId: project.params.projectId,
-                },
-              });
-            }
+            await project.clearPreAllocation();
           }
 
-          if (flagIds.length > 0) {
-            await linkProjectFlagIds(tx, project.params, flagIds);
-          }
-
-          if (tagIds.length > 0) {
-            await linkProjectTagIds(tx, project.params, tagIds);
-          }
+          await project.linkFlags(flagIds);
+          await project.linkTags(tagIds);
         });
       },
     ),
@@ -134,8 +94,6 @@ export const projectRouter = createTRPCRouter({
       if (await user.isStudent(instance.params)) {
         const student = await user.toStudent(instance.params);
         const { flag: studentFlag } = await student.get();
-
-        console.log(studentFlag);
 
         // TODO: add pre-allocated project to top of list if such a project exists
         // otherwise, sort in alphabetical order
@@ -194,9 +152,10 @@ export const projectRouter = createTRPCRouter({
       const allProjects = await instance.getProjectAllocations();
       const rpas = await instance.getReaderAllocation();
 
-      const rpaDict = rpas.reduce(
-        (acc, val) => ({ ...acc, [val.project.id]: val.reader?.id }),
-        {} as Record<string, string | undefined>,
+      const rpaDict = keyBy(
+        rpas,
+        (x) => x.project.id,
+        (x) => x.reader?.id,
       );
 
       const readingPreferences = await user.getPreferencesMap();
@@ -297,48 +256,34 @@ export const projectRouter = createTRPCRouter({
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
     .mutation(
-      async ({ ctx: { instance, db, audit }, input: { newProject } }) => {
+      async ({
+        ctx: { sc, audit, instanceNew: instance },
+        input: { newProject },
+      }) => {
         audit("Create project", { project: newProject });
 
-        return await db.$transaction(async (tx) => {
-          const project = await tx.project.create({
-            data: {
-              ...expand(instance.params),
-              title: newProject.title,
-              description: newProject.description,
-              capacityLowerBound: 0,
-              capacityUpperBound: newProject.capacityUpperBound,
-              preAllocatedStudentId: newProject.preAllocatedStudentId ?? null,
-              latestEditDateTime: new Date(),
-              supervisorId: newProject.supervisorId,
-            },
+        return sc.transaction(async () => {
+          const project = await instance.createProject({
+            title: newProject.title,
+            description: newProject.description,
+            capacityUpperBound: newProject.capacityUpperBound,
+            preAllocatedStudentId: newProject.preAllocatedStudentId,
+            supervisorId: newProject.supervisorId,
           });
 
           if (
             newProject.preAllocatedStudentId &&
             newProject.preAllocatedStudentId.trim() !== ""
           ) {
-            // ! would just override another pre-allocated student - bad probably
-            await linkPreAllocatedStudent(
-              tx,
-              { ...instance.params, projectId: project.id },
+            await project.linkPreAllocatedStudent(
               newProject.preAllocatedStudentId,
             );
           }
 
-          await linkProjectFlagIds(
-            tx,
-            { ...instance.params, projectId: project.id },
-            newProject.flagIds,
-          );
+          await project.linkFlags(newProject.flagIds);
+          await project.linkTags(newProject.tagIds);
 
-          await linkProjectTagIds(
-            tx,
-            { ...instance.params, projectId: project.id },
-            newProject.tagIds,
-          );
-
-          return project.id;
+          return project.params.projectId;
         });
       },
     ),

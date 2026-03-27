@@ -18,6 +18,8 @@ import { auth } from "@/lib/auth";
 import { type Session } from "@/lib/auth/types";
 import { type AuditFn, logger, LogLevels } from "@/lib/logging/logger";
 
+import { DataAccessScope } from "./scope";
+
 const trpcLogger = logger.child({ service: "trpc" });
 
 /**
@@ -57,6 +59,7 @@ export const createTRPCContext = async (opts: {
     session,
     user: session.user,
     db,
+    sc: new DataAccessScope(db, false),
     mailer: new Mailer(sendMail),
     logger: trpcLogger,
     audit,

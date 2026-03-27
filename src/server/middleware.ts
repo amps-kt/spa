@@ -10,6 +10,7 @@ import {
   User,
   MatchingAlgorithm,
 } from "@/data-objects";
+import { AllocationInstance as AllocationInstanceNew } from "@/data-objects/space/instance.new";
 import { UnitOfAssessment } from "@/data-objects/unit-of-assessment";
 
 import { Role, type Stage } from "@/db/types";
@@ -80,7 +81,7 @@ const subGroupMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))`
  */
 const instanceMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { db, audit, sc }, input, next }) => {
     const { params } = z.object({ params: instanceParamsSchema }).parse(input);
     const instance = new AllocationInstance(db, params);
 
@@ -88,7 +89,13 @@ const instanceMiddleware = t.middleware(
       audit(msg, ...vals, { subGroup: params.subGroup });
     };
 
-    return next({ ctx: { instance, audit: auditNew } });
+    return next({
+      ctx: {
+        instance,
+        instanceNew: new AllocationInstanceNew(sc, params),
+        audit: auditNew,
+      },
+    });
   },
 );
 
@@ -117,9 +124,9 @@ const stageMiddleware = (allowedStages: Stage[]) =>
  * @requires a preceding `.input(z.object({ params: projectParamsSchema }))`
  */
 const projectMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: projectParamsSchema }).parse(input);
-    const project = new Project(db, params);
+    const project = new Project(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { projectId: params.projectId });
