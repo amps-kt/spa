@@ -31,10 +31,6 @@ export class Project extends ScopedDataObject {
     this.params = params;
   }
 
-  public withScope(sc: DataAccessScope): Project {
-    return new Project(sc, this.params);
-  }
-
   // --- Reads ----------------
 
   public async exists() {
