@@ -92,8 +92,8 @@ const instanceMiddleware = t.middleware(
     return next({
       ctx: {
         instance,
+        instanceNew: new AllocationInstanceNew(sc, params),
         audit: auditNew,
-        dal: { instance: new AllocationInstanceNew(sc, params) },
       },
     });
   },
@@ -132,7 +132,7 @@ const projectMiddleware = t.middleware(
       audit(msg, ...vals, { projectId: params.projectId });
     };
 
-    return next({ ctx: { project, audit: auditNew, dal: { project } } });
+    return next({ ctx: { project, audit: auditNew } });
   },
 );
 
