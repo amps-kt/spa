@@ -1,4 +1,10 @@
-export function getInitials(name: string) {
+import { User2Icon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+import { Avatar, AvatarFallback } from "./ui/avatar";
+
+function getInitials(name: string) {
   const nameParts = name.trim().split(" ");
 
   if (nameParts.length === 0) return "U";
@@ -13,7 +19,7 @@ export function getInitials(name: string) {
   );
 }
 
-export function getColorFromName(name: string): string {
+function getColorFromName(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     const char = name.charCodeAt(i);
@@ -38,4 +44,28 @@ export function getColorFromName(name: string): string {
 
   const colorIndex = Math.abs(hash) % twColours.length;
   return twColours[colorIndex];
+}
+
+export function UserAvatar({
+  name,
+  className,
+  fallbackClassName,
+}: {
+  name?: string;
+  className?: string;
+  fallbackClassName?: string;
+}) {
+  return (
+    <Avatar className={className}>
+      <AvatarFallback
+        className={cn(
+          "bg-gray-100 text-gray-600",
+          name && getColorFromName(name),
+          fallbackClassName,
+        )}
+      >
+        {name ? getInitials(name) : <User2Icon />}
+      </AvatarFallback>
+    </Avatar>
+  );
 }

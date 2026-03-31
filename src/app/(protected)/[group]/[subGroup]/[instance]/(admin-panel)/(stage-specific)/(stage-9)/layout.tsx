@@ -1,9 +1,7 @@
-import { redirect } from "next/navigation";
-
 import { Stage } from "@/db/types";
 
+import { redirect } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
@@ -14,9 +12,8 @@ export default async function Layout({
   children: React.ReactNode;
 }) {
   const stage = await api.institution.instance.getCurrentStage({ params });
-  const instancePath = formatParamsAsPath(params);
 
-  if (stage !== Stage.MARK_SUBMISSION) redirect(`${instancePath}/`);
+  if (stage !== Stage.MARK_SUBMISSION) redirect("instance", params);
 
   return <>{children}</>;
 }

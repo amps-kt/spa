@@ -1,5 +1,4 @@
 import { DownloadIcon, FileChartColumnIcon, ZapIcon } from "lucide-react";
-import Link from "next/link";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -54,14 +53,14 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 className="w-54 justify-between"
                 asChild
               >
-                <Link
+                <a
                   href="reader-preference-overview/preferences.csv"
                   target="_blank"
                   download
                 >
                   <DownloadIcon className="size-4" />
                   Download Preferences
-                </Link>
+                </a>
               </Button>
             </div>
           </CardContent>

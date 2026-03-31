@@ -1,14 +1,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  LucideMoreHorizontal as MoreIcon,
+  MoreHorizontalIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type ReaderDTO } from "@/dto";
 
@@ -16,10 +14,7 @@ import { Role, Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -38,6 +33,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { stageLte } from "@/lib/utils/permissions/stage-check";
 
 export function useAllReadersColumns({
@@ -50,7 +46,6 @@ export function useAllReadersColumns({
   deleteSelectedReaders: (ids: string[]) => Promise<void>;
 }): ColumnDef<ReaderDTO>[] {
   const stage = useInstanceStage();
-  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<ReaderDTO>();
 
@@ -77,12 +72,13 @@ export function useAllReadersColumns({
         <DataTableColumnHeader column={column} title="Name" />
       ),
       cell: ({ row: { original: reader } }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={getInstancePath([PAGES.allReaders.href, reader.id])}
+          page="readerById"
+          linkArgs={{ readerId: reader.id }}
         >
           {reader.name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -130,7 +126,7 @@ export function useAllReadersColumns({
               <DropdownMenuTrigger asChild>
                 <Button size="icon" variant="ghost">
                   <span className="sr-only">Open menu</span>
-                  <MoreIcon className="h-4 w-4" />
+                  <MoreHorizontalIcon className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <YesNoActionContainer
@@ -176,7 +172,7 @@ export function useAllReadersColumns({
           <DropdownMenuTrigger asChild>
             <Button size="icon" variant="ghost">
               <span className="sr-only">Open menu</span>
-              <MoreIcon className="h-4 w-4" />
+              <MoreHorizontalIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <YesNoActionContainer
@@ -193,25 +189,24 @@ export function useAllReadersColumns({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath([PAGES.allReaders.href, reader.id])}
+                  page="readerById"
+                  linkArgs={{ readerId: reader.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View reader details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath(
-                    [PAGES.allReaders.href, reader.id],
-                    "edit=true",
-                  )}
+                  page="readerById"
+                  linkArgs={{ readerId: reader.id }}
                 >
                   <PenIcon className="h-4 w-4" />
                   <span>Edit reader details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <ConditionalRender
                 allowedStages={[Stage.READER_BIDDING]}

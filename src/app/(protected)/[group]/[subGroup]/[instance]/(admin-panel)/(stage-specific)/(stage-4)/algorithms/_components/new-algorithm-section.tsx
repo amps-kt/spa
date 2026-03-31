@@ -5,8 +5,7 @@ import { type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 import { toast } from "sonner";
 import { type z } from "zod";
 
@@ -51,6 +50,7 @@ import {
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { cn } from "@/lib/utils";
 
@@ -89,7 +89,7 @@ function NewAlgorithmForm({
   setShowForm: (s: boolean) => void;
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const utils = useAlgorithmUtils();
 
   const { mutateAsync: createAlgorithmAsync } =
@@ -175,7 +175,7 @@ function NewAlgorithmForm({
                               (flag) => flag.label === field.value,
                             )?.label
                           : "Select flag"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -192,7 +192,7 @@ function NewAlgorithmForm({
                               form.setValue("flag1", flag.value);
                             }}
                           >
-                            <Check
+                            <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
                                 flag.value === field.value
@@ -232,7 +232,7 @@ function NewAlgorithmForm({
                               (flag) => flag.label === field.value,
                             )?.label
                           : "Select flag"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -249,7 +249,7 @@ function NewAlgorithmForm({
                               form.setValue("flag2", flag.value);
                             }}
                           >
-                            <Check
+                            <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
                                 flag.value === field.value
@@ -289,7 +289,7 @@ function NewAlgorithmForm({
                               (flag) => flag.label === field.value,
                             )?.label
                           : "Select flag"}
-                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -306,7 +306,7 @@ function NewAlgorithmForm({
                               form.setValue("flag3", flag.value);
                             }}
                           >
-                            <Check
+                            <CheckIcon
                               className={cn(
                                 "mr-2 h-4 w-4",
                                 flag.value === field.value

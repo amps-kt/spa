@@ -1,20 +1,18 @@
 "use client";
 
-import { Check } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { CheckIcon } from "lucide-react";
 
 import { type UserDTO } from "@/dto";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenuLabel,
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/user-avatar";
 
 import { switchDevUser } from "@/lib/auth/switcher-actions";
-import { cn } from "@/lib/utils";
-import { getColorFromName, getInitials } from "@/lib/utils/avatar-icon-helpers";
+import { useAppRouter } from "@/lib/routing";
 
 interface UserSwitcherProps {
   users: UserDTO[];
@@ -22,7 +20,7 @@ interface UserSwitcherProps {
 }
 
 export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
-  const router = useRouter();
+  const router = useAppRouter();
   const user = users.find((a) => a.id === currentUserId);
 
   if (!user) {
@@ -50,13 +48,11 @@ export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
             className="flex cursor-pointer items-center justify-between"
           >
             <div className="flex items-center gap-2">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback
-                  className={cn("text-xs", getColorFromName(account.name))}
-                >
-                  {getInitials(account.name)}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar
+                name={account.name}
+                className="h-8 w-8"
+                fallbackClassName="text-xs"
+              />
               <div className="flex flex-col">
                 <span className="text-sm">{account.name}</span>
                 <span className="text-xs text-muted-foreground">
@@ -67,7 +63,7 @@ export function UserSwitcher({ users, currentUserId }: UserSwitcherProps) {
                 </span>
               </div>
             </div>
-            {account.id === user.id && <Check className="h-4 w-4" />}
+            {account.id === user.id && <CheckIcon className="h-4 w-4" />}
           </DropdownMenuItem>
         ))}
       </>

@@ -17,7 +17,7 @@ import {
 
 import { getDueDate } from "@/components/marking/cards/u-o-a-card";
 
-import { format } from "@/lib/utils/date/format";
+import { format } from "@/lib/formatting/date";
 import { type InstanceParams } from "@/lib/validations/params";
 
 interface Props {

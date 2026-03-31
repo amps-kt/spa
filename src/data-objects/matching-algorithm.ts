@@ -11,7 +11,7 @@ import {
   MatchingServiceError,
   type MatchingServiceResponse,
 } from "@/lib/services/matching";
-import { expand, toAlgID } from "@/lib/utils/general/instance-params";
+import { expand, toAlgID } from "@/lib/utils/instance-params";
 import {
   type MatchingResultDTO,
   type MatchingDataDTO,

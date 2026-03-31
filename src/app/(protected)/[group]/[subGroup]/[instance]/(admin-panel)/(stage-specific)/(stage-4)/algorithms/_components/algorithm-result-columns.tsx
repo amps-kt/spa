@@ -1,7 +1,6 @@
 import { type Dispatch, type SetStateAction } from "react";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { type AlgorithmResultDTO } from "@/dto";
@@ -20,14 +19,11 @@ import {
   DestructiveActionVerificationTypeIn,
 } from "@/components/ui/destructive-action";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import {
-  formatProfile,
-  formatSize,
-  formatWeight,
-} from "@/lib/utils/algorithm/format";
 
 import { useAlgorithmUtils } from "./algorithm-context";
+import { ProfileCell, SizeCell, WeightCell } from "./cells";
 
 export function useAlgorithmResultColumns({
   selectedAlgName,
@@ -37,7 +33,7 @@ export function useAlgorithmResultColumns({
   setSelectedAlgName: Dispatch<SetStateAction<string | undefined>>;
 }): ColumnDef<AlgorithmResultDTO>[] {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const utils = useAlgorithmUtils();
 
@@ -76,11 +72,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-12 text-center">
-          {formatWeight(matchingResults.weight)}
-        </p>
-      ),
+      }) => <WeightCell weight={matchingResults.weight} />,
     },
     {
       id: "Size",
@@ -90,9 +82,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-12 text-center">{formatSize(matchingResults.size)}</p>
-      ),
+      }) => <SizeCell size={matchingResults.size} />,
     },
     {
       id: "Profile",
@@ -102,11 +92,7 @@ export function useAlgorithmResultColumns({
         row: {
           original: { matchingResults },
         },
-      }) => (
-        <p className="w-28 text-center">
-          {formatProfile(matchingResults.profile)}
-        </p>
-      ),
+      }) => <ProfileCell profile={matchingResults.profile} />,
     },
     {
       id: "selection",

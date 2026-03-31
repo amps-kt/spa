@@ -3,14 +3,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  MoreHorizontal as MoreIcon,
+  MoreHorizontalIcon as MoreIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type StudentDTO } from "@/dto";
 
@@ -18,7 +16,6 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import { usePathInInstance } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -38,6 +35,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 
 export function useNewStudentColumns({
@@ -47,8 +45,6 @@ export function useNewStudentColumns({
   deleteStudent: (id: string) => Promise<void>;
   deleteManyStudents: (ids: string[]) => Promise<void>;
 }): ColumnDef<StudentDTO>[] {
-  const { getInstancePath } = usePathInInstance();
-
   const selectCol = getSelectColumn<StudentDTO>();
 
   const userCols: ColumnDef<StudentDTO>[] = [
@@ -63,12 +59,13 @@ export function useNewStudentColumns({
           align="start"
           tip={<div className="max-w-xs">{student.name}</div>}
         >
-          <Link
+          <AppInstanceLink
             className={buttonVariants({ variant: "link" })}
-            href={getInstancePath([PAGES.allStudents.href, student.id])}
+            page="studentById"
+            linkArgs={{ studentId: student.id }}
           >
             {student.name}
-          </Link>
+          </AppInstanceLink>
         </WithTooltip>
       ),
     },
@@ -218,13 +215,14 @@ export function useNewStudentColumns({
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={getInstancePath([PAGES.allStudents.href, student.id])}
+                    page="studentById"
+                    linkArgs={{ studentId: student.id }}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <span>View student details</span>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <ConditionalRender
                   allowedStages={previousStages(Stage.STUDENT_BIDDING)}

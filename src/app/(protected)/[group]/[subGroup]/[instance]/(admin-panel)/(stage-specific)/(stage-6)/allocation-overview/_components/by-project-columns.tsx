@@ -1,15 +1,14 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import { type AllocationByProjectDto } from "@/lib/validations/allocation/data-table-dto";
 
@@ -48,16 +47,17 @@ export const byProjectColumns: ColumnDef<AllocationByProjectDto>[] = [
       },
     }) => (
       <WithTooltip tip={<p className="max-w-96">{title}</p>}>
-        <Link
+        <AppInstanceLink
           className={cn(
             buttonVariants({ variant: "link" }),
             "inline-block w-60 truncate px-0 text-start",
           )}
-          href={`./projects/${id}`}
-          scroll={true}
+          page="projectById"
+          linkArgs={{ projectId: id }}
+          // scroll={true}
         >
           {title}
-        </Link>
+        </AppInstanceLink>
       </WithTooltip>
     ),
   },
@@ -103,13 +103,14 @@ export const byProjectColumns: ColumnDef<AllocationByProjectDto>[] = [
         },
       },
     }) => (
-      <Link
+      <AppInstanceLink
         className={cn(buttonVariants({ variant: "link" }), "pl-0 text-left")}
-        href={`./${PAGES.allSupervisors.href}/${id}`}
-        scroll={true}
+        page="supervisorById"
+        linkArgs={{ supervisorId: id }}
+        // scroll={true}
       >
         {name}
-      </Link>
+      </AppInstanceLink>
     ),
   },
   {
@@ -140,13 +141,14 @@ export const byProjectColumns: ColumnDef<AllocationByProjectDto>[] = [
         },
       },
     }) => (
-      <Link
+      <AppInstanceLink
         className={cn(buttonVariants({ variant: "link" }), "pl-2 text-left")}
-        href={`./${PAGES.allStudents.href}/${id}`}
-        scroll={true}
+        page="studentById"
+        linkArgs={{ studentId: id }}
+        // scroll={true}
       >
         {name}
-      </Link>
+      </AppInstanceLink>
     ),
   },
   {

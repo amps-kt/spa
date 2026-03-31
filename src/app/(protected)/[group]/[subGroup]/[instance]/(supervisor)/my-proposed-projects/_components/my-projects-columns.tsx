@@ -12,10 +12,7 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -58,7 +55,6 @@ export function useMyProjectColumns({
   deleteSelectedProjects: (ids: string[]) => Promise<void>;
 }): ColumnDef<SupervisorProjectDataDto>[] {
   const stage = useInstanceStage();
-  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<SupervisorProjectDataDto>();
 

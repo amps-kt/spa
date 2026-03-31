@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { isSameInstance } from "@/lib/utils/general/instance-params";
+import { isSameInstance } from "@/lib/utils/instance-params";
 
 import { hasSome } from "./utils";
 

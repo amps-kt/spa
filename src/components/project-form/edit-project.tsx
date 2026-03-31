@@ -1,9 +1,8 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+// eslint-disable-next-line no-restricted-imports
+import { useParams } from "next/navigation";
 import { toast } from "sonner";
-
-import { PAGES } from "@/config/pages";
 
 import {
   type ProjectCreationContext,
@@ -16,11 +15,10 @@ import { Role } from "@/db/types";
 
 import { Button } from "@/components/ui/button";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import { toPP1 } from "@/lib/utils/general/instance-params";
+import { toPP1 } from "@/lib/utils/instance-params";
 import { type PageParams } from "@/lib/validations/params";
-
-import { usePathInInstance } from "../params-context";
 
 import { ProjectRemovalButton } from "./project-removal-button";
 import { useProjectForm } from "./use-project-form";
@@ -43,9 +41,8 @@ export function EditProjectForm({
   initialData,
 }: EditProjectFormProps) {
   const params = useParams<PageParams>();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
   const { form } = useProjectForm(projectCreationContext, initialData);
-  const { getPath } = usePathInInstance();
 
   const { mutateAsync: api_editProject, isPending } =
     api.project.edit.useMutation();
@@ -68,13 +65,13 @@ export function EditProjectForm({
       )
       .unwrap()
       .then(() => {
-        router.push(getPath(`${PAGES.allProjects.href}/${projectId}`));
+        router.push("projectById", toPP1(params), undefined);
         router.refresh();
       });
   };
 
   const handleCancel = () => {
-    router.push(getPath(`${PAGES.allProjects.href}/${projectId}`));
+    router.push("projectById", toPP1(params), undefined);
   };
 
   return (

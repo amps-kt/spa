@@ -1,5 +1,4 @@
 import { FilePlus2Icon, FolderIcon } from "lucide-react";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -10,6 +9,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { buttonVariants } from "@/components/ui/button";
 import { UserDetailsCard } from "@/components/user-details-card";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { cn } from "@/lib/utils";
 import { type PageParams } from "@/lib/validations/params";
@@ -74,16 +74,17 @@ export default async function Page({ params }: { params: PageParams }) {
         <SectionHeading icon={FolderIcon} className="mb-2">
           All Projects
         </SectionHeading>
-        <Link
+        <AppInstanceLink
           className={cn(
             buttonVariants({ variant: "secondary" }),
             "flex items-center justify-center gap-2 text-nowrap",
           )}
-          href={`../${PAGES.allSupervisors.href}/${supervisorId}/${PAGES.newSupervisorProject.href}`}
+          page="newSupervisorProject"
+          linkArgs={{ supervisorId }}
         >
           <FilePlus2Icon className="h-4 w-4" />
           <p>{PAGES.newSupervisorProject.title}</p>
-        </Link>
+        </AppInstanceLink>
       </div>
       <SupervisorProjectsDataTable
         data={projects}

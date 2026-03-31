@@ -2,10 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { ShuffleIcon, Trash2Icon } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
-
-import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO } from "@/dto";
 
@@ -14,6 +11,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 type RandomAllocationDTO = { student: StudentDTO; project?: ProjectDTO };
@@ -73,12 +71,13 @@ export function useRandomAllocationColumns({
         },
       }) => (
         <div className="flex flex-col gap-2 items-start">
-          <Link
+          <AppInstanceLink
             className={buttonVariants({ variant: "link" })}
-            href={`./${PAGES.allStudents.href}/${student.id}`}
+            page="studentById"
+            linkArgs={{ studentId: student.id }}
           >
             {student.name}
-          </Link>
+          </AppInstanceLink>
           <p className="font-mono text-muted-foreground ml-4">{student.id}</p>
         </div>
       ),
@@ -116,16 +115,17 @@ export function useRandomAllocationColumns({
       }) => {
         if (project) {
           return (
-            <Link
+            <AppInstanceLink
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "line-clamp-3 inline-block h-max pl-2 text-start",
               )}
-              href={`./projects/${project.id}`}
-              scroll={true}
+              page="projectById"
+              linkArgs={{ projectId: project.id }}
+              // scroll={true}
             >
               {project.title}
-            </Link>
+            </AppInstanceLink>
           );
         }
       },

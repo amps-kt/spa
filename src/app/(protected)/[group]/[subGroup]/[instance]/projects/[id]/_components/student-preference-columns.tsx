@@ -5,15 +5,12 @@ import {
   CornerDownRightIcon,
   MoreHorizontalIcon as MoreIcon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type StudentDTO } from "@/dto/user";
 
-import { useInstancePath } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -28,11 +25,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
+
 type StudentPreferenceData = { student: StudentDTO; rank: number };
 
 export function useStudentPreferenceColumns(): ColumnDef<StudentPreferenceData>[] {
-  const instancePath = useInstancePath();
-
   const columns: ColumnDef<StudentPreferenceData>[] = [
     {
       id: INSTITUTION.ID_NAME,
@@ -64,12 +61,13 @@ export function useStudentPreferenceColumns(): ColumnDef<StudentPreferenceData>[
           original: { student },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={`${instancePath}/${PAGES.allStudents.href}/${student.id}`}
+          page="studentById"
+          linkArgs={{ studentId: student.id }}
         >
           {student.name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -128,13 +126,14 @@ export function useStudentPreferenceColumns(): ColumnDef<StudentPreferenceData>[
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`${instancePath}/student/${student.id}`}
+                  page="studentById"
+                  linkArgs={{ studentId: student.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View Student details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

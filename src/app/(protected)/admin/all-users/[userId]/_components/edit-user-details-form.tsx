@@ -3,8 +3,7 @@
 import { useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Save, RotateCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { SaveIcon, RotateCcwIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { INSTITUTION } from "@/config/institution";
@@ -23,10 +22,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { useAppRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 export function EditUserDetailsForm({ user }: { user: UserDTO }) {
-  const router = useRouter();
+  const router = useAppRouter();
 
   const { mutateAsync: updateUser, isPending: isSubmitting } =
     api.institution.updateUser.useMutation();
@@ -107,7 +107,7 @@ export function EditUserDetailsForm({ user }: { user: UserDTO }) {
             disabled={!hasChanges || isSubmitting}
             variant="outline"
           >
-            <RotateCcw className="h-4 w-4 mr-2" />
+            <RotateCcwIcon className="h-4 w-4 mr-2" />
             Reset
           </Button>
           <Button
@@ -115,7 +115,7 @@ export function EditUserDetailsForm({ user }: { user: UserDTO }) {
             disabled={!hasChanges || isSubmitting}
             variant={hasChanges ? "default" : "secondary"}
           >
-            <Save className="h-4 w-4 mr-2" />
+            <SaveIcon className="h-4 w-4 mr-2" />
             {isSubmitting
               ? "Saving..."
               : hasChanges

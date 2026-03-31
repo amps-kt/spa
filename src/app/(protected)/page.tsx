@@ -1,4 +1,3 @@
-import { UserSpacesGrid } from "@/app/(protected)/_components/user-spaces-grid";
 import { type Metadata } from "next";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -6,6 +5,8 @@ import { app, metadataTitle } from "@/config/meta";
 import { Separator } from "@/components/ui/separator";
 
 import { api } from "@/lib/trpc/server";
+
+import { UserSpacesGrid } from "./_components/user-spaces-grid";
 
 export const dynamic = "force-dynamic";
 

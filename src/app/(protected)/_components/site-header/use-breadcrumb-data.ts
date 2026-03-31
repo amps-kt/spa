@@ -5,7 +5,6 @@ import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 
 import { api } from "@/lib/trpc/client";
-import { unSlugify } from "@/lib/utils/general/slugify";
 
 export function useBreadcrumbData() {
   const pathname = usePathname();
@@ -16,7 +15,7 @@ export function useBreadcrumbData() {
   const fallbackData = useMemo(
     () =>
       segments.map((segment, index) => ({
-        segment: unSlugify(segment),
+        segment: decodeURIComponent(segment),
         access: false,
         path: `/${segments.slice(0, index + 1).join("/")}`,
       })),
