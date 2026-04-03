@@ -21,6 +21,12 @@ export const env = createEnv({
     MAIL_USER: z.email(),
     /** SMTP password (if applicable) */
     MAIL_PASSWORD: z.string().optional(),
+    /** Port for redis instance (for MQ) */
+    REDIS_PORT: z.coerce.number(),
+    /** How many emails is the service allowed to send per period? */
+    MAIL_RATE_LIMIT: z.coerce.number(),
+    /** What is the period for the email rate limit? */
+    MAIL_RATE_LIMIT_PERIOD: z.coerce.number(),
 
     /** Fallback user ID for when AUTH_FROM_HEADERS is off (usually used for local testing) */
     DEV_ID: z.string().optional(),
