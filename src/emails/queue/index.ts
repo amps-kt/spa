@@ -19,7 +19,7 @@ export async function queueEmail({
   to: string[];
   cc?: string[];
 }) {
-  await emailQueue.add("send-mail", {
+  return await emailQueue.add("send-mail", {
     to,
     cc,
     subject,
