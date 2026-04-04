@@ -35,7 +35,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 RUN mkdir logs
-RUN chown nextjs:nodejs /app/logs
+RUN chown -R nextjs:nodejs /app
 
 
 COPY --from=builder /app/node_modules/ ./node_modules
