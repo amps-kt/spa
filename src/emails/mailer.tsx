@@ -51,7 +51,7 @@ export class Mailer {
         this.sendMail({ message, subject, to: [m.email] }),
         this.sendMail({
           message,
-          subject: tag_coordinator(m.email + " " + subject),
+          subject: tag_coordinator(subject, m.email),
           to: [PAUL_EMAIL],
         }),
       ]),
@@ -73,7 +73,7 @@ export class Mailer {
         this.sendMail({ message, subject, to: [m.email] }),
         this.sendMail({
           message,
-          subject: tag_coordinator(m.email + " " + subject),
+          subject: tag_coordinator(subject, m.email),
           to: [PAUL_EMAIL],
         }),
       ]),
