@@ -5,8 +5,10 @@ services:
     image: "ghcr.io/amps-kt/amps-app:main-latest"
     depends_on:
       - db
+      - redis
+
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       VALIDATE_ENV_VARS: "true"
 
@@ -20,6 +22,7 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
       MAIL_USE_RATE_LIMIT: "ON"
+      REDIS_HOST: "redis"
       REDIS_PORT: "6379"
 
       AUTH_FROM_HEADERS: "ON"
@@ -37,12 +40,14 @@ services:
       - amps-network
 
   matching-service:
-    image: "ghcr.io/amps-kt/matching-service:latest"
+    image: "ghcr.io/amps-kt/matching-service:main-latest"
     networks:
       - amps-network
 
   mail-worker:
     image: "ghcr.io/amps-kt/mail-worker:main-latest"
+    depends_on:
+      - redis
 
     environment:
       MAIL_HOST: ${MAIL_HOST}
@@ -50,6 +55,7 @@ services:
       MAIL_USER: ${MAIL_USER}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
 
+      REDIS_HOST: "redis"
       REDIS_PORT: "6379"
 
       MAIL_RATE_LIMIT: ${MAIL_RATE_LIMIT}
