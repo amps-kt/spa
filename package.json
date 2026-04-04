@@ -118,6 +118,7 @@
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",
+    "@eslint/eslintrc": "^3.3.5",
     "@eslint/js": "^9.31.0",
     "@faker-js/faker": "^9.8.0",
     "@tailwindcss/typography": "^0.5.16",
