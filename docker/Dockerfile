@@ -1,4 +1,3 @@
-# Builder:
 FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -20,9 +19,9 @@ COPY src src
 
 RUN pnpm run build
 
-# Runner:
+#  Runner:
 FROM node:22-alpine AS runner
-LABEL org.opencontainers.image.source="https://github.com/amps-kt/spa"
+LABEL org.opencontainers.image.source="https://github.com/pkitazos/spa"
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
