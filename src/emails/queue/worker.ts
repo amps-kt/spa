@@ -1,16 +1,9 @@
 import { env } from "@/env";
-import { Queue, Worker, type Job } from "bullmq";
+import { Worker, type Job } from "bullmq";
 import nodemailer from "nodemailer";
 
 import { EMAIL_QUEUE_NAME, type EmailJob } from "./config";
 import { connection } from "./redis-connection";
-
-const emailQueue = new Queue<EmailJob>(EMAIL_QUEUE_NAME, { connection });
-
-void emailQueue.setGlobalRateLimit(
-  env.MAIL_RATE_LIMIT,
-  env.MAIL_RATE_LIMIT_PERIOD,
-);
 
 const transporter = nodemailer.createTransport(
   {
@@ -25,7 +18,10 @@ const transporter = nodemailer.createTransport(
 
 const mailWorker = new Worker(
   EMAIL_QUEUE_NAME,
-  async (job: Job<EmailJob>) => await transporter.sendMail(job.data),
+  async (job: Job<EmailJob>) => {
+    const { to, cc, subject, html, text } = job.data;
+    await transporter.sendMail({ to, cc, subject, html, text });
+  },
   { connection },
 );
 
