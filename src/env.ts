@@ -25,6 +25,8 @@ export const env = createEnv({
     /** Use message queue rate limiter */
     MAIL_USE_RATE_LIMIT: switchSchema,
 
+    /** Host for redis instance (for MQ) */
+    REDIS_HOST: z.coerce.string(),
     /** Port for redis instance (for MQ) */
     REDIS_PORT: z.coerce.number(),
 
