@@ -113,7 +113,4 @@ ExtensionGranted.PreviewProps = {
   },
 } satisfies Props;
 
-ExtensionGranted.makeSubject = ({ student, unit }: Props) =>
-  `Extension granted for ${student.name} - ${unit.title}`;
-
 export default ExtensionGranted;

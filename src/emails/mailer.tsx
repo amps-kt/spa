@@ -2,8 +2,6 @@ import { type ComponentProps, type ReactElement } from "react";
 
 import { PAUL_EMAIL, tag_coordinator } from "@/config/emails";
 
-import { type ReaderDTO, type SupervisorDTO } from "@/dto";
-
 import { type InstanceParams } from "@/lib/validations/params";
 
 import MarkingComplete from "./messages/marking-lifecycle/marking-complete";
@@ -13,9 +11,6 @@ import ModerationRequired from "./messages/marking-lifecycle/moderation-required
 import NegotiationRequired from "./messages/marking-lifecycle/negotiation-required";
 import MarkingOverdueGeneric from "./messages/marking-overdue-generic";
 import NegotiationOverdueGeneric from "./messages/negotiation-overdue-generic";
-import ExtensionGranted from "./messages/teaching-office/extension-granted";
-import MedicalVoidGranted from "./messages/teaching-office/medical-void-granted";
-import StudentWithdrawn from "./messages/teaching-office/student-withdrawn";
 
 export type SendMail = ({
   message,
@@ -169,78 +164,6 @@ export class Mailer {
       }),
       this.sendMail({ message, subject, to: [props.reader.user.email] }),
       this.sendMail({ message, subject, to: [props.supervisor.user.email] }),
-    ]);
-  }
-
-  public async notifyExtensionGranted(
-    props: ComponentProps<typeof ExtensionGranted> & {
-      reader: ReaderDTO;
-      supervisor: SupervisorDTO;
-    },
-  ) {
-    const message = <ExtensionGranted {...props} />;
-    const subject = ExtensionGranted.makeSubject(props);
-
-    await Promise.all([
-      this.sendMail({
-        message,
-        subject: tag_coordinator(subject),
-        to: [PAUL_EMAIL],
-      }),
-      this.sendMail({ message, subject: subject, to: [props.reader.email] }),
-      this.sendMail({
-        message,
-        subject: subject,
-        to: [props.supervisor.email],
-      }),
-    ]);
-  }
-
-  public async notifyMedicalVoidGranted(
-    props: ComponentProps<typeof MedicalVoidGranted> & {
-      reader: ReaderDTO;
-      supervisor: SupervisorDTO;
-    },
-  ) {
-    const message = <MedicalVoidGranted {...props} />;
-    const subject = MedicalVoidGranted.makeSubject(props);
-
-    await Promise.all([
-      this.sendMail({
-        message,
-        subject: tag_coordinator(subject),
-        to: [PAUL_EMAIL],
-      }),
-      this.sendMail({ message, subject: subject, to: [props.reader.email] }),
-      this.sendMail({
-        message,
-        subject: subject,
-        to: [props.supervisor.email],
-      }),
-    ]);
-  }
-
-  public async notifyStudentWithdrawn(
-    props: ComponentProps<typeof StudentWithdrawn> & {
-      reader: ReaderDTO;
-      supervisor: SupervisorDTO;
-    },
-  ) {
-    const message = <StudentWithdrawn {...props} />;
-    const subject = StudentWithdrawn.makeSubject(props);
-
-    await Promise.all([
-      this.sendMail({
-        message,
-        subject: tag_coordinator(subject),
-        to: [PAUL_EMAIL],
-      }),
-      this.sendMail({ message, subject: subject, to: [props.reader.email] }),
-      this.sendMail({
-        message,
-        subject: subject,
-        to: [props.supervisor.email],
-      }),
     ]);
   }
 
