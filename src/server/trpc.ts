@@ -8,7 +8,7 @@
  */
 import { sendMail } from "@/emails";
 import { Mailer } from "@/emails/mailer";
-import { queueEmail } from "@/emails/queue";
+import { makeQueue } from "@/emails/queue";
 import { env } from "@/env";
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
@@ -59,7 +59,7 @@ export const createTRPCContext = async (opts: {
     session,
     db,
     mailer: new Mailer(
-      env.MAIL_USE_RATE_LIMIT === "ON" ? queueEmail : sendMail,
+      env.MAIL_USE_RATE_LIMIT === "ON" ? makeQueue() : sendMail,
     ),
     logger: trpcLogger,
     audit,
