@@ -3,6 +3,7 @@ import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 import { api } from "@/lib/trpc/server";
 import { InstanceParams } from "@/lib/validations/params";
 
+import { ByMarkerTable } from "./by-marker-table";
 import { ByStudentsTable } from "./by-student-table";
 
 export async function MarkingOverviewTabs({
@@ -30,7 +31,7 @@ export async function MarkingOverviewTabs({
         />
       </TabsContent>
       <TabsContent value="markers">
-        <p>marker table</p>
+        <ByMarkerTable params={params} initialData={[]} />
       </TabsContent>
     </Tabs>
   );
