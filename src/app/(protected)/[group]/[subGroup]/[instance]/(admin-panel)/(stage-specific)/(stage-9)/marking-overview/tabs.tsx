@@ -1,7 +1,7 @@
 import { Tabs, TabsList, TabsContent, TabsTrigger } from "@/components/ui/tabs";
 
 import { api } from "@/lib/trpc/server";
-import { InstanceParams } from "@/lib/validations/params";
+import { type InstanceParams } from "@/lib/validations/params";
 
 import { ByMarkerTable } from "./by-marker-table";
 import { ByStudentsTable } from "./by-student-table";
@@ -11,8 +11,11 @@ export async function MarkingOverviewTabs({
 }: {
   params: InstanceParams;
 }) {
-  const studentMarkingBreakdown =
+  const studentMarkingStatus =
     await api.msp.admin.instance.getStudentMarkingStatus({ params });
+
+  const markerMarkingStatus =
+    await api.msp.admin.instance.getMarkerMarkingStatus({ params });
 
   return (
     <Tabs
@@ -25,13 +28,10 @@ export async function MarkingOverviewTabs({
         <TabsTrigger value="markers">By Marker</TabsTrigger>
       </TabsList>
       <TabsContent value="students">
-        <ByStudentsTable
-          params={params}
-          initialData={studentMarkingBreakdown}
-        />
+        <ByStudentsTable params={params} initialData={studentMarkingStatus} />
       </TabsContent>
       <TabsContent value="markers">
-        <ByMarkerTable params={params} initialData={[]} />
+        <ByMarkerTable params={params} initialData={markerMarkingStatus} />
       </TabsContent>
     </Tabs>
   );

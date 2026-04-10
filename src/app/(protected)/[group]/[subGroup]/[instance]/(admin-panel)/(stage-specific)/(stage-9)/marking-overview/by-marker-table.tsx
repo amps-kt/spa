@@ -1,14 +1,15 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 
-import { UserDTO } from "@/dto";
+import { type UserDTO } from "@/dto";
 
 import { UserCell } from "@/components/ui/data-table/cells/user-cell";
 import DataTable from "@/components/ui/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 
-import { InstanceParams } from "@/lib/validations/params";
+import { api } from "@/lib/trpc/client";
+import { type InstanceParams } from "@/lib/validations/params";
 
 interface TRow {
   marker: UserDTO;
@@ -64,11 +65,10 @@ export function ByMarkerTable({
   params: InstanceParams;
   initialData: TRow[];
 }) {
-  return (
-    <DataTable
-      searchParamPrefix="marker"
-      columns={columns}
-      data={initialData}
-    />
+  const { data } = api.msp.admin.instance.getMarkerMarkingStatus.useQuery(
+    { params },
+    { initialData },
   );
+
+  return <DataTable searchParamPrefix="marker" columns={columns} data={data} />;
 }

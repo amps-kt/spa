@@ -19,8 +19,8 @@ import {
   type UserDTO,
   type StudentDTO,
   type ReaderDTO,
-  StudentGradingLifecycleState,
-  UnitGradingLifecycleState,
+  type StudentGradingLifecycleState,
+  type UnitGradingLifecycleState,
   unitToOverall,
   markingStatusMin,
 } from "@/dto";
@@ -1991,8 +1991,8 @@ export class AllocationInstance extends DataObject {
 
       return {
         student: T.toStudentDTO(d),
-        project: T.toProjectDTO(d.projectAllocation?.project!),
-        supervisor: T.toSupervisorDTO(d.projectAllocation?.project.supervisor!),
+        project: T.toProjectDTO(d.projectAllocation!.project),
+        supervisor: T.toSupervisorDTO(d.projectAllocation!.project.supervisor),
         status,
         units,
         reader: reader ? T.toReaderDTO(reader) : undefined,
