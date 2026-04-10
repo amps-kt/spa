@@ -1,3 +1,5 @@
+import { Grade } from "@/logic/grading";
+
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
 import { computeProjectSubmissionTarget } from "@/config/submission-target";
@@ -17,6 +19,10 @@ import {
   type UserDTO,
   type StudentDTO,
   type ReaderDTO,
+  type StudentGradingLifecycleState,
+  type UnitGradingLifecycleState,
+  unitToOverall,
+  markingStatusMin,
 } from "@/dto";
 import {
   type StudentSubmissionsRow,
@@ -42,6 +48,7 @@ import {
 } from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
+import { groupBy } from "@/lib/utils/group-by";
 import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
@@ -1897,5 +1904,99 @@ export class AllocationInstance extends DataObject {
           ),
       ),
     ]);
+  }
+
+  public async getStudentMarkingStatus(): Promise<
+    {
+      project: ProjectDTO;
+      student: StudentDTO;
+      status: StudentGradingLifecycleState;
+      units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
+      reader?: ReaderDTO;
+      supervisor: SupervisorDTO;
+    }[]
+  > {
+    const data = await this.db.studentDetails.findMany({
+      where: { ...expand(this.params), projectAllocation: { isNot: null } },
+      include: {
+        unitSubmissions: true,
+        unitGrades: {
+          include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+        },
+        userInInstance: { include: { user: true } },
+        studentFlag: {
+          include: {
+            unitsOfAssessment: {
+              include: {
+                grades: true,
+                markingComponents: true,
+                markerSubmissions: true,
+              },
+            },
+          },
+        },
+        projectAllocation: {
+          include: {
+            project: {
+              include: {
+                flagsOnProject: { include: { flag: true } },
+                tagsOnProject: { include: { tag: true } },
+                supervisor: {
+                  include: { userInInstance: { include: { user: true } } },
+                },
+                readerAllocations: {
+                  include: {
+                    reader: {
+                      include: { userInInstance: { include: { user: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return data.map((d) => {
+      const flag = d.studentFlag;
+
+      const unitGrades = keyBy(
+        d.unitGrades,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toUnitGradeDTO,
+      );
+
+      const unitSubmissions = groupBy(
+        d.unitSubmissions,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toMarkingSubmissionDTO,
+      );
+
+      const units = flag.unitsOfAssessment.map((x) => {
+        const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
+        const status = Grade.getUnitStatus(
+          unit,
+          unitGrades[unit.id],
+          unitSubmissions[unit.id] ?? [],
+        );
+
+        return { unit, status };
+      });
+      const status = markingStatusMin(
+        units.map((x) => unitToOverall(x.status)),
+      );
+
+      const reader = d.projectAllocation?.project.readerAllocations[0]?.reader;
+
+      return {
+        student: T.toStudentDTO(d),
+        project: T.toProjectDTO(d.projectAllocation!.project),
+        supervisor: T.toSupervisorDTO(d.projectAllocation!.project.supervisor),
+        status,
+        units,
+        reader: reader ? T.toReaderDTO(reader) : undefined,
+      };
+    });
   }
 }
