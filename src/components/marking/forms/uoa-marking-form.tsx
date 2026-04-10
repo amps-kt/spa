@@ -93,14 +93,17 @@ export function UoaMarkingForm({
 
   const handleSubmit = form.handleSubmit((data: MarkingSubmissionDTO) => {
     if (data.draft) {
-      void toast.promise(
-        saveMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
-        {
-          loading: `Saving draft marks...`,
-          success: `Draft marks saved`,
-          error: "Something went wrong",
-        },
-      );
+      void toast
+        .promise(
+          saveMarks({ params, studentId, unitId: unitOfAssessmentId, data }),
+          {
+            loading: `Saving draft marks...`,
+            success: `Draft marks saved`,
+            error: "Something went wrong",
+          },
+        )
+        .unwrap()
+        .then(() => router.refresh());
     } else {
       void toast
         .promise(
