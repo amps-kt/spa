@@ -1,47 +1,51 @@
 import { Grade } from "@/logic/grading";
-import { addWeeks, isAfter } from "date-fns";
+import { addWeeks, isBefore } from "date-fns";
 
+import { DEFAULT_MARKING_DURATION } from "@/config/grades";
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
-import { computeProjectSubmissionTarget } from "@/config/submission-target";
-import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
+import {
+  adjustTarget,
+  adjustUpperBound,
+  computeProjectSubmissionTarget,
+} from "@/config/submission-target";
 
 import {
-  type UnitOfAssessmentDTO,
-  type MarkingComponentDTO,
+  UnitGradingLifecycleState,
+  markingStatusMin,
+  unitToOverall,
+  type AlgorithmDTO,
   type FlagDTO,
   type FlagWithAssessmentDTO,
   type InstanceDTO,
   type InstanceDisplayData,
-  type AlgorithmDTO,
-  type TagDTO,
-  type ProjectDTO,
-  type SupervisorDTO,
-  type UserDTO,
-  type StudentDTO,
-  type ReaderDTO,
-  type StudentGradingLifecycleState,
-  unitToOverall,
-  markingStatusMin,
-  type UnitGradeDTO,
-  type UnitGradingLifecycleState,
+  type MarkingComponentDTO,
   type MarkingSubmissionDTO,
+  type ProjectDTO,
+  type ReaderDTO,
+  type StudentDTO,
+  type StudentGradingLifecycleState,
+  type SupervisorDTO,
+  type TagDTO,
+  type UnitGradeDTO,
+  type UnitOfAssessmentDTO,
+  type UserDTO,
 } from "@/dto";
 import {
-  type StudentSubmissionsRow,
   type StudentDelta,
   type StudentSubmissionInfoDTO,
+  type StudentSubmissionsRow,
 } from "@/dto/marking/student-submissions";
 
 import { Transformers as T } from "@/db/transformers";
-import { DB_ReaderPreferenceType } from "@/db/types";
 import {
-  type DB,
-  Stage,
-  type New,
   AllocationMethod,
-  type PreferenceType,
+  DB_ReaderPreferenceType,
   ExtendedReaderPreferenceType,
+  Stage,
+  type DB,
+  type New,
+  type PreferenceType,
 } from "@/db/types";
 
 import { HttpMatchingService } from "@/lib/services/matching";
@@ -53,6 +57,7 @@ import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { groupBy } from "@/lib/utils/group-by";
 import { keyBy } from "@/lib/utils/key-by";
+import { uniqueById } from "@/lib/utils/list-unique";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
@@ -62,7 +67,7 @@ import {
   StudentProjectAllocationData,
   type StudentProjectAllocationDTO,
 } from "../student-project-allocation-data";
-import { type Reader, User, type Student, type Supervisor } from "../user";
+import { User, type Reader, type Student, type Supervisor } from "../user";
 
 import { Project } from "..";
 
@@ -2009,58 +2014,56 @@ export class AllocationInstance extends DataObject {
 
   public async getLateMarkers(): Promise<UserDTO[]> {
     const data = await this.getStudentMarkingStatus();
-
-    function getDueDate(u: {
-      unit: UnitOfAssessmentDTO;
-      grade: UnitGradeDTO;
-      status: UnitGradingLifecycleState;
-    }) {
-      if (u.grade?.customDueDate !== undefined) {
-        // I hate this magic number
-        // thoughts on how to fix
-        return addWeeks(u.grade.customDueDate, 2);
-      }
-
-      return u.unit.markerSubmissionDeadline;
-    }
-
     const today = Date.now();
 
+    const INCOMPLETE_STATUSES = [
+      UnitGradingLifecycleState.IN_NEGOTIATION,
+      UnitGradingLifecycleState.PENDING_2ND_MARKER,
+      UnitGradingLifecycleState.REQUIRES_MARKING,
+    ] as const;
+
     const markers = data
-      .filter((d) => d.units.some((u) => isAfter(getDueDate(u), today))) // is over due
       .filter((d) =>
         d.units.some(
           (u) =>
-            u.status === "IN_NEGOTIATION" ||
-            u.status === "PENDING_2ND_MARKER" ||
-            u.status === "REQUIRES_MARKING",
+            isBefore(getDueDate(u), today) &&
+            INCOMPLETE_STATUSES.includes(u.status),
         ),
       )
       .flatMap((d) => {
         if (
           d.units.some(
             (u) =>
-              u.status === "IN_NEGOTIATION" || u.status === "REQUIRES_MARKING",
+              u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
+              u.status === UnitGradingLifecycleState.REQUIRES_MARKING,
           )
         ) {
           return [d.supervisor, d.reader];
         }
 
-        // This is awful and I hate it
         return d.units
-          .filter((u) => u.status === "PENDING_2ND_MARKER")
-          .map((u) => {
-            if (!u.submissions.find((x) => x.markerId === d.supervisor.id)) {
-              return d.supervisor;
-            }
-            return d.reader;
-          });
+          .filter(
+            (u) => u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER,
+          )
+          .map((u) =>
+            u.submissions.find((x) => x.markerId === d.supervisor.id)
+              ? d.reader
+              : d.supervisor,
+          );
       })
       .filter(Boolean)
       .map((x) => T.toUserDTO(x));
 
-    const markerSet = new Set(markers);
-
-    return Array.from(markerSet);
+    return uniqueById(markers);
   }
+}
+
+function getDueDate(u: {
+  unit: UnitOfAssessmentDTO;
+  grade: UnitGradeDTO;
+  status: UnitGradingLifecycleState;
+}) {
+  return u.grade?.customDueDate !== undefined
+    ? addWeeks(u.grade.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+    : u.unit.markerSubmissionDeadline;
 }
