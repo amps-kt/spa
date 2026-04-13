@@ -25,3 +25,5 @@ export const GRADES = [
 ];
 
 export const MIN_PASSING_GRADE = "D3";
+
+export const DEFAULT_MARKING_DURATION = { days: 14, weeks: 2 };
