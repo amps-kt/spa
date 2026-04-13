@@ -22,9 +22,11 @@ export function MarkingOverdueGeneric({ params }: Props) {
         <Text>
           This is a reminder that the marking upload deadline for Level 4 & SEYP
           Projects has now <strong>past</strong>. You are receiving this email
-          as you have overdue marks. In particular for supervisors, please
-          remember that you need to submit the{" "}
-          <u>conduct and presentation marks</u>, as well as the dissertation
+          as you have overdue marks.
+        </Text>
+        <Text>
+          In particular for supervisors, please remember that you need to submit
+          the <u>conduct and presentation marks</u>, as well as the dissertation
           marks. As negotiation may also be required for projects, your support
           is appreciated.
         </Text>
