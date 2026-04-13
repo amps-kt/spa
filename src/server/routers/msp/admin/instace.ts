@@ -1,6 +1,7 @@
 import z from "zod";
 
 import {
+  type MarkingSubmissionDTO,
   type ProjectDTO,
   projectDtoSchema,
   type ReaderDTO,
@@ -11,6 +12,7 @@ import {
   studentGradingLifecycleStateSchema,
   type SupervisorDTO,
   supervisorDtoSchema,
+  type UnitGradeDTO,
   type UnitGradingLifecycleState,
   unitGradingLifecycleStateSchema,
   type UnitOfAssessmentDTO,
@@ -21,6 +23,8 @@ import {
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
+
+import { LogLevels } from "@/lib/logging/logger";
 
 export const mspAdminInstanceRouter = createTRPCRouter({
   getStudentMarkingStatus: procedure.instance.subGroupAdmin
@@ -95,6 +99,8 @@ export const mspAdminInstanceRouter = createTRPCRouter({
           status: StudentGradingLifecycleState;
           units: {
             unit: UnitOfAssessmentDTO;
+            grade: UnitGradeDTO;
+            submissions: MarkingSubmissionDTO[];
             status: UnitGradingLifecycleState;
           }[];
           reader?: ReaderDTO;
@@ -122,9 +128,8 @@ export const mspAdminInstanceRouter = createTRPCRouter({
           student.units.some(
             (u) =>
               u.status === "IN_NEGOTIATION" ||
-              u.status === "PENDING_2ND_MARKER",
-            // should check if this is the user that needs to submit
-            // but this will do for now...
+              (u.status === "PENDING_2ND_MARKER" &&
+                !u.submissions.find((x) => x.markerId === marker.marker.id)),
           )
         ) {
           marker.numActionable += 1;
@@ -144,5 +149,25 @@ export const mspAdminInstanceRouter = createTRPCRouter({
       return Object.values(userMap).toSorted((a, b) =>
         a.marker.name.localeCompare(b.marker.name),
       );
+    }),
+
+  getLateMarkers: procedure.instance.subGroupAdmin
+    .output(z.array(userDtoSchema))
+    .query(async ({ ctx: { instance } }) => await instance.getLateMarkers()),
+
+  notifyLateMarkers: procedure.instance.subGroupAdmin
+    .output(z.void())
+
+    .mutation(async ({ ctx: { mailer, instance, logger, user } }) => {
+      const markers = await instance.getLateMarkers();
+
+      logger.log(LogLevels.AUDIT, "Sending marking reminders", {
+        numAcademics: markers.length,
+        authorizerId: user.id,
+      });
+      await mailer.notifyGenericMarkingOverdue({
+        params: instance.params,
+        markers,
+      });
     }),
 });

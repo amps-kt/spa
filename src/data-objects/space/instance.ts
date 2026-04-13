@@ -1,4 +1,5 @@
 import { Grade } from "@/logic/grading";
+import { addWeeks, isAfter } from "date-fns";
 
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
@@ -20,9 +21,11 @@ import {
   type StudentDTO,
   type ReaderDTO,
   type StudentGradingLifecycleState,
-  type UnitGradingLifecycleState,
   unitToOverall,
   markingStatusMin,
+  type UnitGradeDTO,
+  type UnitGradingLifecycleState,
+  type MarkingSubmissionDTO,
 } from "@/dto";
 import {
   type StudentSubmissionsRow,
@@ -1911,7 +1914,12 @@ export class AllocationInstance extends DataObject {
       project: ProjectDTO;
       student: StudentDTO;
       status: StudentGradingLifecycleState;
-      units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
+      units: {
+        unit: UnitOfAssessmentDTO;
+        grade: UnitGradeDTO;
+        submissions: MarkingSubmissionDTO[];
+        status: UnitGradingLifecycleState;
+      }[];
       reader?: ReaderDTO;
       supervisor: SupervisorDTO;
     }[]
@@ -1975,14 +1983,13 @@ export class AllocationInstance extends DataObject {
 
       const units = flag.unitsOfAssessment.map((x) => {
         const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
-        const status = Grade.getUnitStatus(
-          unit,
-          unitGrades[unit.id],
-          unitSubmissions[unit.id] ?? [],
-        );
+        const grade = unitGrades[unit.id];
+        const submissions = unitSubmissions[unit.id] ?? [];
+        const status = Grade.getUnitStatus(unit, grade, submissions);
 
-        return { unit, status };
+        return { unit, grade, submissions, status };
       });
+
       const status = markingStatusMin(
         units.map((x) => unitToOverall(x.status)),
       );
@@ -1998,5 +2005,62 @@ export class AllocationInstance extends DataObject {
         reader: reader ? T.toReaderDTO(reader) : undefined,
       };
     });
+  }
+
+  public async getLateMarkers(): Promise<UserDTO[]> {
+    const data = await this.getStudentMarkingStatus();
+
+    function getDueDate(u: {
+      unit: UnitOfAssessmentDTO;
+      grade: UnitGradeDTO;
+      status: UnitGradingLifecycleState;
+    }) {
+      if (u.grade?.customDueDate !== undefined) {
+        // I hate this magic number
+        // thoughts on how to fix
+        return addWeeks(u.grade.customDueDate, 2);
+      }
+
+      return u.unit.markerSubmissionDeadline;
+    }
+
+    const today = Date.now();
+
+    const markers = data
+      .filter((d) => d.units.some((u) => isAfter(getDueDate(u), today))) // is over due
+      .filter((d) =>
+        d.units.some(
+          (u) =>
+            u.status === "IN_NEGOTIATION" ||
+            u.status === "PENDING_2ND_MARKER" ||
+            u.status === "REQUIRES_MARKING",
+        ),
+      )
+      .flatMap((d) => {
+        if (
+          d.units.some(
+            (u) =>
+              u.status === "IN_NEGOTIATION" || u.status === "REQUIRES_MARKING",
+          )
+        ) {
+          return [d.supervisor, d.reader];
+        }
+
+        // This is awful and I hate it
+        return d.units
+          .filter((u) => u.status === "PENDING_2ND_MARKER")
+          .map((u) => {
+            if (!u.submissions.find((x) => x.markerId === d.supervisor.id)) {
+              return d.supervisor;
+            }
+            return d.reader;
+          });
+      })
+      .filter(Boolean)
+      .map((x) => T.toUserDTO(x));
+
+    const markerSet = new Set(markers);
+
+    return Array.from(markerSet);
   }
 }
