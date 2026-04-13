@@ -1,30 +1,26 @@
 import z from "zod";
 
 import {
-  type MarkingSubmissionDTO,
-  type ProjectDTO,
   projectDtoSchema,
-  type ReaderDTO,
   readerDtoSchema,
-  type StudentDTO,
   studentDtoSchema,
-  type StudentGradingLifecycleState,
+  StudentGradingLifecycleState,
   studentGradingLifecycleStateSchema,
-  type SupervisorDTO,
   supervisorDtoSchema,
-  type UnitGradeDTO,
-  type UnitGradingLifecycleState,
+  UnitGradingLifecycleState,
   unitGradingLifecycleStateSchema,
-  type UnitOfAssessmentDTO,
   unitOfAssessmentDtoSchema,
-  type UserDTO,
   userDtoSchema,
 } from "@/dto";
+
+import { Transformers as T } from "@/db/transformers";
 
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
 import { LogLevels } from "@/lib/logging/logger";
+import { count } from "@/lib/utils/count";
+import { groupBy } from "@/lib/utils/group-by";
 
 export const mspAdminInstanceRouter = createTRPCRouter({
   getStudentMarkingStatus: procedure.instance.subGroupAdmin
@@ -64,91 +60,51 @@ export const mspAdminInstanceRouter = createTRPCRouter({
     .query(async ({ ctx: { instance } }) => {
       const data = await instance.getStudentMarkingStatus();
 
-      type MarkerStatusStruct = {
-        marker: UserDTO;
-        numProjectsToMark: number;
-        numNotDone: number;
-        numBlocked: number;
-        numActionable: number;
-      };
+      const studentMarkerPairs = data.flatMap((student) => {
+        const supervisor = { marker: T.toUserDTO(student.supervisor), student };
+        if (!student.reader) return supervisor;
 
-      const userMap: Record<string, MarkerStatusStruct> = {};
-
-      function get(marker: UserDTO): MarkerStatusStruct {
-        const data = userMap[marker.id];
-
-        if (data !== undefined) return data;
-
-        return {
-          marker,
-          numProjectsToMark: 0,
-          numNotDone: 0,
-          numBlocked: 0,
-          numActionable: 0,
-        };
-      }
-
-      function set(data: MarkerStatusStruct) {
-        userMap[data.marker.id] = data;
-      }
-
-      function update(
-        student: {
-          project: ProjectDTO;
-          student: StudentDTO;
-          status: StudentGradingLifecycleState;
-          units: {
-            unit: UnitOfAssessmentDTO;
-            grade: UnitGradeDTO;
-            submissions: MarkingSubmissionDTO[];
-            status: UnitGradingLifecycleState;
-          }[];
-          reader?: ReaderDTO;
-          supervisor: SupervisorDTO;
-        },
-        markerUser: UserDTO,
-      ) {
-        const marker = get(markerUser);
-
-        marker.numProjectsToMark += 1;
-
-        if (student.status !== "DONE") {
-          marker.numNotDone += 1;
-        }
-
-        if (student.status === "ACTION_REQUIRED") {
-          marker.numActionable += 1;
-        }
-        if (student.status === "NOT_SUBMITTED" || student.status === "CLOSED") {
-          marker.numBlocked += 1;
-        }
-
-        if (
-          student.status === "PENDING" &&
-          student.units.some(
-            (u) =>
-              u.status === "IN_NEGOTIATION" ||
-              (u.status === "PENDING_2ND_MARKER" &&
-                !u.submissions.find((x) => x.markerId === marker.marker.id)),
-          )
-        ) {
-          marker.numActionable += 1;
-        }
-
-        set(marker);
-      }
-
-      data.forEach((student) => {
-        update(student, student.supervisor);
-
-        if (student.reader !== undefined) {
-          update(student, student.reader);
-        }
+        return [supervisor, { marker: T.toUserDTO(student.reader), student }];
       });
 
-      return Object.values(userMap).toSorted((a, b) =>
-        a.marker.name.localeCompare(b.marker.name),
-      );
+      const grouped = groupBy(studentMarkerPairs, (p) => p.marker.id);
+
+      return Object.values(grouped)
+        .map((entries) => {
+          // since this has been grouped, we can just take the first element to get the user
+          // if you don't like this we can make a markerId |-> MarkerDTO map above and index that
+          const marker = entries[0].marker;
+          return {
+            marker,
+            numProjectsToMark: entries.length,
+            numNotDone: count(
+              entries,
+              (e) => e.student.status !== StudentGradingLifecycleState.DONE,
+            ),
+            numBlocked: count(
+              entries,
+              (e) =>
+                e.student.status ===
+                  StudentGradingLifecycleState.NOT_SUBMITTED ||
+                e.student.status === StudentGradingLifecycleState.CLOSED,
+            ),
+            numActionable: count(
+              entries,
+              (e) =>
+                e.student.status ===
+                  StudentGradingLifecycleState.ACTION_REQUIRED ||
+                (e.student.status === StudentGradingLifecycleState.PENDING &&
+                  e.student.units.some(
+                    (u) =>
+                      u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
+                      (u.status ===
+                        UnitGradingLifecycleState.PENDING_2ND_MARKER &&
+                        !u.submissions.find((x) => x.markerId === marker.id)),
+                  )),
+            ),
+          };
+        })
+        .toSorted((a, b) => a.marker.name.localeCompare(b.marker.name));
     }),
 
   getLateMarkers: procedure.instance.subGroupAdmin
