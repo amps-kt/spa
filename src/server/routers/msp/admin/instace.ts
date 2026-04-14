@@ -62,7 +62,7 @@ export const mspAdminInstanceRouter = createTRPCRouter({
 
       const studentMarkerPairs = data.flatMap((student) => {
         const supervisor = { marker: T.toUserDTO(student.supervisor), student };
-        if (!student.reader) return supervisor;
+        if (!student.reader) return [supervisor];
 
         return [supervisor, { marker: T.toUserDTO(student.reader), student }];
       });
