@@ -71,37 +71,42 @@ export const mspAdminInstanceRouter = createTRPCRouter({
 
       return Object.values(grouped)
         .map((entries) => {
-          // since this has been grouped, we can just take the first element to get the user
-          // if you don't like this we can make a markerId |-> MarkerDTO map above and index that
           const marker = entries[0].marker;
+
+          const numProjectsToMark = entries.length;
+
+          const numNotDone = count(
+            entries,
+            ({ student: { status } }) =>
+              status !== StudentGradingLifecycleState.DONE,
+          );
+
+          const numBlocked = count(
+            entries,
+            ({ student: { status } }) =>
+              status === StudentGradingLifecycleState.NOT_SUBMITTED ||
+              status === StudentGradingLifecycleState.CLOSED,
+          );
+
+          const numActionable = count(
+            entries,
+            ({ student: { status, units } }) =>
+              status === StudentGradingLifecycleState.ACTION_REQUIRED ||
+              (status === StudentGradingLifecycleState.PENDING &&
+                units.some(
+                  ({ status, submissions }) =>
+                    status === UnitGradingLifecycleState.IN_NEGOTIATION ||
+                    (status === UnitGradingLifecycleState.PENDING_2ND_MARKER &&
+                      !submissions.find((x) => x.markerId === marker.id)),
+                )),
+          );
+
           return {
             marker,
-            numProjectsToMark: entries.length,
-            numNotDone: count(
-              entries,
-              (e) => e.student.status !== StudentGradingLifecycleState.DONE,
-            ),
-            numBlocked: count(
-              entries,
-              (e) =>
-                e.student.status ===
-                  StudentGradingLifecycleState.NOT_SUBMITTED ||
-                e.student.status === StudentGradingLifecycleState.CLOSED,
-            ),
-            numActionable: count(
-              entries,
-              (e) =>
-                e.student.status ===
-                  StudentGradingLifecycleState.ACTION_REQUIRED ||
-                (e.student.status === StudentGradingLifecycleState.PENDING &&
-                  e.student.units.some(
-                    (u) =>
-                      u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
-                      (u.status ===
-                        UnitGradingLifecycleState.PENDING_2ND_MARKER &&
-                        !u.submissions.find((x) => x.markerId === marker.id)),
-                  )),
-            ),
+            numProjectsToMark,
+            numNotDone,
+            numBlocked,
+            numActionable,
           };
         })
         .toSorted((a, b) => a.marker.name.localeCompare(b.marker.name));
