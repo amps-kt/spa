@@ -19,7 +19,12 @@ import { ReadingPreferenceTransformers as RPT } from "@/db/transformers";
 import { extendedReaderPreferenceTypeSchema, Stage } from "@/db/types";
 import { Role } from "@/db/types";
 
-import { anyOf, procedure, projectGuard } from "@/server/middleware";
+import {
+  anyOf,
+  instanceGuard,
+  procedure,
+  projectGuard,
+} from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
 import { expand, toPP2 } from "@/lib/utils/instance-params";
@@ -213,7 +218,12 @@ export const projectRouter = createTRPCRouter({
     }),
 
   getById: procedure.project
-    .guard(({ user, params }) => user.canViewProject(params))
+    .guard(
+      anyOf(
+        ({ user, params }) => user.isStaff(params),
+        ({ user, params }) => user.canSeeProjectAsStudent(params),
+      ),
+    )
     .output(projectDtoSchema)
     .query(async ({ ctx: { project } }) => await project.get()),
 
@@ -259,35 +269,24 @@ export const projectRouter = createTRPCRouter({
     }),
 
   deleteMany: procedure.instance
-    .withAC({
-      allowedStages: previousStages(Stage.PROJECT_ALLOCATION),
-      allowedRoles: [Role.ADMIN, Role.SUPERVISOR], // the checks here kinda have to live in the business logic
-    })
+    .withAC({ allowedStages: previousStages(Stage.PROJECT_ALLOCATION) })
+    .use(
+      instanceGuard<{ projectIds: string[] }>(
+        anyOf(
+          ({ user, params }) => user.isSubGroupAdminOrBetter(params),
+          async ({ user }, { projectIds }) =>
+            await Promise.all(
+              projectIds.map((pid) => user.isProjectSupervisor(pid)),
+            ).then((xs) => xs.every((x) => x)),
+        ),
+      ),
+    )
     .input(z.object({ projectIds: z.array(z.string()) }))
-    .output(z.array(permissionResultSchema))
-    .mutation(
-      async ({ ctx: { instance, user, audit }, input: { projectIds } }) => {
-        audit("Delete projects", { projectIds });
-        const isAdmin = await user.isSubGroupAdminOrBetter(instance.params);
-
-        const checkedProjects = isAdmin
-          ? projectIds.map((e) => ({ pid: e, res: true }))
-          : await Promise.all(
-              projectIds.map(async (e) => ({
-                pid: e,
-                res: await user.isProjectSupervisor(e),
-              })),
-            );
-
-        await instance.deleteProjects(
-          checkedProjects.filter(({ res }) => res).map(({ pid }) => pid),
-        );
-
-        return checkedProjects.map(({ res }) =>
-          res ? PermissionResult.OK : PermissionResult.UNAUTHORISED,
-        );
-      },
-    ),
+    .output(z.void())
+    .mutation(async ({ ctx: { instance, audit }, input: { projectIds } }) => {
+      audit("Delete projects", { projectIds });
+      await instance.deleteProjects(projectIds);
+    }),
 
   create: procedure.instance
     .withAC({

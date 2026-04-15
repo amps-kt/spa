@@ -79,6 +79,9 @@ export function InstanceHomeRedirectButton() {
   );
 }
 
+/**
+ * @deprecated use new routing stuff
+ */
 function formatParamsAsPath(instanceParams: InstanceParams) {
   const { group, subGroup, instance } = instanceParams;
   return `/${group}/${subGroup}/${instance}`;

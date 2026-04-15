@@ -11,6 +11,7 @@ import {
 import { Transformers as T } from "@/db/transformers";
 import { type DB, Role } from "@/db/types";
 
+import { assert } from "@/lib/utils/assert";
 import { expand } from "@/lib/utils/instance-params";
 import {
   type GroupParams,
@@ -166,25 +167,12 @@ export class User extends DataObject {
     });
     return joined;
   }
-  public async canViewProject(params: ProjectParams): Promise<boolean> {
-    // if you are any sort of staff member
-    if (await this.isStaff(params)) return true;
 
-    // or if you are a student and are eligible for this project and it hasn't been pre-allocated to anyone else
+  public async canSeeProjectAsStudent(params: ProjectParams): Promise<boolean> {
+    assert(await this.isStudent(params), "User must be Student");
     const student = await this.toStudent(params);
-    const { flag: studentFlag } = await student.get();
-    return !!(await this.db.project.findFirst({
-      where: {
-        id: params.projectId,
-        flagsOnProject: { some: { flagId: studentFlag.id } },
-        OR: [
-          // if this project is pre-allocated it must be yours
-          { preAllocatedStudentId: this.id },
-          // otherwise it must not be preallocated
-          { preAllocatedStudentId: null },
-        ],
-      },
-    }));
+
+    return await student.canViewProject(params.projectId);
   }
 
   public async getRolesInInstance(

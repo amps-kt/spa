@@ -56,6 +56,21 @@ export class Student extends User {
     }));
   }
 
+  public async canViewProject(projectId: string): Promise<boolean> {
+    const { flag: studentFlag } = await this.get();
+
+    return !!(await this.db.project.findFirst({
+      where: {
+        id: projectId,
+        flagsOnProject: { some: { flagId: studentFlag.id } },
+        OR: [
+          { preAllocatedStudentId: this.id },
+          { preAllocatedStudentId: null },
+        ],
+      },
+    }));
+  }
+
   public async hasAllocation(): Promise<boolean> {
     return !!(await this.db.studentProjectAllocation.findFirst({
       where: { userId: this.id, ...expand(this.instance.params) },
