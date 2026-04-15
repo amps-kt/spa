@@ -20,6 +20,8 @@ import { auth } from "@/lib/auth";
 import { type Session } from "@/lib/auth/types";
 import { type AuditFn, logger, LogLevels } from "@/lib/logging/logger";
 
+import { DataAccessScope } from "./scope";
+
 const trpcLogger = logger.child({ service: "trpc" });
 
 /**
