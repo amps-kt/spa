@@ -1929,6 +1929,7 @@ export class AllocationInstance extends DataObject {
       }[];
       reader?: ReaderDTO;
       supervisor: SupervisorDTO;
+      overallGrade?: number;
     }[]
   > {
     const data = await this.db.studentDetails.findMany({
@@ -1938,6 +1939,7 @@ export class AllocationInstance extends DataObject {
         studentFlag: { id: flagId },
       },
       include: {
+        finalGrade: true,
         unitSubmissions: { include: { criterionScores: true } },
         unitGrades: {
           include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
@@ -2014,6 +2016,7 @@ export class AllocationInstance extends DataObject {
         status,
         units,
         reader: reader ? T.toReaderDTO(reader) : undefined,
+        overallGrade: d.finalGrade?.grade,
       };
     });
   }
