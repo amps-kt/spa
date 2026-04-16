@@ -71,11 +71,10 @@ function extractComments(
   components: MarkingComponentDTO[],
   sub: MarkingSubmissionDTO,
 ): string {
-  return components
-    .reduce((acc, val) => {
-      return acc.concat(sub.marks[val.id].justification ?? "").concat("\n");
-    }, "")
-    .concat(sub.finalComment ?? "");
+  const unitComments = components.map(
+    ({ id }) => sub.marks[id]?.justification ?? "",
+  );
+  return unitComments.join("\n").concat("\n", sub.finalComment ?? "");
 }
 
 function tryExtractComments(
@@ -116,8 +115,6 @@ export async function GET(
           const comments = tryExtractComments(components, sub);
           return annotateSingle(title, { grade, comments });
         } else {
-          // it's a double!
-
           const supervisorSub = u.submissions.find(
             (x) => x.markerId === supervisor.id,
           );
@@ -136,9 +133,13 @@ export async function GET(
           const readerComments = tryExtractComments(components, readerSub);
 
           const requiredNegotiation =
-            u.grade.status === ConsensusStage.NEGOTIATE ||
-            u.grade.grades.some((x) => x.method === ConsensusMethod.NEGOTIATED);
-          const negotiateGradeObj = u.grade.grades.find(
+            u.grade?.status === ConsensusStage.NEGOTIATE ||
+            (u.grade?.grades.some(
+              (x) => x.method === ConsensusMethod.NEGOTIATED,
+            ) ??
+              false);
+
+          const negotiateGradeObj = u.grade?.grades.find(
             (x) => x.method === ConsensusMethod.NEGOTIATED,
           );
 
@@ -146,15 +147,16 @@ export async function GET(
           const negotiatedComment = negotiateGradeObj?.comment;
 
           const requiredModeration =
-            u.grade.status === ConsensusStage.MODERATE ||
-            u.grade.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION ||
-            u.grade.grades.some(
+            u.grade?.status === ConsensusStage.MODERATE ||
+            u.grade?.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION ||
+            (u.grade?.grades.some(
               (x) =>
                 x.method === ConsensusMethod.MODERATED ||
                 x.method === ConsensusMethod.NEGOTIATED_MODERATED,
-            );
+            ) ??
+              false);
 
-          const moderatedGradeObj = u.grade.grades.find(
+          const moderatedGradeObj = u.grade?.grades.find(
             (x) =>
               x.method === ConsensusMethod.MODERATED ||
               x.method === ConsensusMethod.NEGOTIATED_MODERATED,
@@ -163,7 +165,7 @@ export async function GET(
           const moderatedGrade = Grade.tryToLetter(moderatedGradeObj?.grade);
           const moderationComments = moderatedGradeObj?.comment;
 
-          const finalGrade = Grade.tryToLetter(u.grade.grades.at(0)?.grade);
+          const finalGrade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
 
           return annotateDouble(title, {
             supervisorGrade,
@@ -182,6 +184,7 @@ export async function GET(
             finalGrade,
           });
         }
+        // unreachable
       });
 
       const base: CSVRowBase = {

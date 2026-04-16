@@ -1923,7 +1923,7 @@ export class AllocationInstance extends DataObject {
       status: StudentGradingLifecycleState;
       units: {
         unit: UnitOfAssessmentDTO;
-        grade: UnitGradeDTO;
+        grade?: UnitGradeDTO;
         submissions: MarkingSubmissionDTO[];
         status: UnitGradingLifecycleState;
       }[];
@@ -1935,10 +1935,10 @@ export class AllocationInstance extends DataObject {
       where: {
         ...expand(this.params),
         projectAllocation: { isNot: null },
-        flagId,
+        studentFlag: { id: flagId },
       },
       include: {
-        unitSubmissions: true,
+        unitSubmissions: { include: { criterionScores: true } },
         unitGrades: {
           include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
         },
@@ -2066,7 +2066,7 @@ export class AllocationInstance extends DataObject {
 
 function getDueDate(u: {
   unit: UnitOfAssessmentDTO;
-  grade: UnitGradeDTO;
+  grade?: UnitGradeDTO;
   status: UnitGradingLifecycleState;
 }) {
   return u.grade?.customDueDate !== undefined
