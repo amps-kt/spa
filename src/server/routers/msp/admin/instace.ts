@@ -43,6 +43,7 @@ export const mspAdminInstanceRouter = createTRPCRouter({
           ),
           reader: readerDtoSchema.optional(),
           supervisor: supervisorDtoSchema,
+          finalGrade: z.number().optional(),
         }),
       ),
     )

@@ -27,7 +27,7 @@ interface CSVRowBase {
   moderatorName?: string;
   moderatorEmail?: string;
 
-  overallGrade: string;
+  overallGrade?: string;
   penalty?: string;
 }
 
@@ -54,7 +54,6 @@ type DoublyMarkedUnitRow = {
 
   markingDueOn: string;
   weight: number;
-
   finalGrade?: string;
 };
 
@@ -114,7 +113,7 @@ export async function GET(
     await api.msp.admin.instance.getStudentMarkingStatus({ params, flagId });
 
   const data = studentMarkingStatus.map(
-    ({ student, project, supervisor, reader, units }) => {
+    ({ student, project, supervisor, reader, units, finalGrade }) => {
       const unitRows = units.map((u) => {
         const { title, components } = u.unit;
 
@@ -234,8 +233,8 @@ export async function GET(
         moderatorName: undefined,
         moderatorEmail: undefined,
 
-        overallGrade: "TODO",
         penalty: undefined,
+        overallGrade: Grade.tryToLetter(finalGrade),
       };
 
       return unitRows.reduce((acc, val) => ({ ...acc, ...val }), base);
