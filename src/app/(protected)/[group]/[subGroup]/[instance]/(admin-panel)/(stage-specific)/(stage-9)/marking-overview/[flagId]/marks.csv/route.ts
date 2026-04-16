@@ -1,4 +1,5 @@
 import { Grade } from "@/logic/grading";
+import { addWeeks, formatDate } from "date-fns";
 import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { unparse } from "papaparse";
@@ -30,7 +31,12 @@ interface CSVRowBase {
   penalty?: string;
 }
 
-type SinglyMarkedUnitRow = { grade?: string; comments?: string };
+type SinglyMarkedUnitRow = {
+  grade?: string;
+  comments?: string;
+  markingDueOn: string;
+  weight: number;
+};
 
 type DoublyMarkedUnitRow = {
   supervisorGrade?: string;
@@ -45,6 +51,9 @@ type DoublyMarkedUnitRow = {
   requiredModeration: boolean;
   moderatedGrade?: string;
   moderationComments?: string;
+
+  markingDueOn: string;
+  weight: number;
 
   finalGrade?: string;
 };
@@ -110,11 +119,32 @@ export async function GET(
         const { title, components } = u.unit;
 
         if (u.unit.allowedMarkerTypes.length === 1) {
+          const markingDueOnDate = u.grade?.customDueDate
+            ? addWeeks(u.grade?.customDueDate, 2)
+            : u.unit.markerSubmissionDeadline;
+
+          const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
+
+          const weight = u.grade?.customWeight ?? u.unit.weight;
+
           const grade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
           const sub = u.submissions.at(0);
           const comments = tryExtractComments(components, sub);
-          return annotateSingle(title, { grade, comments });
+          return annotateSingle(title, {
+            grade,
+            comments,
+            markingDueOn,
+            weight,
+          });
         } else {
+          const markingDueOnDate = u.grade?.customDueDate
+            ? addWeeks(u.grade?.customDueDate, 2)
+            : u.unit.markerSubmissionDeadline;
+
+          const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
+
+          const weight = u.grade?.customWeight ?? u.unit.weight;
+
           const supervisorSub = u.submissions.find(
             (x) => x.markerId === supervisor.id,
           );
@@ -181,6 +211,8 @@ export async function GET(
             moderatedGrade,
             moderationComments,
 
+            markingDueOn,
+            weight,
             finalGrade,
           });
         }
