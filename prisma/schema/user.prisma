@@ -31,6 +31,7 @@ model StudentDetails {
   componentSubmissions     MarkingComponentSubmission[]
   unitSubmissions          UnitOfAssessmentSubmission[]
   unitGrades               UnitOfAssessmentGrade[]
+  finalGrade               FinalGrade?
 
   @@id([userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], name: "studentDetailsId", map: "student_details_id")
   @@map("student_details")
