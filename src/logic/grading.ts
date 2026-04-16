@@ -50,6 +50,10 @@ export class Grade {
     return grade.label;
   }
 
+  public static tryToLetter(mark?: number): string | undefined {
+    return mark ? this.toLetter(mark) : undefined;
+  }
+
   public static toInt(grade: string): number {
     const gradeObj = GRADES.find((g) => g.label === grade);
     if (!gradeObj) {

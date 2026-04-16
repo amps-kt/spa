@@ -1,12 +1,14 @@
 import z from "zod";
 
 import {
+  markingSubmissionDtoSchema,
   projectDtoSchema,
   readerDtoSchema,
   studentDtoSchema,
   StudentGradingLifecycleState,
   studentGradingLifecycleStateSchema,
   supervisorDtoSchema,
+  unitGradeDtoSchema,
   UnitGradingLifecycleState,
   unitGradingLifecycleStateSchema,
   unitOfAssessmentDtoSchema,
@@ -24,6 +26,7 @@ import { groupBy } from "@/lib/utils/group-by";
 
 export const mspAdminInstanceRouter = createTRPCRouter({
   getStudentMarkingStatus: procedure.instance.subGroupAdmin
+    .input(z.object({ flagId: z.string().optional() }))
     .output(
       z.array(
         z.object({
@@ -33,6 +36,8 @@ export const mspAdminInstanceRouter = createTRPCRouter({
           units: z.array(
             z.object({
               unit: unitOfAssessmentDtoSchema,
+              grade: unitGradeDtoSchema,
+              submissions: z.array(markingSubmissionDtoSchema),
               status: unitGradingLifecycleStateSchema,
             }),
           ),
@@ -42,7 +47,8 @@ export const mspAdminInstanceRouter = createTRPCRouter({
       ),
     )
     .query(
-      async ({ ctx: { instance } }) => await instance.getStudentMarkingStatus(),
+      async ({ ctx: { instance }, input: { flagId } }) =>
+        await instance.getStudentMarkingStatus(flagId),
     ),
 
   getMarkerMarkingStatus: procedure.instance.subGroupAdmin

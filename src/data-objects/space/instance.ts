@@ -1914,7 +1914,9 @@ export class AllocationInstance extends DataObject {
     ]);
   }
 
-  public async getStudentMarkingStatus(): Promise<
+  public async getStudentMarkingStatus(
+    flagId?: string,
+  ): Promise<
     {
       project: ProjectDTO;
       student: StudentDTO;
@@ -1930,7 +1932,11 @@ export class AllocationInstance extends DataObject {
     }[]
   > {
     const data = await this.db.studentDetails.findMany({
-      where: { ...expand(this.params), projectAllocation: { isNot: null } },
+      where: {
+        ...expand(this.params),
+        projectAllocation: { isNot: null },
+        flagId,
+      },
       include: {
         unitSubmissions: true,
         unitGrades: {
