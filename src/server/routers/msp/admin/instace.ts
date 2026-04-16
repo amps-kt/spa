@@ -36,7 +36,7 @@ export const mspAdminInstanceRouter = createTRPCRouter({
           units: z.array(
             z.object({
               unit: unitOfAssessmentDtoSchema,
-              grade: unitGradeDtoSchema,
+              grade: unitGradeDtoSchema.optional(),
               submissions: z.array(markingSubmissionDtoSchema),
               status: unitGradingLifecycleStateSchema,
             }),
