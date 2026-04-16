@@ -24,7 +24,17 @@ export function NotifyLateMarkersButton({
   return (
     <YesNoAction
       title="Notify late markers"
-      description={`You are about to email ${lateMarkers.length} markers to notify they have marking overdue. Do you wish to continue?`}
+      description={
+        <>
+          <p>
+            This will send a single email to any marker who has any overdue unit
+            of assessment as of now.
+            <br />
+            This will email {lateMarkers.length} markers. Do you wish to
+            continue?
+          </p>
+        </>
+      }
       trigger={
         <Button variant="outline">
           <SendIcon className="mr-2 h-4 w-4" /> Notify Late Markers
