@@ -6,15 +6,17 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { SquareArrowOutUpRightIcon } from "lucide-react";
 
 import {
-  ReaderDTO,
-  SupervisorDTO,
+  type ReaderDTO,
+  type SupervisorDTO,
   type ProjectDTO,
   type StudentDTO,
   type UnitOfAssessmentDTO,
 } from "@/dto";
 import {
-  type StudentGradingLifecycleState,
   type UnitGradingLifecycleState,
+  type StudentGradingLifecycleState,
+  type UnitGradeDTO,
+  type MarkingSubmissionDTO,
 } from "@/dto/marking";
 
 import { StudentGradingLifecycleBadge } from "@/components/ui/badges/student-grading-lifecycle-badge";
@@ -41,9 +43,15 @@ type TRow = {
   project: ProjectDTO;
   student: StudentDTO;
   status: StudentGradingLifecycleState;
-  units: { unit: UnitOfAssessmentDTO; status: UnitGradingLifecycleState }[];
+  units: {
+    unit: UnitOfAssessmentDTO;
+    grade?: UnitGradeDTO;
+    submissions: MarkingSubmissionDTO[];
+    status: UnitGradingLifecycleState;
+  }[];
   reader?: ReaderDTO;
   supervisor: SupervisorDTO;
+  finalGrade?: number;
 };
 
 const columns: ColumnDef<TRow>[] = [
