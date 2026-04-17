@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { NextResponse } from "next/server";
 import { unparse } from "papaparse";
 
+import { DEFAULT_MARKING_DURATION } from "@/config/grades";
+
 import { type MarkingComponentDTO, type MarkingSubmissionDTO } from "@/dto";
 
 import { ConsensusMethod, ConsensusStage } from "@/db/types";
@@ -32,47 +34,42 @@ interface CSVRowBase {
 }
 
 type SinglyMarkedUnitRow = {
-  grade?: string;
-  comments?: string;
+  grade: string | undefined;
+  comments: string | undefined;
   markingDueOn: string;
   weight: number;
 };
 
 type DoublyMarkedUnitRow = {
-  supervisorGrade?: string;
-  supervisorComments?: string;
-  readerGrade?: string;
-  readerComments?: string;
+  supervisorGrade: string | undefined;
+  supervisorComments: string | undefined;
+  readerGrade: string | undefined;
+  readerComments: string | undefined;
 
   requiredNegotiation: boolean;
-  negotiatedGrade?: string;
-  negotiatedComment?: string;
+  negotiatedGrade: string | undefined;
+  negotiatedComment: string | undefined;
 
   requiredModeration: boolean;
-  moderatedGrade?: string;
-  moderationComments?: string;
+  moderatedGrade: string | undefined;
+  moderationComments: string | undefined;
 
   markingDueOn: string;
   weight: number;
-  finalGrade?: string;
+  finalGrade: string | undefined;
 };
 
 function capitalise(str: string) {
-  return String(str).charAt(0).toUpperCase() + String(str).slice(1);
+  return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function annotate(prefix: string, data: Record<PropertyKey, unknown>) {
+function annotate<T extends Record<PropertyKey, unknown>>(
+  prefix: string,
+  data: T,
+) {
   return Object.fromEntries(
     Object.entries(data).map(([k, v]) => [`${prefix}${capitalise(k)}`, v]),
   );
-}
-
-function annotateSingle(unitTitle: string, data: SinglyMarkedUnitRow) {
-  return annotate(unitTitle, data);
-}
-
-function annotateDouble(unitTitle: string, data: DoublyMarkedUnitRow) {
-  return annotate(unitTitle, data);
 }
 
 function extractComments(
@@ -119,7 +116,7 @@ export async function GET(
 
         if (u.unit.allowedMarkerTypes.length === 1) {
           const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, 2)
+            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
             : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
@@ -129,7 +126,7 @@ export async function GET(
           const grade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
           const sub = u.submissions.at(0);
           const comments = tryExtractComments(components, sub);
-          return annotateSingle(title, {
+          return annotate<SinglyMarkedUnitRow>(title, {
             grade,
             comments,
             markingDueOn,
@@ -137,7 +134,7 @@ export async function GET(
           });
         } else {
           const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, 2)
+            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
             : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
@@ -168,12 +165,12 @@ export async function GET(
             ) ??
               false);
 
-          const negotiateGradeObj = u.grade?.grades.find(
+          const negotiatedGradeObj = u.grade?.grades.find(
             (x) => x.method === ConsensusMethod.NEGOTIATED,
           );
 
-          const negotiatedGrade = Grade.tryToLetter(negotiateGradeObj?.grade);
-          const negotiatedComment = negotiateGradeObj?.comment;
+          const negotiatedGrade = Grade.tryToLetter(negotiatedGradeObj?.grade);
+          const negotiatedComment = negotiatedGradeObj?.comment;
 
           const requiredModeration =
             u.grade?.status === ConsensusStage.MODERATE ||
@@ -196,7 +193,7 @@ export async function GET(
 
           const finalGrade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
 
-          return annotateDouble(title, {
+          return annotate<DoublyMarkedUnitRow>(title, {
             supervisorGrade,
             supervisorComments,
             readerGrade,
@@ -215,7 +212,6 @@ export async function GET(
             finalGrade,
           });
         }
-        // unreachable
       });
 
       const base: CSVRowBase = {
