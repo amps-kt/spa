@@ -9,11 +9,7 @@ import { RoleBadge } from "@/components/role-badge";
 import { api } from "@/lib/trpc/client";
 
 import { MarksheetRole, useMarksheetContext } from "../../marksheet-context";
-import {
-  OverwriteMarks,
-  ResetMarksButton,
-  UnsubmitMarksButton,
-} from "../admin-controls";
+import { AdminControlsMenu } from "../admin-controls";
 
 import { MarkList } from "./mark-list";
 
@@ -55,15 +51,11 @@ export function SingleMarkDisplay({
         Marked by <span className="font-bold">{marker.name}</span>{" "}
         <RoleBadge role={markerType} />
         {isAdmin && (
-          <div className="flex gap-2 ml-auto">
-            {dataPresent && (
-              <>
-                <UnsubmitMarksButton unitId={unit.id} marker={marker} />
-                <ResetMarksButton unitId={unit.id} marker={marker} />
-              </>
-            )}
-            <OverwriteMarks unit={unit} marker={marker} />
-          </div>
+          <AdminControlsMenu
+            unit={unit}
+            marker={marker}
+            dataPresent={dataPresent}
+          />
         )}
       </h3>
 
