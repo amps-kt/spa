@@ -36,14 +36,14 @@ export default async function Page({ params }: { params: InstanceParams }) {
         <Card className="w-full">
           <CardContent className="mt-6 flex flex-col gap-5">
             <div className="flex justify-between items-center">
-              Notify markers who
+              Notify markers with overdue marking
               <NotifyLateMarkersButton
                 params={params}
                 lateMarkers={lateMarkers}
               />
             </div>
             <div className="flex justify-between items-center">
-              Add somethng bro <CsvSelector flags={flags} />
+              Download marking data <CsvSelector flags={flags} />
             </div>
           </CardContent>
         </Card>

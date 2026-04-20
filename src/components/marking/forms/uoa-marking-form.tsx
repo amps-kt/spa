@@ -37,6 +37,36 @@ import { useMarksheetContext } from "../marksheet-context";
 
 import { ComponentMarkInput } from "./component-mark-input";
 
+export function AdminUoaMarkingLoader({
+  unit,
+  markerId,
+}: {
+  unit: UnitOfAssessmentDTO;
+  markerId: string;
+}) {
+  const { params, studentId } = useMarksheetContext();
+
+  const { data: initialValues, status: queryStatus } =
+    api.msp.marker.unitOfAssessment.getMarksByMarkerId.useQuery({
+      params,
+      studentId,
+      unitId: unit.id,
+      markerId,
+    });
+
+  if (queryStatus === "pending") {
+    return <Skeleton className="h-60 rounded-lg" />;
+  }
+
+  return (
+    <UoaMarkingForm
+      unit={unit}
+      initialValues={initialValues ?? undefined}
+      markerId={markerId}
+    />
+  );
+}
+
 export function UoaMarkingLoader({ unit }: { unit: UnitOfAssessmentDTO }) {
   const { params, studentId, userId } = useMarksheetContext();
 
@@ -64,9 +94,11 @@ function formatGrade(grade: number | undefined) {
 
 export function UoaMarkingForm({
   unit: { components, id: unitOfAssessmentId },
+  markerId,
   initialValues,
 }: {
   unit: UnitOfAssessmentDTO;
+  markerId?: string;
   initialValues?: MarkingSubmissionDTO;
 }) {
   const router = useAppRouter();
@@ -85,7 +117,7 @@ export function UoaMarkingForm({
     defaultValues: initialValues ?? {
       draft: true,
       recommendation: false,
-      markerId: userId,
+      markerId: markerId ?? userId,
       studentId,
       unitOfAssessmentId,
     },
