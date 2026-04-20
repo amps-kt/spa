@@ -9,7 +9,11 @@ import { RoleBadge } from "@/components/role-badge";
 import { api } from "@/lib/trpc/client";
 
 import { MarksheetRole, useMarksheetContext } from "../../marksheet-context";
-import { ResetMarksButton } from "../admin-controls";
+import {
+  OverwriteMarks,
+  ResetMarksButton,
+  UnsubmitMarksButton,
+} from "../admin-controls";
 
 import { MarkList } from "./mark-list";
 
@@ -32,7 +36,7 @@ export function SingleMarkDisplay({
       markerId: marker.id,
     });
 
-  const dataPresent = data !== undefined && data !== null;
+  const dataPresent = data !== undefined && data !== null && !data.draft;
   const isAdmin = [
     MarksheetRole.ADMIN,
     MarksheetRole.READER_ADMIN,
@@ -50,8 +54,16 @@ export function SingleMarkDisplay({
         {/* TODO IF admin, name is link */}
         Marked by <span className="font-bold">{marker.name}</span>{" "}
         <RoleBadge role={markerType} />
-        {isAdmin && dataPresent && (
-          <ResetMarksButton unitId={unit.id} marker={marker} />
+        {isAdmin && (
+          <div className="flex gap-2 ml-auto">
+            {dataPresent && (
+              <>
+                <UnsubmitMarksButton unitId={unit.id} marker={marker} />
+                <ResetMarksButton unitId={unit.id} marker={marker} />
+              </>
+            )}
+            <OverwriteMarks unit={unit} marker={marker} />
+          </div>
         )}
       </h3>
 
