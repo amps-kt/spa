@@ -168,6 +168,38 @@ export class UnitOfAssessment extends DataObject {
     ]);
   }
 
+  async unsubmitMarks({
+    markerId,
+    studentId,
+  }: {
+    markerId: string;
+    studentId: string;
+  }): Promise<void> {
+    const unitOfAssessmentId = this.id;
+
+    await this.db.$transaction([
+      this.db.unitOfAssessmentSubmission.update({
+        where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
+        data: { draft: true },
+      }),
+
+      this.db.unitOfAssessmentGrade.upsert({
+        where: { uoaGradeId: { studentId, unitOfAssessmentId } },
+        create: {
+          studentId,
+          unitOfAssessmentId,
+          status: ConsensusStage.UNRESOLVED,
+          ...expand(this.instance.params),
+        },
+        update: { status: ConsensusStage.UNRESOLVED },
+      }),
+
+      this.db.gradeEntry.deleteMany({
+        where: { unitOfAssessmentId, studentId },
+      }),
+    ]);
+  }
+
   // sorry - this probably has to be an interactive transaction OR you use Prisma Typed SQL or die??
   // players choice
   // ig if you want to leave it like this then make sure to emit enough logs / events that if something goes south you know what happened.
