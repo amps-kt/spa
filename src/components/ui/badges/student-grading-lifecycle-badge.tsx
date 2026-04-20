@@ -28,7 +28,7 @@ const markingStatusData: Record<
   DONE: { label: "Done", tip: "Marking for this student is complete" },
   NOT_SUBMITTED: {
     label: "Not Submitted",
-    tip: "Marking for this student cannot continue until the student submits ",
+    tip: "Marking for this student cannot continue until the student submits",
   },
   PENDING: { label: "Pending", tip: "Marking for this student is pending" },
   ACTION_REQUIRED: {

@@ -82,7 +82,6 @@ export const unitOfAssessmentRouter = createTRPCRouter({
 
         const student = await instance.getStudent(studentId);
 
-        // For now, re-using the same email template. Maybe we should use a different one?
         await mailer.notifyMarkingReset({
           params: instance.params,
           unit: await unit.toDTO(),
