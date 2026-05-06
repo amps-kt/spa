@@ -38,6 +38,7 @@ type SinglyMarkedUnitRow = {
   comments: string | undefined;
   markingDueOn: string;
   weight: number;
+  submitted: boolean;
 };
 
 type DoublyMarkedUnitRow = {
@@ -57,6 +58,7 @@ type DoublyMarkedUnitRow = {
   markingDueOn: string;
   weight: number;
   finalGrade: string | undefined;
+  submitted: boolean;
 };
 
 function capitalise(str: string) {
@@ -86,7 +88,7 @@ function tryExtractComments(
   components: MarkingComponentDTO[],
   sub?: MarkingSubmissionDTO,
 ): string | undefined {
-  return sub ? extractComments(components, sub) : undefined;
+  return sub !== undefined ? extractComments(components, sub) : undefined;
 }
 
 export async function GET(
@@ -115,27 +117,35 @@ export async function GET(
         const { title, components } = u.unit;
 
         if (u.unit.allowedMarkerTypes.length === 1) {
-          const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
-            : u.unit.markerSubmissionDeadline;
+          const markingDueOnDate =
+            u.grade?.customDueDate !== undefined
+              ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+              : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
 
           const weight = u.grade?.customWeight ?? u.unit.weight;
 
-          const grade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
+          const grade =
+            weight === 0
+              ? "MV"
+              : Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
           const sub = u.submissions.at(0);
           const comments = tryExtractComments(components, sub);
+          const submitted = u.grade?.studentSubmitted ?? false;
+
           return annotate<SinglyMarkedUnitRow>(title, {
             grade,
             comments,
             markingDueOn,
             weight,
+            submitted,
           });
         } else {
-          const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
-            : u.unit.markerSubmissionDeadline;
+          const markingDueOnDate =
+            u.grade?.customDueDate !== undefined
+              ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+              : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
 
@@ -191,7 +201,12 @@ export async function GET(
           const moderatedGrade = Grade.tryToLetter(moderatedGradeObj?.grade);
           const moderationComments = moderatedGradeObj?.comment;
 
-          const finalGrade = Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
+          const finalGrade =
+            weight === 0
+              ? "MV"
+              : Grade.tryToLetter(u.grade?.grades.at(0)?.grade);
+
+          const submitted = u.grade?.studentSubmitted ?? false;
 
           return annotate<DoublyMarkedUnitRow>(title, {
             supervisorGrade,
@@ -210,6 +225,7 @@ export async function GET(
             markingDueOn,
             weight,
             finalGrade,
+            submitted,
           });
         }
       });

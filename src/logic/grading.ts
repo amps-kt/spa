@@ -51,7 +51,7 @@ export class Grade {
   }
 
   public static tryToLetter(mark?: number): string | undefined {
-    return mark ? this.toLetter(mark) : undefined;
+    return mark !== undefined ? this.toLetter(mark) : undefined;
   }
 
   public static toInt(grade: string): number {
