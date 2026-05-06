@@ -117,9 +117,10 @@ export async function GET(
         const { title, components } = u.unit;
 
         if (u.unit.allowedMarkerTypes.length === 1) {
-          const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
-            : u.unit.markerSubmissionDeadline;
+          const markingDueOnDate =
+            u.grade?.customDueDate !== undefined
+              ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+              : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
 
@@ -141,9 +142,10 @@ export async function GET(
             submitted,
           });
         } else {
-          const markingDueOnDate = u.grade?.customDueDate
-            ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
-            : u.unit.markerSubmissionDeadline;
+          const markingDueOnDate =
+            u.grade?.customDueDate !== undefined
+              ? addWeeks(u.grade?.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+              : u.unit.markerSubmissionDeadline;
 
           const markingDueOn = formatDate(markingDueOnDate, "yyyy-MM-dd");
 
