@@ -122,7 +122,7 @@ export const mspAdminInstanceRouter = createTRPCRouter({
   getLateMarkers: procedure.instance.subGroupAdmin
     .output(z.array(userDtoSchema))
     .query(async ({ ctx: { instance } }) =>
-      (await instance.getLateMarkers()).map((x) => x.user),
+      (await instance.getLateMarkers()).map((x) => x.marker),
     ),
 
   notifyLateMarkers: procedure.instance.subGroupAdmin
@@ -135,9 +135,13 @@ export const mspAdminInstanceRouter = createTRPCRouter({
         numAcademics: markers.length,
         authorizerId: user.id,
       });
-      await mailer.notifyGenericMarkingOverdue({
-        params: instance.params,
-        markers,
-      });
+
+      console.log(markers);
+      console.log(markers.length);
+
+      // await mailer.notifyGenericMarkingOverdue({
+      //   params: instance.params,
+      //   markers,
+      // });
     }),
 });
