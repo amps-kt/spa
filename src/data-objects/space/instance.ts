@@ -2056,8 +2056,8 @@ export class AllocationInstance extends DataObject {
             INCOMPLETE_STATUSES.includes(u.status),
         ),
       )
-      .flatMap((d) => {
-        return d.units
+      .flatMap((d) =>
+        d.units
           .filter(
             (u) =>
               u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
@@ -2083,8 +2083,8 @@ export class AllocationInstance extends DataObject {
                   : { user: T.toUserDTO(d.supervisor), blame };
               }
             }
-          });
-      })
+          }),
+      )
       .filter(Boolean);
 
     const distinctMarkers = groupBy(markers, (m) => m.user.id);
