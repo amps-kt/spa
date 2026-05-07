@@ -132,19 +132,17 @@ export const mspAdminInstanceRouter = createTRPCRouter({
     .output(z.void())
 
     .mutation(async ({ ctx: { mailer, instance, logger, user } }) => {
-      const markers = await instance.getLateMarkers();
+      const markerBlame = await instance.getLateMarkers();
+      const markers = markerBlame.map((m) => m.marker);
 
       logger.log(LogLevels.AUDIT, "Sending marking reminders", {
         numAcademics: markers.length,
         authorizerId: user.id,
       });
 
-      console.log(markers);
-      console.log(markers.length);
-
-      // await mailer.notifyGenericMarkingOverdue({
-      //   params: instance.params,
-      //   markers,
-      // });
+      await mailer.notifyGenericMarkingOverdue({
+        params: instance.params,
+        markers,
+      });
     }),
 });
