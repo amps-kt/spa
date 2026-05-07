@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { flagDtoSchema } from "./flag-tag";
+import { unitOfAssessmentDtoSchema } from "./marking";
 
 export const userDtoSchema = z.object({
   id: z.string(),
@@ -36,6 +37,13 @@ export const readerDtoSchema = instanceUserDtoSchema.extend({
 });
 
 export type ReaderDTO = z.infer<typeof readerDtoSchema>;
+
+export const lateBlameSchema = z.object({
+  student: userDtoSchema,
+  unit: unitOfAssessmentDtoSchema,
+});
+
+export type LateBlame = z.infer<typeof lateBlameSchema>;
 
 export const studentDtoSchema = instanceUserDtoSchema.extend({
   latestSubmission: z.date().optional(),

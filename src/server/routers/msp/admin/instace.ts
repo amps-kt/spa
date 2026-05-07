@@ -1,6 +1,7 @@
 import z from "zod";
 
 import {
+  lateBlameSchema,
   markingSubmissionDtoSchema,
   projectDtoSchema,
   readerDtoSchema,
@@ -120,10 +121,12 @@ export const mspAdminInstanceRouter = createTRPCRouter({
     }),
 
   getLateMarkers: procedure.instance.subGroupAdmin
-    .output(z.array(userDtoSchema))
-    .query(async ({ ctx: { instance } }) =>
-      (await instance.getLateMarkers()).map((x) => x.marker),
-    ),
+    .output(
+      z.array(
+        z.object({ marker: userDtoSchema, blame: z.array(lateBlameSchema) }),
+      ),
+    )
+    .query(async ({ ctx: { instance } }) => await instance.getLateMarkers()),
 
   notifyLateMarkers: procedure.instance.subGroupAdmin
     .output(z.void())

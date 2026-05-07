@@ -30,6 +30,7 @@ import {
   type UnitGradeDTO,
   type UnitOfAssessmentDTO,
   type UserDTO,
+  type LateBlame,
 } from "@/dto";
 import {
   type StudentDelta,
@@ -85,7 +86,6 @@ export const byDisplayName = <T extends { displayName: string }>({
   displayName,
 }: T) => displayName;
 
-type LateBlame = { student: UserDTO; unit: UnitOfAssessmentDTO };
 export class AllocationInstance extends DataObject {
   async getUnitOfAssessment(
     unitOfAssessmentId: string,
