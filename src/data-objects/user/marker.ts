@@ -142,7 +142,10 @@ export class Marker extends User {
       const supervisor = await this.toSupervisor(this.instance.params);
       const allocations = await supervisor.getSupervisionAllocations();
 
-      const allocation = allocations.find((a) => a.student.id === studentId);
+      const allocation = allocations.find(
+        (a) => (a.student?.id ?? a.project.preAllocatedStudentId) === studentId,
+      );
+
       if (allocation !== undefined) return MarkerType.SUPERVISOR;
     }
 
@@ -150,7 +153,9 @@ export class Marker extends User {
       const reader = await this.toReader(this.instance.params);
       const allocations = await reader.getAllocations();
 
-      const allocation = allocations.find((a) => a.student.id === studentId);
+      const allocation = allocations.find(
+        (a) => (a.student?.id ?? a.project.preAllocatedStudentId) === studentId,
+      );
       if (allocation !== undefined) return MarkerType.READER;
     }
 
