@@ -41,24 +41,19 @@ export function NotifyLateMarkersButton({
           </p>
 
           <ScrollArea className="h-[40dvh] text-accent-foreground pr-2 bg-accent rounded-md my-2">
-            <ol>
-              {lateMarkers.map((m) => (
-                <div key={m.marker.id} className="m-2">
-                  <div className="text-lg">{m.marker.name}</div>
-                  <ol className="list-disc">
-                    {m.blame.map((b, i) => (
-                      <li
-                        key={i}
-                        className="flex flex-row justify-between ml-2"
-                      >
-                        <p>{b.student.name}</p>
-                        <p>{b.unit.title}</p>
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-              ))}
-            </ol>
+            {lateMarkers.map((m) => (
+              <div key={m.marker.id} className="m-2">
+                <div className="text-lg">{m.marker.name}</div>
+                <ul className="list-disc pl-2">
+                  {m.blame.map((b, i) => (
+                    <li key={i} className="grid grid-cols-2 place-items-start">
+                      <p>{b.student.name}</p>
+                      <p>{b.unit.title}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </ScrollArea>
         </div>
       }
