@@ -58,7 +58,6 @@ import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
 import { groupBy } from "@/lib/utils/group-by";
 import { keyBy } from "@/lib/utils/key-by";
-import { uniqueById } from "@/lib/utils/list-unique";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
@@ -86,6 +85,7 @@ export const byDisplayName = <T extends { displayName: string }>({
   displayName,
 }: T) => displayName;
 
+type LateBlame = { student: UserDTO; unit: UnitOfAssessmentDTO };
 export class AllocationInstance extends DataObject {
   async getUnitOfAssessment(
     unitOfAssessmentId: string,
@@ -2037,7 +2037,7 @@ export class AllocationInstance extends DataObject {
   }
 
   public async getLateMarkers(): Promise<
-    { id: string; user: UserDTO; blame: string }[]
+    { marker: UserDTO; blame: LateBlame[] }[]
   > {
     const data = await this.getStudentMarkingStatus();
     const today = Date.now();
@@ -2057,68 +2057,42 @@ export class AllocationInstance extends DataObject {
         ),
       )
       .flatMap((d) => {
-        // If this is the case, we can blame both:
-        if (
-          d.units.some(
-            (u) =>
-              u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
-              (u.status === UnitGradingLifecycleState.REQUIRES_MARKING &&
-                u.unit.allowedMarkerTypes.length === 2),
-          )
-        ) {
-          return [
-            {
-              id: d.supervisor.id,
-              user: T.toUserDTO(d.supervisor),
-              blame: `${d.student.name} - both`,
-            },
-            {
-              id: d.reader!.id,
-              user: T.toUserDTO(d.reader!),
-              blame: `${d.student.name} - both`,
-            },
-          ];
-        }
-
-        // Otherwise, it's just one
         return d.units
           .filter(
             (u) =>
+              u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
               u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER ||
               u.status === UnitGradingLifecycleState.REQUIRES_MARKING,
           )
-          .map((u) => {
+          .flatMap((u) => {
+            const blame = { student: T.toUserDTO(d.student), unit: u.unit };
+
             if (u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER) {
               return u.submissions.find((x) => x.markerId === d.supervisor.id)
-                ? {
-                    id: d.reader!.id,
-                    user: T.toUserDTO(d.reader!),
-                    blame: `${d.student.name} - ${u.unit.title}`,
-                  }
-                : {
-                    id: d.supervisor.id,
-                    user: T.toUserDTO(d.supervisor),
-                    blame: `${d.student.name} - ${u.unit.title}`,
-                  };
+                ? { user: T.toUserDTO(d.reader!), blame }
+                : { user: T.toUserDTO(d.supervisor), blame };
             } else {
-              // it requires marking...
-              return u.unit.allowedMarkerTypes[0] === MarkerType.READER
-                ? {
-                    id: d.reader!.id,
-                    user: T.toUserDTO(d.reader!),
-                    blame: `${d.student.name} - ${u.unit.title}`,
-                  }
-                : {
-                    id: d.supervisor.id,
-                    user: T.toUserDTO(d.supervisor),
-                    blame: `${d.student.name} - ${u.unit.title}`,
-                  };
+              if (u.unit.allowedMarkerTypes.length === 2) {
+                return [
+                  { user: T.toUserDTO(d.supervisor), blame },
+                  { user: T.toUserDTO(d.reader!), blame },
+                ];
+              } else {
+                return u.unit.allowedMarkerTypes[0] === MarkerType.READER
+                  ? { user: T.toUserDTO(d.reader!), blame }
+                  : { user: T.toUserDTO(d.supervisor), blame };
+              }
             }
           });
       })
       .filter(Boolean);
 
-    return uniqueById(markers);
+    const distinctMarkers = groupBy(markers, (m) => m.user.id);
+
+    return Object.values(distinctMarkers).map((xs) => ({
+      marker: xs[0].user,
+      blame: xs.map((x) => x.blame),
+    }));
   }
 }
 
