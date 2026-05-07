@@ -169,6 +169,8 @@ export class Grade {
   ): UnitGradingLifecycleState {
     if (!unit.isOpen) {
       return UnitGradingLifecycleState.CLOSED;
+    } else if (grade?.customWeight === 0) {
+      return UnitGradingLifecycleState.DONE;
     } else if (!grade?.studentSubmitted) {
       return UnitGradingLifecycleState.NOT_SUBMITTED;
     } else if (grade?.status === ConsensusStage.MODERATE) {
