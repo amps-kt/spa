@@ -121,7 +121,9 @@ export const mspAdminInstanceRouter = createTRPCRouter({
 
   getLateMarkers: procedure.instance.subGroupAdmin
     .output(z.array(userDtoSchema))
-    .query(async ({ ctx: { instance } }) => await instance.getLateMarkers()),
+    .query(async ({ ctx: { instance } }) =>
+      (await instance.getLateMarkers()).map((x) => x.user),
+    ),
 
   notifyLateMarkers: procedure.instance.subGroupAdmin
     .output(z.void())

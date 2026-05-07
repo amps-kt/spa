@@ -42,6 +42,7 @@ import {
   AllocationMethod,
   DB_ReaderPreferenceType,
   ExtendedReaderPreferenceType,
+  MarkerType,
   Stage,
   type DB,
   type New,
@@ -2035,7 +2036,9 @@ export class AllocationInstance extends DataObject {
     });
   }
 
-  public async getLateMarkers(): Promise<UserDTO[]> {
+  public async getLateMarkers(): Promise<
+    { id: string; user: UserDTO; blame: string }[]
+  > {
     const data = await this.getStudentMarkingStatus();
     const today = Date.now();
 
@@ -2054,28 +2057,66 @@ export class AllocationInstance extends DataObject {
         ),
       )
       .flatMap((d) => {
+        // If this is the case, we can blame both:
         if (
           d.units.some(
             (u) =>
               u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
-              u.status === UnitGradingLifecycleState.REQUIRES_MARKING,
+              (u.status === UnitGradingLifecycleState.REQUIRES_MARKING &&
+                u.unit.allowedMarkerTypes.length === 2),
           )
         ) {
-          return [d.supervisor, d.reader];
+          return [
+            {
+              id: d.supervisor.id,
+              user: T.toUserDTO(d.supervisor),
+              blame: `${d.student.name} - both`,
+            },
+            {
+              id: d.reader!.id,
+              user: T.toUserDTO(d.reader!),
+              blame: `${d.student.name} - both`,
+            },
+          ];
         }
 
+        // Otherwise, it's just one
         return d.units
           .filter(
-            (u) => u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER,
+            (u) =>
+              u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER ||
+              u.status === UnitGradingLifecycleState.REQUIRES_MARKING,
           )
-          .map((u) =>
-            u.submissions.find((x) => x.markerId === d.supervisor.id)
-              ? d.reader
-              : d.supervisor,
-          );
+          .map((u) => {
+            if (u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER) {
+              return u.submissions.find((x) => x.markerId === d.supervisor.id)
+                ? {
+                    id: d.reader!.id,
+                    user: T.toUserDTO(d.reader!),
+                    blame: `${d.student.name} - ${u.unit.title}`,
+                  }
+                : {
+                    id: d.supervisor.id,
+                    user: T.toUserDTO(d.supervisor),
+                    blame: `${d.student.name} - ${u.unit.title}`,
+                  };
+            } else {
+              // it requires marking...
+              return u.unit.allowedMarkerTypes[0] === MarkerType.READER
+                ? {
+                    id: d.reader!.id,
+                    user: T.toUserDTO(d.reader!),
+                    blame: `${d.student.name} - ${u.unit.title}`,
+                  }
+                : {
+                    id: d.supervisor.id,
+                    user: T.toUserDTO(d.supervisor),
+                    blame: `${d.student.name} - ${u.unit.title}`,
+                  };
+            }
+          });
       })
-      .filter(Boolean)
-      .map((x) => T.toUserDTO(x));
+      .filter(Boolean);
 
     return uniqueById(markers);
   }
