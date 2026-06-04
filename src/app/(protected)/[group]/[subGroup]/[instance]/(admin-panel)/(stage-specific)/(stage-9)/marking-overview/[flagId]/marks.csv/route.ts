@@ -100,13 +100,10 @@ export async function GET(
   const isAdmin = await api.ac.isAdminInInstance({ params });
   if (!isAdmin) return redirect("unauthorised", undefined);
 
-  if (
-    !(await api.institution.instance.getFlags({ params }))
-      .map((f) => f.id)
-      .includes(flagId)
-  ) {
-    notFound();
-  }
+  const flag = (await api.institution.instance.getFlags({ params })).find(x => x.id === flagId)
+
+  if (flag === undefined) notFound();
+
 
   const studentMarkingStatus =
     await api.msp.admin.instance.getStudentMarkingStatus({ params, flagId });
@@ -253,7 +250,14 @@ export async function GET(
     },
   );
 
-  const csvText = unparse(data);
+  const csvText = "\uFEFF" + unparse(data);
 
-  return new NextResponse(csvText);
+  const filename = `${flag.displayName}-marking-${formatDate(Date.now(), "yyyy-MM-dd")}.csv`
+
+  return new NextResponse(csvText, {
+    headers: {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    },
+  });
 }
