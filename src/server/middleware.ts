@@ -10,7 +10,6 @@ import {
   User,
   MatchingAlgorithm,
 } from "@/data-objects";
-import { AllocationInstance as AllocationInstanceNew } from "@/data-objects/space/instance.new";
 import { UnitOfAssessment } from "@/data-objects/unit-of-assessment";
 
 import { Role, type Stage } from "@/db/types";
@@ -40,8 +39,8 @@ import {
 } from "./guard";
 import { t } from "./trpc";
 
-const institutionMiddleware = t.middleware(async ({ ctx: { db }, next }) => {
-  const institution = new Institution(db);
+const institutionMiddleware = t.middleware(async ({ ctx: { sc }, next }) => {
+  const institution = new Institution(sc);
   return next({ ctx: { institution } });
 });
 
@@ -49,9 +48,9 @@ const institutionMiddleware = t.middleware(async ({ ctx: { db }, next }) => {
  * @requires a preceding `.input(z.object({ params: groupParamsSchema }))` or better
  */
 const groupMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: groupParamsSchema }).parse(input);
-    const group = new AllocationGroup(db, params);
+    const group = new AllocationGroup(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { group: params.group });
@@ -65,9 +64,9 @@ const groupMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: subGroupParamsSchema }))` or better
  */
 const subGroupMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: subGroupParamsSchema }).parse(input);
-    const subGroup = new AllocationSubGroup(db, params);
+    const subGroup = new AllocationSubGroup(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { subGroup: params.subGroup });
@@ -81,9 +80,9 @@ const subGroupMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))`
  */
 const instanceMiddleware = t.middleware(
-  async ({ ctx: { db, audit, sc }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: instanceParamsSchema }).parse(input);
-    const instance = new AllocationInstance(db, params);
+    const instance = new AllocationInstance(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { subGroup: params.subGroup });
@@ -92,7 +91,6 @@ const instanceMiddleware = t.middleware(
     return next({
       ctx: {
         instance,
-        instanceNew: new AllocationInstanceNew(sc, params),
         audit: auditNew,
       },
     });
@@ -140,13 +138,13 @@ const projectMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema, algId: z.string() }))`
  */
 const algorithmMiddleware = t.middleware(
-  async ({ ctx: { db }, input, next }) => {
+  async ({ ctx: { sc }, input, next }) => {
     const { params, algId } = z
       .object({ params: instanceParamsSchema, algId: z.string() })
       .parse(input);
     const matchingService = new HttpMatchingService();
     const alg = new MatchingAlgorithm(
-      db,
+      sc,
       { algConfigId: algId, ...params },
       matchingService,
     );
@@ -164,7 +162,7 @@ const algorithmMiddleware = t.middleware(
   ```
  */
 const unitOfAssessmentMiddleware = t.middleware(
-  async ({ ctx: { db }, input, next }) => {
+  async ({ ctx: { sc }, input, next }) => {
     const { params, unitId } = z
       .object({
         params: instanceParamsSchema,
@@ -173,7 +171,7 @@ const unitOfAssessmentMiddleware = t.middleware(
       })
       .parse(input);
 
-    const unit = new UnitOfAssessment(db, params, unitId);
+    const unit = new UnitOfAssessment(sc, params, unitId);
 
     return next({ ctx: { unit } });
   },
@@ -181,14 +179,14 @@ const unitOfAssessmentMiddleware = t.middleware(
 
 // ----
 
-const authedMiddleware = t.middleware(({ ctx: { db, session }, next }) => {
+const authedMiddleware = t.middleware(({ ctx: { sc, session }, next }) => {
   if (!session?.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "User is not signed in",
     });
   }
-  const user = new User(db, session.user.id);
+  const user = new User(sc, session.user.id);
   return next({ ctx: { user } });
 });
 
@@ -351,9 +349,9 @@ const unitMarkerMiddleware = authedMiddleware.unstable_pipe(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
  */
 const accessControlMiddleware = (condition: AccessCondition) =>
-  authedMiddleware.unstable_pipe(async ({ ctx: { user, db }, next, input }) => {
+  authedMiddleware.unstable_pipe(async ({ ctx: { user, sc }, next, input }) => {
     const { params } = z.object({ params: instanceParamsSchema }).parse(input);
-    const instance = new AllocationInstance(db, params);
+    const instance = new AllocationInstance(sc, params);
     const { stage } = await instance.get();
 
     const roles = await user.getRolesInInstance(params);

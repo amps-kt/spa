@@ -809,16 +809,16 @@ export const instanceRouter = createTRPCRouter({
         .map(({ project, supervisor, allocatedStudent }) =>
           !allAllocationsMap[project.id] || !allocatedStudent
             ? {
-                project,
-                supervisor,
-                status: ProjectAllocationStatus.UNALLOCATED,
-              }
+              project,
+              supervisor,
+              status: ProjectAllocationStatus.UNALLOCATED,
+            }
             : {
-                project,
-                supervisor,
-                status: allAllocationsMap[project.id],
-                studentId: allocatedStudent.id,
-              },
+              project,
+              supervisor,
+              status: allAllocationsMap[project.id],
+              studentId: allocatedStudent.id,
+            },
         )
         .sort((a, b) => a.project.title.localeCompare(b.project.title))
         .sort((a, b) => statusRank[a.status] - statusRank[b.status]);
@@ -1069,17 +1069,17 @@ export const instanceRouter = createTRPCRouter({
 
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: { sc, user }, input }) => {
       const result = instanceParamsSchema.safeParse(input.params);
 
       // TODO consider moving this control flow to client
       if (!result.success) return { headerTabs: [], instancePath: "" };
 
-      const instance = new AllocationInstance(ctx.db, result.data);
+      const instance = new AllocationInstance(sc, result.data);
 
       const instanceData = await instance.get();
 
-      const roles = await ctx.user.getRolesInInstance(instance.params);
+      const roles = await user.getRolesInInstance(instance.params);
 
       const instancePath = `/${instance.params.group}/${instance.params.subGroup}/${instance.params.instance}`;
 
