@@ -22,6 +22,14 @@ export const env = createEnv({
     /** SMTP password (if applicable) */
     MAIL_PASSWORD: z.string().optional(),
 
+    /** Use message queue rate limiter */
+    MAIL_USE_RATE_LIMIT: switchSchema,
+
+    /** Host for redis instance (for MQ) */
+    REDIS_HOST: z.coerce.string(),
+    /** Port for redis instance (for MQ) */
+    REDIS_PORT: z.coerce.number(),
+
     /** Fallback user ID for when AUTH_FROM_HEADERS is off (usually used for local testing) */
     DEV_ID: z.string().optional(),
     /** Fallback user name for when AUTH_FROM_HEADERS is off (usually used for local testing) */

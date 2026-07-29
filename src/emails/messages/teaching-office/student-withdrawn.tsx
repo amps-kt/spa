@@ -63,4 +63,7 @@ StudentWithdrawn.PreviewProps = {
   project: fakeProject,
 } satisfies Props;
 
+StudentWithdrawn.makeSubject = ({ student }: Props) =>
+  `Student withdrawn - ${student.name}`;
+
 export default StudentWithdrawn;

@@ -27,7 +27,7 @@ export const columnWidths = {
 export const columns: ColumnDef<StudentSubmissionsRow>[] = [
   {
     id: "student",
-    accessorFn: (row) => row.student.name,
+    accessorFn: ({ student }) => `${student.name}${student.email}${student.id}`,
     header: ({ column }) => (
       <DataTableColumnHeader
         title="Student"

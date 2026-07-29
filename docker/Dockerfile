@@ -1,3 +1,4 @@
+# Builder:
 FROM --platform=$BUILDPLATFORM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -19,9 +20,9 @@ COPY src src
 
 RUN pnpm run build
 
-#  Runner:
+# Runner:
 FROM node:22-alpine AS runner
-LABEL org.opencontainers.image.source="https://github.com/pkitazos/spa"
+LABEL org.opencontainers.image.source="https://github.com/amps-kt/spa"
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
@@ -34,7 +35,6 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 RUN mkdir logs
-RUN chown nextjs:nodejs /app/logs
 
 
 COPY --from=builder /app/node_modules/ ./node_modules
@@ -44,6 +44,7 @@ COPY --from=builder /app/package.json .
 COPY --from=builder /app/pnpm-lock.yaml  .
 COPY --from=builder /app/prisma ./prisma
 
+RUN chown -R nextjs:nodejs /app
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static

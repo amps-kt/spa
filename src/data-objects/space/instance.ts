@@ -1,38 +1,53 @@
+import { Grade } from "@/logic/grading";
+import { addWeeks, isBefore } from "date-fns";
+
+import { DEFAULT_MARKING_DURATION } from "@/config/grades";
 import { PAGES } from "@/config/pages";
 import { ADMIN_TABS_BY_STAGE } from "@/config/side-panel-tabs/admin-tabs-by-stage";
-import { computeProjectSubmissionTarget } from "@/config/submission-target";
-import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
+import {
+  adjustTarget,
+  adjustUpperBound,
+  computeProjectSubmissionTarget,
+} from "@/config/submission-target";
 
 import {
-  type UnitOfAssessmentDTO,
-  type MarkingComponentDTO,
+  UnitGradingLifecycleState,
+  markingStatusMin,
+  unitToOverall,
+  type AlgorithmDTO,
   type FlagDTO,
   type FlagWithAssessmentDTO,
   type InstanceDTO,
   type InstanceDisplayData,
-  type AlgorithmDTO,
-  type TagDTO,
+  type MarkingComponentDTO,
+  type MarkingSubmissionDTO,
   type ProjectDTO,
-  type SupervisorDTO,
-  type UserDTO,
-  type StudentDTO,
   type ReaderDTO,
+  type StudentDTO,
+  type StudentGradingLifecycleState,
+  type SupervisorDTO,
+  type TagDTO,
+  type UnitGradeDTO,
+  type UnitOfAssessmentDTO,
+  type UserDTO,
+  type LateBlame,
 } from "@/dto";
 import {
-  type StudentSubmissionsRow,
   type StudentDelta,
   type StudentSubmissionInfoDTO,
+  type StudentSubmissionsRow,
 } from "@/dto/marking/student-submissions";
 
 import { Transformers as T } from "@/db/transformers";
-import { DB_ReaderPreferenceType } from "@/db/types";
 import {
-  type DB,
-  Stage,
-  type New,
   AllocationMethod,
-  type PreferenceType,
+  DB_ReaderPreferenceType,
   ExtendedReaderPreferenceType,
+  MarkerType,
+  Stage,
+  type DB,
+  type New,
+  type PreferenceType,
 } from "@/db/types";
 
 import { HttpMatchingService } from "@/lib/services/matching";
@@ -42,6 +57,7 @@ import {
 } from "@/lib/services/reader-allocation/types";
 import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
 import { setDiff } from "@/lib/utils/general/set-difference";
+import { groupBy } from "@/lib/utils/group-by";
 import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
@@ -52,7 +68,13 @@ import {
   StudentProjectAllocationData,
   type StudentProjectAllocationDTO,
 } from "../student-project-allocation-data";
-import { type Reader, User, type Student, type Supervisor } from "../user";
+import {
+  type Marker,
+  User,
+  type Reader,
+  type Student,
+  type Supervisor,
+} from "../user";
 
 import { Project } from "..";
 
@@ -1032,6 +1054,14 @@ export class AllocationInstance extends DataObject {
     return new User(this.db, userId).toStudent(this.params);
   }
 
+  public async isMarker(userId: string): Promise<boolean> {
+    return new User(this.db, userId).isMarker(this.params);
+  }
+
+  public async getMarker(userId: string): Promise<Marker> {
+    return new User(this.db, userId).toMarker(this.params);
+  }
+
   public async getStudents(): Promise<StudentDTO[]> {
     const students = await this.db.studentDetails.findMany({
       where: expand(this.params),
@@ -1898,4 +1928,180 @@ export class AllocationInstance extends DataObject {
       ),
     ]);
   }
+
+  public async getStudentMarkingStatus(
+    flagId?: string,
+  ): Promise<
+    {
+      project: ProjectDTO;
+      student: StudentDTO;
+      status: StudentGradingLifecycleState;
+      units: {
+        unit: UnitOfAssessmentDTO;
+        grade?: UnitGradeDTO;
+        submissions: MarkingSubmissionDTO[];
+        status: UnitGradingLifecycleState;
+      }[];
+      reader?: ReaderDTO;
+      supervisor: SupervisorDTO;
+      overallGrade?: number;
+    }[]
+  > {
+    const data = await this.db.studentDetails.findMany({
+      where: {
+        ...expand(this.params),
+        projectAllocation: { isNot: null },
+        studentFlag: { id: flagId },
+      },
+      include: {
+        finalGrade: true,
+        unitSubmissions: { include: { criterionScores: true } },
+        unitGrades: {
+          include: { gradeEntries: { orderBy: { timestamp: "desc" } } },
+        },
+        userInInstance: { include: { user: true } },
+        studentFlag: {
+          include: {
+            unitsOfAssessment: {
+              include: {
+                grades: true,
+                markingComponents: true,
+                markerSubmissions: true,
+              },
+            },
+          },
+        },
+        projectAllocation: {
+          include: {
+            project: {
+              include: {
+                flagsOnProject: { include: { flag: true } },
+                tagsOnProject: { include: { tag: true } },
+                supervisor: {
+                  include: { userInInstance: { include: { user: true } } },
+                },
+                readerAllocations: {
+                  include: {
+                    reader: {
+                      include: { userInInstance: { include: { user: true } } },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return data.map((d) => {
+      const flag = d.studentFlag;
+
+      const unitGrades = keyBy(
+        d.unitGrades,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toUnitGradeDTO,
+      );
+
+      const unitSubmissions = groupBy(
+        d.unitSubmissions,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toMarkingSubmissionDTO,
+      );
+
+      const units = flag.unitsOfAssessment.map((x) => {
+        const unit = T.toUnitOfAssessmentDTO({ ...x, flag });
+        const grade = unitGrades[unit.id];
+        const submissions = unitSubmissions[unit.id] ?? [];
+        const status = Grade.getUnitStatus(unit, grade, submissions);
+
+        return { unit, grade, submissions, status };
+      });
+
+      const status = markingStatusMin(
+        units.map((x) => unitToOverall(x.status)),
+      );
+
+      const reader = d.projectAllocation?.project.readerAllocations[0]?.reader;
+
+      return {
+        student: T.toStudentDTO(d),
+        project: T.toProjectDTO(d.projectAllocation!.project),
+        supervisor: T.toSupervisorDTO(d.projectAllocation!.project.supervisor),
+        status,
+        units,
+        reader: reader ? T.toReaderDTO(reader) : undefined,
+        overallGrade: d.finalGrade?.grade,
+      };
+    });
+  }
+
+  public async getLateMarkers(): Promise<
+    { marker: UserDTO; blame: LateBlame[] }[]
+  > {
+    const data = await this.getStudentMarkingStatus();
+    const today = Date.now();
+
+    const INCOMPLETE_STATUSES = [
+      UnitGradingLifecycleState.IN_NEGOTIATION,
+      UnitGradingLifecycleState.PENDING_2ND_MARKER,
+      UnitGradingLifecycleState.REQUIRES_MARKING,
+    ] as const;
+
+    const markers = data
+      .filter((d) =>
+        d.units.some(
+          (u) =>
+            isBefore(getDueDate(u), today) &&
+            INCOMPLETE_STATUSES.includes(u.status),
+        ),
+      )
+      .flatMap((d) =>
+        d.units
+          .filter(
+            (u) =>
+              u.status === UnitGradingLifecycleState.IN_NEGOTIATION ||
+              u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER ||
+              u.status === UnitGradingLifecycleState.REQUIRES_MARKING,
+          )
+          .flatMap((u) => {
+            const blame = { student: T.toUserDTO(d.student), unit: u.unit };
+
+            if (u.status === UnitGradingLifecycleState.PENDING_2ND_MARKER) {
+              return u.submissions.find((x) => x.markerId === d.supervisor.id)
+                ? { user: T.toUserDTO(d.reader!), blame }
+                : { user: T.toUserDTO(d.supervisor), blame };
+            } else {
+              if (u.unit.allowedMarkerTypes.length === 2) {
+                return [
+                  { user: T.toUserDTO(d.supervisor), blame },
+                  { user: T.toUserDTO(d.reader!), blame },
+                ];
+              } else {
+                return u.unit.allowedMarkerTypes[0] === MarkerType.READER
+                  ? { user: T.toUserDTO(d.reader!), blame }
+                  : { user: T.toUserDTO(d.supervisor), blame };
+              }
+            }
+          }),
+      )
+      .filter(Boolean);
+
+    const distinctMarkers = groupBy(markers, (m) => m.user.id);
+
+    return Object.values(distinctMarkers).map((xs) => ({
+      marker: xs[0].user,
+      blame: xs.map((x) => x.blame),
+    }));
+  }
+}
+
+function getDueDate(u: {
+  unit: UnitOfAssessmentDTO;
+  grade?: UnitGradeDTO;
+  status: UnitGradingLifecycleState;
+}) {
+  return u.grade?.customDueDate !== undefined
+    ? addWeeks(u.grade.customDueDate, DEFAULT_MARKING_DURATION.weeks)
+    : u.unit.markerSubmissionDeadline;
 }

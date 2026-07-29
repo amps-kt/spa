@@ -313,14 +313,17 @@ const unitMarkerMiddleware = authedMiddleware.unstable_pipe(
       })
       .parse(input);
 
-    if (!(await user.isStudentMarker(params, studentId))) {
+    if (
+      !(await user.isStudentMarker(params, studentId)) &&
+      !(await user.isSubGroupAdminOrBetter(params))
+    ) {
       throw new TRPCError({
         code: "UNAUTHORIZED",
         message: "User is not a marker in instance XXX",
       });
     }
 
-    return next({ ctx: { user: await user.toMarker(params) } });
+    return next({ ctx: { user } });
   },
 );
 

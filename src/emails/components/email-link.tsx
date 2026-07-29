@@ -40,7 +40,7 @@ export function EmailLink<T extends PageName>({
 } & VariantProps<typeof emailLinkVariants>) {
   return (
     <Link
-      href={`${env.FRONTEND_SERVER_URL}/${mkHref(page, linkArgs)}`}
+      href={`${env.FRONTEND_SERVER_URL}${mkHref(page, linkArgs)}`}
       className={cn(emailLinkVariants({ variant }), className)}
     >
       {children}

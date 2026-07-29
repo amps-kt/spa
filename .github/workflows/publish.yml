@@ -9,6 +9,10 @@ on:
 jobs:
   build_and_publish:
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,7 +30,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GHCR_PAT }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Build and push app"
         uses: docker/build-push-action@v5
@@ -35,9 +39,9 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-latest
-            ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-${{ steps.date.outputs.date }}
-            ghcr.io/pkitazos/amps-app:${{ github.ref_name }}-${{ github.sha }}
+            ghcr.io/amps-kt/amps-app:${{ github.ref_name }}-latest
+            ghcr.io/amps-kt/amps-app:${{ github.ref_name }}-${{ steps.date.outputs.date }}
+            ghcr.io/amps-kt/amps-app:${{ github.ref_name }}-${{ github.sha }}
 
       - name: "Trigger Staging Pull"
         run: |

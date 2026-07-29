@@ -88,7 +88,19 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         ctx: { unit, user, instance },
         input: { studentId, unitId, data },
       }) => {
-        const markerType = await user.getMarkerType(studentId);
+        if (
+          data.markerId !== user.id &&
+          !(await user.isGroupAdminOrBetter(instance.params))
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User does not have permission to write marks",
+          });
+        }
+
+        const marker = await instance.getMarker(data.markerId);
+
+        const markerType = await marker.getMarkerType(studentId);
         const { allowedMarkerTypes } =
           await instance.getUnitOfAssessment(unitId);
 
@@ -112,7 +124,19 @@ export const unitOfAssessmentRouter = createTRPCRouter({
         ctx: { user, instance, unit, mailer },
         input: { studentId, unitId, data },
       }) => {
-        const markerType = await user.getMarkerType(studentId);
+        if (
+          data.markerId !== user.id &&
+          !(await user.isGroupAdminOrBetter(instance.params))
+        ) {
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "User does not have permission to write marks",
+          });
+        }
+
+        const marker = await instance.getMarker(data.markerId);
+
+        const markerType = await marker.getMarkerType(studentId);
         const { allowedMarkerTypes } =
           await instance.getUnitOfAssessment(unitId);
 

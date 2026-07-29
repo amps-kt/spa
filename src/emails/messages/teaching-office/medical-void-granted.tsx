@@ -78,4 +78,7 @@ MedicalVoidGranted.PreviewProps = {
   unit: fakePresentationUnit,
 } satisfies Props;
 
+MedicalVoidGranted.makeSubject = ({ student, unit }: Props) =>
+  `Medical void granted for ${student.name} - ${unit.title}`;
+
 export default MedicalVoidGranted;

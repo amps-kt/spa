@@ -1,23 +1,55 @@
-// import { metadataTitle, app } from "@/config/meta";
-// import { PAGES } from "@/config/pages";
-// import { Heading } from "@/components/heading";
-import { PanelWrapper } from "@/components/panel-wrapper";
+import { ZapIcon } from "lucide-react";
 
-// import { api } from "@/lib/trpc/server";
+import { metadataTitle, app } from "@/config/meta";
+import { PAGES } from "@/config/pages";
+
+import { Heading, SectionHeading } from "@/components/heading";
+import { PanelWrapper } from "@/components/panel-wrapper";
+import { Card, CardContent } from "@/components/ui/card";
+
+import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
-// import { MarkingOverviewTable } from "./marking-overview-table";
+import { CsvSelector } from "./csv-selector";
+import { NotifyLateMarkersButton } from "./notify-late-markers-button";
+import { MarkingOverviewTabs } from "./tabs";
 
-// export async function generateMetadata({ params }: { params: InstanceParams }) {
-//   const { displayName } = await api.institution.instance.get({ params });
+export async function generateMetadata({ params }: { params: InstanceParams }) {
+  const { displayName } = await api.institution.instance.get({ params });
 
-//   return {
-//     title: metadataTitle([PAGES.markingOverview.title, displayName, app.name]),
-//   };
-// }
+  return {
+    title: metadataTitle([PAGES.markingOverview.title, displayName, app.name]),
+  };
+}
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  // const data = await api.marking.byProjectMarkingSummary({ params });
+  const lateMarkers = await api.msp.admin.instance.getLateMarkers({ params });
 
-  return <PanelWrapper className="gap-10">WIP</PanelWrapper>;
+  const flags = await api.institution.instance.getFlags({ params });
+
+  return (
+    <PanelWrapper className="gap-10">
+      <Heading>{PAGES.markingOverview.title}</Heading>
+
+      <section className="flex flex-col gap-5">
+        <SectionHeading icon={ZapIcon}>Quick Actions</SectionHeading>
+        <Card className="w-full">
+          <CardContent className="mt-6 flex flex-col gap-5">
+            <div className="flex justify-between items-center">
+              Notify markers with overdue marking
+              <NotifyLateMarkersButton
+                params={params}
+                lateMarkers={lateMarkers}
+              />
+            </div>
+            <div className="flex justify-between items-center">
+              Download marking data <CsvSelector flags={flags} />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      <MarkingOverviewTabs params={params} />
+    </PanelWrapper>
+  );
 }

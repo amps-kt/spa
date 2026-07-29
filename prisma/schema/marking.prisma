@@ -154,6 +154,7 @@ model FinalGrade {
   allocationSubGroupId     String                   @map("allocation_sub_group_id")
   allocationInstanceId     String                   @map("allocation_instance_id")
   // ---
+  student                  StudentDetails           @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId])
   allocationInstance       AllocationInstance       @relation(fields: [allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [allocationGroupId, allocationSubGroupId, id], onDelete: Cascade, map: "final_grade_instance")
   studentProjectAllocation StudentProjectAllocation @relation(fields: [studentId, allocationGroupId, allocationSubGroupId, allocationInstanceId], references: [userId, allocationGroupId, allocationSubGroupId, allocationInstanceId], onDelete: Cascade, map: "final_grade_spa")
 

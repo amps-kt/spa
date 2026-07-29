@@ -451,6 +451,21 @@ export const PAGES = {
     allowedRoles: [Role.ADMIN],
     hasSubRoute: false,
   },
+  markingOverviewCsv: {
+    title: "Marking Overview",
+    href: "marking-overview",
+    mkUrl: ({
+      group,
+      subGroup,
+      instance,
+      flagId,
+    }: InInstance<{ flagId: string }>) =>
+      `/${group}/${subGroup}/${instance}/marking-overview/${flagId}/marks.csv`,
+    icon: "file-check-2",
+    level: 4,
+    allowedRoles: [Role.ADMIN],
+    hasSubRoute: false,
+  },
 
   allProjects: {
     title: "All Projects",

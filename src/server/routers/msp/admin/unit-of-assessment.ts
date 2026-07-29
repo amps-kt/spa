@@ -69,6 +69,29 @@ export const unitOfAssessmentRouter = createTRPCRouter({
       });
     }),
 
+  unsubmitMarks: procedure.unitOfAssessment.subGroupAdmin
+    .input(z.object({ markerId: z.string(), studentId: z.string() }))
+    .mutation(
+      async ({
+        ctx: { institution, unit, mailer, instance },
+        input: { markerId, studentId },
+      }) => {
+        await unit.unsubmitMarks({ markerId, studentId });
+
+        const marker = await institution.getUserObjectById(markerId).toDTO();
+
+        const student = await instance.getStudent(studentId);
+
+        await mailer.notifyMarkingReset({
+          params: instance.params,
+          unit: await unit.toDTO(),
+          marker,
+          student: await student.get(),
+          project: (await student.getAllocation()).project,
+        });
+      },
+    ),
+
   resetMarks: procedure.unitOfAssessment.subGroupAdmin
     .input(z.object({ markerId: z.string(), studentId: z.string() }))
     .mutation(
