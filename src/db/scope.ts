@@ -87,10 +87,10 @@ export class DataAccessScope {
   async batch(queries: DB_Promise<unknown>[]): Promise<unknown[]> {
     if (this._inTransaction) {
       // Already atomic - just run them
-      return Promise.all(queries);
+      return Promise.all(queries) as Promise<unknown[]>;
     }
 
-    return (this._db as DB).$transaction(queries);
+    return (this._db as DB).$transaction(queries) as Promise<unknown[]>;
   }
 }
 

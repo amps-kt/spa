@@ -3,12 +3,12 @@ import { guidToMatric } from "@/config/guid-to-matric";
 import { type StudentDTO, type SupervisorDTO, type ProjectDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type AllocationMethod, type DB } from "@/db/types";
+import { type AllocationMethod } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { DataObject } from "./data-object";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export type StudentProjectAllocationDTO = {
   student: StudentDTO;
@@ -18,17 +18,16 @@ export type StudentProjectAllocationDTO = {
   allocationMethod: AllocationMethod;
 };
 
-export class StudentProjectAllocationData extends DataObject {
+export class StudentProjectAllocationData extends ScopedDataObject {
   private allocationData: StudentProjectAllocationDTO[];
 
-  constructor(db: DB, data: StudentProjectAllocationDTO[]) {
-    super(db);
-    this.db = db;
+  constructor(sc: DataAccessScope, data: StudentProjectAllocationDTO[]) {
+    super(sc);
     this.allocationData = data;
   }
 
-  static async fromDB(db: DB, params: InstanceParams) {
-    const data = await db.studentProjectAllocation.findMany({
+  static async fromDB(sc: DataAccessScope, params: InstanceParams) {
+    const data = await sc.db.studentProjectAllocation.findMany({
       where: expand(params),
       include: {
         student: {
@@ -57,7 +56,7 @@ export class StudentProjectAllocationData extends DataObject {
       allocationMethod: x.allocationMethod,
     }));
 
-    return new StudentProjectAllocationData(db, formatData);
+    return new StudentProjectAllocationData(sc, formatData);
   }
 
   public toRecord() {

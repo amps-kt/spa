@@ -6,17 +6,16 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
 
 import { toInstanceId } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
-import { DataObject } from "../data-object";
 import { User } from "../user";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
-export class Institution extends DataObject {
-  constructor(db: DB) {
-    super(db);
+export class Institution extends ScopedDataObject {
+  constructor(sc: DataAccessScope) {
+    super(sc);
   }
 
   // WARNING bug see group.createSubroup
@@ -67,7 +66,7 @@ export class Institution extends DataObject {
   }
 
   public getUserObjectById(userId: string): User {
-    return new User(this.db, userId);
+    return new User(this.sc, userId);
   }
 
   public async userExists(id: string): Promise<boolean> {

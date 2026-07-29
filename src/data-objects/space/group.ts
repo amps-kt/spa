@@ -8,22 +8,21 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
 
 import { uniqueById } from "@/lib/utils/list-unique";
 import { type GroupParams } from "@/lib/validations/params";
 
-import { DataObject } from "../data-object";
 import { User } from "../user";
 
 import { Institution } from "./institution";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
-export class AllocationGroup extends DataObject {
+export class AllocationGroup extends ScopedDataObject {
   public params: GroupParams;
   private _institution: Institution | undefined;
 
-  constructor(db: DB, params: GroupParams) {
-    super(db);
+  constructor(sc: DataAccessScope, params: GroupParams) {
+    super(sc);
     this.params = params;
   }
 
@@ -98,7 +97,7 @@ export class AllocationGroup extends DataObject {
   }
 
   public async isGroupAdmin(userId: string): Promise<boolean> {
-    const user = new User(this.db, userId);
+    const user = new User(this.sc, userId);
     return await user.isGroupAdmin(this.params);
   }
 
@@ -109,7 +108,7 @@ export class AllocationGroup extends DataObject {
   }
 
   get institution() {
-    this._institution ??= new Institution(this.db);
+    this._institution ??= new Institution(this.sc);
     return this._institution;
   }
 

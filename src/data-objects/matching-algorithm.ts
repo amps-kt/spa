@@ -4,7 +4,6 @@ import { type UserDTO, type AlgorithmDTO, type InstanceDTO } from "@/dto";
 import { AlgorithmRunResult } from "@/dto/result/algorithm-run-result";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
 
 import {
   type IMatchingService,
@@ -20,9 +19,9 @@ import {
 } from "@/lib/validations/matching";
 import { type AlgorithmInstanceParams } from "@/lib/validations/params";
 
-import { DataObject } from "./data-object";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
-export class MatchingAlgorithm extends DataObject {
+export class MatchingAlgorithm extends ScopedDataObject {
   public params: AlgorithmInstanceParams;
 
   private _config: AlgorithmDTO | undefined;
@@ -30,11 +29,11 @@ export class MatchingAlgorithm extends DataObject {
   private _results: MatchingResultDTO | undefined;
 
   constructor(
-    db: DB,
+    sc: DataAccessScope,
     params: AlgorithmInstanceParams,
     private matchingService: IMatchingService,
   ) {
-    super(db);
+    super(sc);
     this.params = params;
   }
 
@@ -109,7 +108,7 @@ export class MatchingAlgorithm extends DataObject {
         studentRanking: x.preference_rank,
       }));
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.matchingPair.deleteMany({
         where: { matchingResult: toAlgID(this.params) },
       }),

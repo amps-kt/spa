@@ -4,9 +4,8 @@ import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
 import {
-  type DB,
   ExtendedReaderPreferenceType,
-  DB_ReaderPreferenceType,
+  DB_ReaderPreferenceType
 } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
@@ -14,10 +13,11 @@ import { institutionIdSchema } from "@/lib/validations/institution-id";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Marker } from ".";
+import { type DataAccessScope } from "@/db/scope";
 
 export class Reader extends Marker {
-  constructor(db: DB, id: string, params: InstanceParams) {
-    super(db, id, params);
+  constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
+    super(sc, id, params);
   }
 
   public static newCSVSchema = z.object({

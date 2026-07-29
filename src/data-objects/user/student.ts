@@ -17,7 +17,6 @@ import { sortPreferenceType } from "@/dto/preference";
 
 import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod, type MarkerType, PreferenceType } from "@/db/types";
-import { type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
@@ -26,13 +25,14 @@ import { type ProjectParams, type InstanceParams } from "@/lib/validations/param
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
+import { type DataAccessScope } from "@/db/scope";
 
 export class Student extends User {
   instance: AllocationInstance;
 
-  constructor(db: DB, id: string, params: InstanceParams) {
-    super(db, id);
-    this.instance = new AllocationInstance(db, params);
+  constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
+    super(sc, id);
+    this.instance = new AllocationInstance(sc, params);
   }
 
   public async get(): Promise<StudentDTO> {
@@ -242,9 +242,9 @@ export class Student extends User {
     projectId: string,
     preferenceType: PreferenceType | undefined,
   ): Promise<void> {
-    return await this.db.$transaction(async (tx) => {
+    return await this.sc.transaction(async () => {
       if (!preferenceType) {
-        await tx.studentDraftPreference.delete({
+        await this.db.studentDraftPreference.delete({
           where: {
             draftPreferenceId: {
               userId: this.id,
@@ -256,7 +256,7 @@ export class Student extends User {
         return;
       }
 
-      const preferences = await tx.studentDraftPreference.aggregate({
+      const preferences = await this.db.studentDraftPreference.aggregate({
         where: {
           userId: this.id,
           type: preferenceType,
@@ -267,7 +267,7 @@ export class Student extends User {
 
       const nextScore = (preferences._max?.score ?? 0) + 1;
 
-      await tx.studentDraftPreference.upsert({
+      await this.db.studentDraftPreference.upsert({
         where: {
           draftPreferenceId: {
             projectId,
@@ -291,10 +291,10 @@ export class Student extends User {
     projectIds: string[],
     preferenceType: PreferenceType | undefined,
   ): Promise<void> {
-    return await this.db.$transaction(async (tx) => {
+    return await this.sc.transaction(async () => {
       if (!preferenceType) {
         // user wants to remove all projects from their preferences
-        await tx.studentDraftPreference.deleteMany({
+        await this.db.studentDraftPreference.deleteMany({
           where: {
             userId: this.id,
             projectId: { in: projectIds },
@@ -305,7 +305,7 @@ export class Student extends User {
       }
 
       // delete all existing preferences for these projects to avoid residuals
-      await tx.studentDraftPreference.deleteMany({
+      await this.db.studentDraftPreference.deleteMany({
         where: {
           userId: this.id,
           projectId: { in: projectIds },
@@ -313,7 +313,7 @@ export class Student extends User {
         },
       });
 
-      const preferences = await tx.studentDraftPreference.aggregate({
+      const preferences = await this.db.studentDraftPreference.aggregate({
         where: {
           userId: this.id,
           type: preferenceType,
@@ -324,7 +324,7 @@ export class Student extends User {
 
       const startingScore = (preferences._max?.score ?? 0) + 1;
 
-      await tx.studentDraftPreference.createMany({
+      await this.db.studentDraftPreference.createMany({
         data: projectIds.map((projectId, index) => ({
           projectId,
           userId: this.id,
@@ -373,8 +373,8 @@ export class Student extends User {
   public async submitPreferences(): Promise<Date> {
     const newSubmissionDateTime = new Date();
 
-    await this.db.$transaction(async (tx) => {
-      const preferences = await tx.studentDraftPreference.findMany({
+    await this.sc.transaction(async () => {
+      const preferences = await this.db.studentDraftPreference.findMany({
         where: {
           userId: this.id,
           type: PreferenceType.PREFERENCE,
@@ -384,11 +384,11 @@ export class Student extends User {
         orderBy: { score: "asc" },
       });
 
-      await tx.studentSubmittedPreference.deleteMany({
+      await this.db.studentSubmittedPreference.deleteMany({
         where: { userId: this.id, ...expand(this.instance.params) },
       });
 
-      await tx.studentSubmittedPreference.createMany({
+      await this.db.studentSubmittedPreference.createMany({
         data: preferences.map(({ projectId }, i) => ({
           projectId,
           rank: i + 1,
@@ -397,7 +397,7 @@ export class Student extends User {
         })),
       });
 
-      await tx.studentDetails.update({
+      await this.db.studentDetails.update({
         where: {
           studentDetailsId: {
             userId: this.id,

@@ -9,7 +9,7 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB, Role } from "@/db/types";
+import { Role } from "@/db/types";
 
 import { assert } from "@/lib/utils/assert";
 import { expand } from "@/lib/utils/instance-params";
@@ -20,7 +20,6 @@ import {
   type ProjectParams,
 } from "@/lib/validations/params";
 
-import { DataObject } from "../data-object";
 import { Institution } from "../space/institution";
 
 import { UrlSegment } from "..";
@@ -34,13 +33,14 @@ import {
   SuperAdmin,
   Supervisor,
 } from ".";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
-export class User extends DataObject {
+export class User extends ScopedDataObject {
   id: string;
   private _data: UserDTO | undefined;
 
-  constructor(db: DB, id: string) {
-    super(db);
+  constructor(sc: DataAccessScope, id: string) {
+    super(sc);
     this.id = id;
   }
 
@@ -61,8 +61,8 @@ export class User extends DataObject {
     return this._data;
   }
 
-  static fromDTO(db: DB, data: UserDTO): User {
-    const user = new User(db, data.id);
+  static fromDTO(sc: DataAccessScope, data: UserDTO): User {
+    const user = new User(sc, data.id);
     user._data = data;
     return user;
   }
@@ -218,18 +218,18 @@ export class User extends DataObject {
 
   // --- conversions
   public toUser(): User {
-    return new User(this.db, this.id);
+    return new User(this.sc, this.id);
   }
 
   public async toSuperAdmin(): Promise<SuperAdmin> {
     if (!(await this.isSuperAdmin())) throw new Error("unauthorised");
-    return new SuperAdmin(this.db, this.id);
+    return new SuperAdmin(this.sc, this.id);
   }
 
   public async toGroupAdmin(groupParams: GroupParams): Promise<GroupAdmin> {
     if (!(await this.isGroupAdminOrBetter(groupParams)))
       throw new Error("unauthorised");
-    return new GroupAdmin(this.db, this.id, groupParams);
+    return new GroupAdmin(this.sc, this.id, groupParams);
   }
 
   public async toSubGroupAdmin(
@@ -237,14 +237,14 @@ export class User extends DataObject {
   ): Promise<SubGroupAdmin> {
     if (!(await this.isSubGroupAdminOrBetter(subGroupParams)))
       throw new Error("unauthorised");
-    return new SubGroupAdmin(this.db, this.id, subGroupParams);
+    return new SubGroupAdmin(this.sc, this.id, subGroupParams);
   }
 
   public async toStudent(instanceParams: InstanceParams): Promise<Student> {
     if (!(await this.isStudent(instanceParams)))
       throw new Error("unauthorised");
 
-    return new Student(this.db, this.id, instanceParams);
+    return new Student(this.sc, this.id, instanceParams);
   }
 
   public async toSupervisor(
@@ -253,19 +253,19 @@ export class User extends DataObject {
     if (!(await this.isSupervisor(instanceParams)))
       throw new Error("User is not a supervisor in this instance");
 
-    return new Supervisor(this.db, this.id, instanceParams);
+    return new Supervisor(this.sc, this.id, instanceParams);
   }
 
   public async toReader(instanceParams: InstanceParams): Promise<Reader> {
     if (!(await this.isReader(instanceParams))) throw new Error("unauthorised");
 
-    return new Reader(this.db, this.id, instanceParams);
+    return new Reader(this.sc, this.id, instanceParams);
   }
 
   public async toMarker(instanceParams: InstanceParams): Promise<Marker> {
     if (!(await this.isMarker(instanceParams))) throw new Error("unauthorised");
 
-    return new Marker(this.db, this.id, instanceParams);
+    return new Marker(this.sc, this.id, instanceParams);
   }
 
   // --- Other methods
@@ -319,7 +319,7 @@ export class User extends DataObject {
 
   public async getInstances(): Promise<InstanceDTO[]> {
     if (await this.isSuperAdmin()) {
-      return await new Institution(this.db).getInstances();
+      return await new Institution(this.sc).getInstances();
     }
 
     const instanceData = await this.db.allocationInstance.findMany({
