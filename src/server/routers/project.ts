@@ -256,7 +256,7 @@ export const projectRouter = createTRPCRouter({
     .output(z.string())
     .mutation(
       async ({
-        ctx: { sc, audit, instanceNew: instance },
+        ctx: { sc, audit, instance },
         input: { newProject },
       }) => {
         audit("Create project", { project: newProject });

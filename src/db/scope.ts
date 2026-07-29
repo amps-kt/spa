@@ -1,4 +1,5 @@
 import { type DB, type TX, type DB_Promise } from "@/db/types";
+import { db } from ".";
 
 /**
  * DataAccessScope holds a database client (either the root PrismaClient or a
@@ -18,13 +19,20 @@ import { type DB, type TX, type DB_Promise } from "@/db/types";
  *
  */
 export class DataAccessScope {
+  private static instance: DataAccessScope | undefined;
   private _db: DB | TX;
   private _inTransaction: boolean;
 
-  constructor(db: DB | TX, inTransaction = false) {
+  private constructor(db: DB | TX, inTransaction = false) {
     this._db = db;
     this._inTransaction = inTransaction;
   }
+
+  public static getInstance(db: DB): DataAccessScope {
+    DataAccessScope.instance ??= new DataAccessScope(db);
+    return DataAccessScope.instance
+  }
+
 
   /** The current database client (either root or transaction-scoped). */
   get db(): DB | TX {
@@ -87,10 +95,10 @@ export class DataAccessScope {
   async batch(queries: DB_Promise<unknown>[]): Promise<unknown[]> {
     if (this._inTransaction) {
       // Already atomic - just run them
-      return Promise.all(queries) as Promise<unknown[]>;
+      return Promise.all(queries);
     }
 
-    return (this._db as DB).$transaction(queries) as Promise<unknown[]>;
+    return (this._db as DB).$transaction(queries);
   }
 }
 
@@ -117,3 +125,5 @@ export abstract class ScopedDataObject {
     return this.sc.db;
   }
 }
+
+export const sc = DataAccessScope.getInstance(db)

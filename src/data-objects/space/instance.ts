@@ -1334,6 +1334,29 @@ export class AllocationInstance extends ScopedDataObject {
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 
+  public async createProject(data: {
+    title: string;
+    description: string;
+    capacityUpperBound: number;
+    preAllocatedStudentId: string | undefined;
+    supervisorId: string;
+  }) {
+    const created = await this.sc.db.project.create({
+      data: {
+        ...expand(this.params),
+        title: data.title,
+        description: data.description,
+        capacityLowerBound: 0,
+        capacityUpperBound: data.capacityUpperBound,
+        preAllocatedStudentId: data.preAllocatedStudentId ?? null,
+        latestEditDateTime: new Date(),
+        supervisorId: data.supervisorId,
+      },
+    });
+
+    return new Project(this.sc, { ...this.params, projectId: created.id });
+  }
+
   public getProject(projectId: string): Project {
     return new Project(this.sc, { projectId, ...this.params });
   }
