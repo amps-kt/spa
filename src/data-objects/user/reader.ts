@@ -144,9 +144,10 @@ export class Reader extends Marker {
       },
     });
 
-    return data.map((x) => ({
+    // weird!
+    return data.filter(x => x.project.studentAllocations[0]?.student).map((x) => ({
       project: T.toProjectDTO(x.project),
-      student: T.toStudentDTO(x.project.studentAllocations[0].student),
+      student: T.toStudentDTO(x.project.studentAllocations[0]?.student),
       type: x.type,
     }));
   }
