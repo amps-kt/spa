@@ -21,7 +21,7 @@ import { type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
-import { type InstanceParams } from "@/lib/validations/params";
+import { type ProjectParams, type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationInstance } from "../space/instance";
 
@@ -56,12 +56,12 @@ export class Student extends User {
     }));
   }
 
-  public async canViewProject(projectId: string): Promise<boolean> {
+  public async canViewProject({ projectId, ...params }: ProjectParams): Promise<boolean> {
     const { flag: studentFlag } = await this.get();
 
     return !!(await this.db.project.findFirst({
       where: {
-        id: projectId,
+        id: projectId, ...expand(params),
         flagsOnProject: { some: { flagId: studentFlag.id } },
         OR: [
           { preAllocatedStudentId: this.id },

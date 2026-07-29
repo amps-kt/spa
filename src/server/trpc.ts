@@ -57,6 +57,8 @@ export const createTRPCContext = async (opts: {
     trpcLogger.log(LogLevels.AUDIT, message, data);
   };
 
+  const sc = new DataAccessScope(db)
+
   return {
     session,
     user: session.user,
@@ -66,6 +68,7 @@ export const createTRPCContext = async (opts: {
     ),
     logger: trpcLogger,
     audit,
+    sc
   };
 };
 

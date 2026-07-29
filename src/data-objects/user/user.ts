@@ -192,7 +192,7 @@ export class User extends DataObject {
     assert(await this.isStudent(params), "User must be Student");
     const student = await this.toStudent(params);
 
-    return await student.canViewProject(params.projectId);
+    return await student.canViewProject(params);
   }
 
   public async getRolesInInstance(
