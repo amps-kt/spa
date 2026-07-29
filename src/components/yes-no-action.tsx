@@ -31,14 +31,18 @@ function YesNoActionContainer({
   title,
   description,
   children,
+  open,
+  onOpenChange,
 }: {
   action: () => void;
   title: ReactNode;
   description: ReactNode;
-  children: ReactNode;
+  children?: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   return (
-    <DestructiveAction action={action}>
+    <DestructiveAction action={action} open={open} onOpenChange={onOpenChange}>
       {children}
       <DestructiveActionContent className="w-96">
         <DestructiveActionHeader>

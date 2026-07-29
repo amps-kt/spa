@@ -10,14 +10,14 @@ import {
   type UnitGradingLifecycleState,
   unitToOverall,
   type StudentGradingLifecycleState,
-  type UnitGradeDTO,
-  type MarkingSubmissionDTO,
 } from "@/dto/marking";
 
 import { Transformers as T } from "@/db/transformers";
 import { MarkerType, type DB } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
+import { groupBy } from "@/lib/utils/group-by";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationInstance } from "../space/instance";
@@ -89,29 +89,16 @@ export class Marker extends User {
     return projectsToMark.map(({ student, project }) => {
       const flag = student.studentFlag;
 
-      type UnitOfAssessmentID = string;
+      const unitGrades = keyBy(
+        student.unitGrades,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toUnitGradeDTO,
+      );
 
-      const unitGrades: Record<UnitOfAssessmentID, UnitGradeDTO> =
-        student.unitGrades.reduce(
-          (acc, val) => ({
-            ...acc,
-            [val.unitOfAssessmentId]: T.toUnitGradeDTO(val),
-          }),
-          {},
-        );
-
-      const unitSubmissions: Record<
-        UnitOfAssessmentID,
-        MarkingSubmissionDTO[]
-      > = student.unitSubmissions.reduce(
-        (acc, val) => {
-          const list = acc[val.unitOfAssessmentId] ?? [];
-          return {
-            ...acc,
-            [val.unitOfAssessmentId]: [...list, T.toMarkingSubmissionDTO(val)],
-          };
-        },
-        {} as Record<UnitOfAssessmentID, MarkingSubmissionDTO[]>,
+      const unitSubmissions = groupBy(
+        student.unitSubmissions,
+        ({ unitOfAssessmentId }) => unitOfAssessmentId,
+        T.toMarkingSubmissionDTO,
       );
 
       const isSupervisor = user.id === project.supervisorId;
@@ -155,7 +142,10 @@ export class Marker extends User {
       const supervisor = await this.toSupervisor(this.instance.params);
       const allocations = await supervisor.getSupervisionAllocations();
 
-      const allocation = allocations.find((a) => a.student.id === studentId);
+      const allocation = allocations.find(
+        (a) => (a.student?.id ?? a.project.preAllocatedStudentId) === studentId,
+      );
+
       if (allocation !== undefined) return MarkerType.SUPERVISOR;
     }
 
@@ -163,7 +153,9 @@ export class Marker extends User {
       const reader = await this.toReader(this.instance.params);
       const allocations = await reader.getAllocations();
 
-      const allocation = allocations.find((a) => a.student.id === studentId);
+      const allocation = allocations.find(
+        (a) => (a.student?.id ?? a.project.preAllocatedStudentId) === studentId,
+      );
       if (allocation !== undefined) return MarkerType.READER;
     }
 

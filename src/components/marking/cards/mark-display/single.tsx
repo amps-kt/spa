@@ -9,7 +9,7 @@ import { RoleBadge } from "@/components/role-badge";
 import { api } from "@/lib/trpc/client";
 
 import { MarksheetRole, useMarksheetContext } from "../../marksheet-context";
-import { ResetMarksButton } from "../admin-controls";
+import { AdminControlsMenu } from "../admin-controls";
 
 import { MarkList } from "./mark-list";
 
@@ -32,7 +32,7 @@ export function SingleMarkDisplay({
       markerId: marker.id,
     });
 
-  const dataPresent = data !== undefined && data !== null;
+  const dataPresent = data !== undefined && data !== null && !data.draft;
   const isAdmin = [
     MarksheetRole.ADMIN,
     MarksheetRole.READER_ADMIN,
@@ -50,8 +50,12 @@ export function SingleMarkDisplay({
         {/* TODO IF admin, name is link */}
         Marked by <span className="font-bold">{marker.name}</span>{" "}
         <RoleBadge role={markerType} />
-        {isAdmin && dataPresent && (
-          <ResetMarksButton unitId={unit.id} marker={marker} />
+        {isAdmin && (
+          <AdminControlsMenu
+            unit={unit}
+            marker={marker}
+            dataPresent={dataPresent}
+          />
         )}
       </h3>
 

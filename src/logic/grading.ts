@@ -50,6 +50,10 @@ export class Grade {
     return grade.label;
   }
 
+  public static tryToLetter(mark?: number): string | undefined {
+    return mark !== undefined ? this.toLetter(mark) : undefined;
+  }
+
   public static toInt(grade: string): number {
     const gradeObj = GRADES.find((g) => g.label === grade);
     if (!gradeObj) {
@@ -165,6 +169,8 @@ export class Grade {
   ): UnitGradingLifecycleState {
     if (!unit.isOpen) {
       return UnitGradingLifecycleState.CLOSED;
+    } else if (grade?.customWeight === 0) {
+      return UnitGradingLifecycleState.DONE;
     } else if (!grade?.studentSubmitted) {
       return UnitGradingLifecycleState.NOT_SUBMITTED;
     } else if (grade?.status === ConsensusStage.MODERATE) {

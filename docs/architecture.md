@@ -68,26 +68,22 @@ These need to change very rarely.
 The main idea is to abstract away a lot of the tedious boilerplate that is present in many procedures.
 
 If you wanted, for example, to write a procedure which updates an allocation instance, then you would need to
-accept the parameters which specify the instance (it's ID, essentially) and then query the database based on these.
+accept the parameters which specify the instance (its ID, essentially) and then query the database based on these.
 
 Any procedure pertaining to an instance has to do this, and so we can save a lot of work by abstracting it away. This is what a middleware does. It adds the necessary input parameters and injects objects into the tRPC context.
 
-We also have authentication middlewares - which automatically check that the user has the correct authorisation and inject a corresponding user object. If authentication fails, the procedure will error. Generally, you should try to make sure that your procedures are properly scoped wrt authorisation - it's critical to avoid accidental data leaks.
+We also have authentication middlewares - which automatically check that the user has the correct authorisation and inject a corresponding user object. If authentication fails, the procedure will error. Generally, you should try to make sure that your procedures are properly scoped with respect to authorisation - it's critical to avoid accidental data leaks.
 
 ### Data transfer objects
 
 There are many places in the application where _almost_ the same data is required, though it may differ slightly.
-Creating types for each individual use case proved very messy; there were lots of interfaces floating around that were used only once,
-and it made knowing what data was on each hard to track.
-Now, instead, for each type of object there is a single type that contains all the data for that object type,
-and we always pass around the full objects.
+Creating types for each individual use case proved very messy; there were lots of interfaces floating around that were used only once, and it made knowing what data was on which type of object hard to track. Now, for each type of object there is a single type that contains all the data for that object type, and we always pass around the full objects.
 
 These large canonical types are called Data Transfer Objects (DTOs).
 
 If you are presenting data relating to e.g. a student, you can use the `StudentDTO` type,
 rather than having to carefully hand-craft the type for what you need.
-Whilst this is a little less efficient - you may end up passing around data you don't strictly need - the benefits to code style and legibility are substantial.
-It makes moving around different parts of the application much easier, since the types are always the same.
+Whilst this is a little less efficient - you may end up passing around data you don't strictly need - the benefits to code style and legibility are substantial. It makes moving around different parts of the application much easier, since the types are always the same. So far, we've never been in a position where we've had to split a DTO into a smaller type for privilege reasons, though it's always important to think about.
 
 ---
 
