@@ -1,6 +1,6 @@
-import { ClassValue } from "clsx";
+import { type ClassValue } from "clsx";
 
-import { UserDTO } from "@/dto";
+import { type UserDTO } from "@/dto";
 
 import { cn } from "@/lib/utils";
 
