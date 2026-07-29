@@ -6,9 +6,9 @@ import {
 } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { AllocationMethod, type DB } from "@/db/types";
+import { AllocationMethod } from "@/db/types";
 
-import { type DataAccessScope, ScopedDataObject } from "@/server/scope";
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 import { expand, toPP2 } from "@/lib/utils/instance-params";
 import {
@@ -30,7 +30,6 @@ export class Project extends ScopedDataObject {
     super(sc);
     this.params = params;
   }
-
   // --- Reads ----------------
 
   public async exists() {
@@ -154,19 +153,17 @@ export class Project extends ScopedDataObject {
   // --- Child data objects (now share scope) ----------------------------------
 
   get group() {
-    // TODO: once AllocationGroup is migrated to ScopedDataObject,
-    // change to: new AllocationGroup(this.scope, this.params)
-    this._group ??= new AllocationGroup(this.sc.db as DB, this.params);
+    this._group ??= new AllocationGroup(this.sc, this.params);
     return this._group;
   }
 
   get subGroup() {
-    this._subgroup ??= new AllocationSubGroup(this.sc.db as DB, this.params);
+    this._subgroup ??= new AllocationSubGroup(this.sc, this.params);
     return this._subgroup;
   }
 
   get instance() {
-    this._instance ??= new AllocationInstance(this.sc.db as DB, this.params);
+    this._instance ??= new AllocationInstance(this.sc, this.params);
     return this._instance;
   }
 

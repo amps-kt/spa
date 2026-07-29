@@ -1,16 +1,16 @@
-import { type DB } from "@/db/types";
 
 import { type SubGroupParams } from "@/lib/validations/params";
 
 import { AllocationSubGroup } from "../space/sub-group";
 
 import { User } from ".";
+import { type DataAccessScope } from "@/db/scope";
 
 export class SubGroupAdmin extends User {
   subGroup: AllocationSubGroup;
 
-  constructor(db: DB, id: string, subGroupParams: SubGroupParams) {
-    super(db, id);
-    this.subGroup = new AllocationSubGroup(db, subGroupParams);
+  constructor(sc: DataAccessScope, id: string, subGroupParams: SubGroupParams) {
+    super(sc, id);
+    this.subGroup = new AllocationSubGroup(sc, subGroupParams);
   }
 }
