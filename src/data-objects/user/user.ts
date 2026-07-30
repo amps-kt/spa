@@ -425,10 +425,7 @@ export class User extends DataObject {
     return res;
   }
 
-  // no-op for admins, and for anyone without a userInInstance record to mark
   public async joinInstance(params: InstanceParams): Promise<void> {
-    if (await this.isSubGroupAdminOrBetter(params)) return;
-
     await this.db.userInInstance.updateMany({
       where: { ...expand(params), userId: this.id },
       data: { joined: true },
