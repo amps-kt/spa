@@ -3,7 +3,6 @@ import { PAGES } from "@/config/pages";
 import {
   type UserDTO,
   type InstanceDTO,
-  type InstanceUserDTO,
   type GroupDTO,
   type SubGroupDTO,
 } from "@/dto";
@@ -159,12 +158,17 @@ export class User extends DataObject {
     return (await this.isStaff(params)) || (await this.isStudent(params));
   }
 
+  // admins are members of an instance without participating in it
+  // so they have no userInInstance record and nothing to join
+  // if a user is not in an instance at all, they obviously haven't joined
   public async isJoined(params: InstanceParams): Promise<boolean> {
-    const { joined } = await this.db.userInInstance.findUniqueOrThrow({
+    if (await this.isSubGroupAdminOrBetter(params)) return true;
+
+    const membership = await this.db.userInInstance.findUnique({
       where: { instanceMembership: { ...expand(params), userId: this.id } },
     });
 
-    return joined;
+    return membership?.joined ?? false;
   }
 
   public async getRolesInInstance(
@@ -421,13 +425,13 @@ export class User extends DataObject {
     return res;
   }
 
-  public async joinInstance(params: InstanceParams): Promise<InstanceUserDTO> {
-    return await this.db.userInInstance
-      .update({
-        where: { instanceMembership: { ...expand(params), userId: this.id } },
-        data: { joined: true },
-        include: { user: true },
-      })
-      .then((x) => T.toInstanceUserDTO(x));
+  // no-op for admins, and for anyone without a userInInstance record to mark
+  public async joinInstance(params: InstanceParams): Promise<void> {
+    if (await this.isSubGroupAdminOrBetter(params)) return;
+
+    await this.db.userInInstance.updateMany({
+      where: { ...expand(params), userId: this.id },
+      data: { joined: true },
+    });
   }
 }
