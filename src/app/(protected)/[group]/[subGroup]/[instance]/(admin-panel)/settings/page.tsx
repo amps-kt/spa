@@ -1,5 +1,4 @@
 import { ListIcon, PenIcon } from "lucide-react";
-import Link from "next/link";
 
 import { app, metadataTitle } from "@/config/meta";
 import { PAGES } from "@/config/pages";
@@ -10,6 +9,7 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
@@ -39,10 +39,14 @@ export default async function Page({ params }: { params: InstanceParams }) {
               Modify {spacesLabels.instance.short}-specific details.
             </CardDescription>
             <Button size="lg" asChild>
-              <Link className="flex items-center gap-2" href="./edit">
+              <AppInstanceLink
+                className="flex items-center gap-2"
+                page="instanceEdit"
+                linkArgs={{}}
+              >
                 <PenIcon className="h-4 w-4" />
                 View or Edit
-              </Link>
+              </AppInstanceLink>
             </Button>
           </CardContent>
         </Card>

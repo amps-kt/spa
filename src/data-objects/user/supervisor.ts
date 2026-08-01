@@ -6,17 +6,17 @@ import {
   type InstanceDTO,
 } from "@/dto";
 
+import { type DataAccessScope } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Marker } from ".";
 
 export class Supervisor extends Marker {
-  constructor(db: DB, id: string, params: InstanceParams) {
-    super(db, id, params);
+  constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
+    super(sc, id, params);
   }
 
   public async toDTO(): Promise<SupervisorDTO> {

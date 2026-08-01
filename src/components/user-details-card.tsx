@@ -5,10 +5,10 @@ import { HashIcon, User2Icon } from "lucide-react";
 
 import { type User } from "@/lib/auth/types";
 import { cn } from "@/lib/utils";
-import { getColorFromName, getInitials } from "@/lib/utils/avatar-icon-helpers";
 
-import { Avatar, AvatarFallback } from "./ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+
+import { UserAvatar } from "./user-avatar";
 
 export function UserDetailsCard({
   user,
@@ -26,16 +26,11 @@ export function UserDetailsCard({
       <CardHeader className="pb-4">
         {full ? (
           <div className="flex items-center space-x-4">
-            <Avatar className="h-16 w-16">
-              <AvatarFallback
-                className={cn(
-                  "bg-gray-100 text-gray-600 text-xl",
-                  getColorFromName(user.name),
-                )}
-              >
-                {user?.name ? getInitials(user.name) : <User2Icon />}
-              </AvatarFallback>
-            </Avatar>
+            <UserAvatar
+              name={user.name}
+              className="h-16 w-16"
+              fallbackClassName="text-xl"
+            />
             <div>
               <CardTitle className="text-2xl font-bold">{user.name}</CardTitle>
               <p className="text-sm text-muted-foreground">user</p>

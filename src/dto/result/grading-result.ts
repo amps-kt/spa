@@ -55,5 +55,5 @@ export type MarkSubmissionEventResult =
     };
 
 export type ModerationCheckResult =
-| { status: typeof MarkSubmissionEvent.AUTO_RESOLVED; grade: number }
-| { status: typeof MarkSubmissionEvent.MODERATE };
+  | { status: typeof MarkSubmissionEvent.AUTO_RESOLVED; grade: number }
+  | { status: typeof MarkSubmissionEvent.MODERATE };

@@ -6,9 +6,6 @@ import {
   CornerDownRightIcon,
   MoreHorizontalIcon as MoreIcon,
 } from "lucide-react";
-import Link from "next/link";
-
-import { PAGES } from "@/config/pages";
 
 import { PreferenceType, Stage } from "@/db/types";
 
@@ -31,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { previousStages, stageLt } from "@/lib/utils/permissions/stage-check";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
@@ -89,12 +87,13 @@ export function useStudentPreferencesColumns({
           original: { project },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={`../projects/${project.id}`}
+          page="projectById"
+          linkArgs={{ projectId: project.id }}
         >
           {project.title}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -110,12 +109,13 @@ export function useStudentPreferencesColumns({
           },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={`../${PAGES.allSupervisors.href}/${id}`}
+          page="supervisorById"
+          linkArgs={{ supervisorId: id }}
         >
           {name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -231,13 +231,14 @@ export function useStudentPreferencesColumns({
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="group/item">
-              <Link
+              <AppInstanceLink
                 className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                href={`../projects/${project.id}`}
+                page="projectById"
+                linkArgs={{ projectId: project.id }}
               >
                 <CornerDownRightIcon className="h-4 w-4" />
                 <span>View Project details</span>
-              </Link>
+              </AppInstanceLink>
             </DropdownMenuItem>
             <ConditionalRender
               allowedStages={previousStages(Stage.STUDENT_BIDDING)}

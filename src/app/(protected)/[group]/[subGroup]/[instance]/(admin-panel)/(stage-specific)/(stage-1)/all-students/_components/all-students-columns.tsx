@@ -3,14 +3,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  LucideMoreHorizontal as MoreIcon,
+  MoreHorizontalIcon as MoreIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type ProjectDTO, type StudentDTO } from "@/dto";
 
@@ -18,10 +16,7 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import {
-  useInstanceStage,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceStage } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -41,6 +36,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 import {
   previousStages,
@@ -58,7 +54,6 @@ export function useAllStudentsColumns({
   deleteManyStudents: (ids: string[]) => Promise<void>;
 }): ColumnDef<StudentWithAllocation>[] {
   const stage = useInstanceStage();
-  const { getInstancePath } = usePathInInstance();
 
   const selectCol = getSelectColumn<StudentWithAllocation>();
 
@@ -93,12 +88,13 @@ export function useAllStudentsColumns({
           original: { student },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={getInstancePath([PAGES.allStudents.href, student.id])}
+          page="studentById"
+          linkArgs={{ studentId: student.id }}
         >
           {student.name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -144,15 +140,16 @@ export function useAllStudentsColumns({
         if (stageGt(stage, Stage.SETUP) && allocation) {
           return (
             <WithTooltip tip={<p className="max-w-96">{allocation.title}</p>}>
-              <Link
+              <AppInstanceLink
                 className={cn(
                   buttonVariants({ variant: "link" }),
                   "inline-block w-40 truncate px-0 text-start",
                 )}
-                href={getInstancePath([PAGES.allProjects.href, allocation.id])}
+                page="projectById"
+                linkArgs={{ projectId: allocation.id }}
               >
                 {allocation.title}
-              </Link>
+              </AppInstanceLink>
             </WithTooltip>
           );
         }
@@ -247,13 +244,14 @@ export function useAllStudentsColumns({
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={getInstancePath([PAGES.allStudents.href, student.id])}
+                  page="studentById"
+                  linkArgs={{ studentId: student.id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View Student Details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <ConditionalRender
                 allowedStages={previousStages(Stage.STUDENT_BIDDING)}

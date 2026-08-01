@@ -11,7 +11,7 @@ import {
   type InstanceDTO,
 } from "@/dto";
 
-import { isSameInstance } from "@/lib/utils/general/instance-params";
+import { isSameInstance } from "@/lib/utils/instance-params";
 
 import { useInstanceParams } from "../params-context";
 

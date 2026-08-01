@@ -2,13 +2,14 @@
 
 import { env } from "@/env";
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 import { type UserDTO } from "@/dto";
 
 import { User } from "@/data-objects";
 
-import { db } from "@/db";
+import { sc } from "@/db/scope";
+
+import { redirect } from "@/lib/routing";
 
 const DEV_USER_COOKIE_KEY = "dev-selected-user-id";
 
@@ -17,7 +18,8 @@ export async function switchDevUser(userId: string): Promise<void> {
     throw new Error("User switching is only available in development");
   }
 
-  const user = await db.user.findUnique({ where: { id: userId } });
+  // Shouldn't matter here if we use sc or db, but using sc for consistency
+  const user = await sc.db.user.findUnique({ where: { id: userId } });
   if (!user) {
     throw new Error("User not found");
   }
@@ -32,7 +34,7 @@ export async function switchDevUser(userId: string): Promise<void> {
   });
 
   // redirect to refresh the page and trigger re-authentication
-  redirect("/");
+  redirect("home", undefined);
 }
 
 /**
@@ -51,7 +53,7 @@ export async function getCurrentDevUser(): Promise<UserDTO | undefined> {
     return undefined;
   }
 
-  const user = await new User(db, devUserId).toMaybeDTO();
+  const user = await new User(sc, devUserId).toMaybeDTO();
   return user;
 }
 
@@ -66,5 +68,5 @@ export async function clearDevUser() {
   const cookieStore = cookies();
   cookieStore.delete(DEV_USER_COOKIE_KEY);
 
-  redirect("/");
+  redirect("home", undefined);
 }

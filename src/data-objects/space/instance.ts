@@ -38,6 +38,7 @@ import {
   type StudentSubmissionsRow,
 } from "@/dto/marking/student-submissions";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import {
   AllocationMethod,
@@ -55,14 +56,13 @@ import {
   type MatchingReader,
   type ReaderMatchingPair,
 } from "@/lib/services/reader-allocation/types";
-import { expand, toInstanceId } from "@/lib/utils/general/instance-params";
-import { setDiff } from "@/lib/utils/general/set-difference";
 import { groupBy } from "@/lib/utils/group-by";
+import { expand, toInstanceId } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
+import { setDiff } from "@/lib/utils/set";
 import { type InstanceParams } from "@/lib/validations/params";
 import { type TabType } from "@/lib/validations/tabs";
 
-import { DataObject } from "../data-object";
 import { MatchingAlgorithm } from "../matching-algorithm";
 import {
   StudentProjectAllocationData,
@@ -86,7 +86,7 @@ export const byDisplayName = <T extends { displayName: string }>({
   displayName,
 }: T) => displayName;
 
-export class AllocationInstance extends DataObject {
+export class AllocationInstance extends ScopedDataObject {
   async getUnitOfAssessment(
     unitOfAssessmentId: string,
   ): Promise<UnitOfAssessmentDTO> {
@@ -156,8 +156,8 @@ export class AllocationInstance extends DataObject {
   private _subgroup: AllocationSubGroup | undefined;
   private _data: InstanceDTO | undefined;
 
-  constructor(db: DB, params: InstanceParams) {
-    super(db);
+  constructor(sc: DataAccessScope, params: InstanceParams) {
+    super(sc);
     this.params = params;
   }
 
@@ -200,7 +200,7 @@ export class AllocationInstance extends DataObject {
   }
 
   public async getAllocationData(): Promise<StudentProjectAllocationData> {
-    return await StudentProjectAllocationData.fromDB(this.db, this.params);
+    return await StudentProjectAllocationData.fromDB(this.sc, this.params);
   }
 
   // ---------------------------------------------------------------------------
@@ -349,7 +349,7 @@ export class AllocationInstance extends DataObject {
   public getAlgorithm(algConfigId: string): MatchingAlgorithm {
     const matchingService = new HttpMatchingService();
     return new MatchingAlgorithm(
-      this.db,
+      this.sc,
       { algConfigId, ...this.params },
       matchingService,
     );
@@ -362,7 +362,7 @@ export class AllocationInstance extends DataObject {
     if (!algConfigId) return undefined;
     const matchingService = new HttpMatchingService();
     return new MatchingAlgorithm(
-      this.db,
+      this.sc,
       { algConfigId, ...this.params },
       matchingService,
     );
@@ -880,7 +880,7 @@ export class AllocationInstance extends DataObject {
       }),
     );
 
-    await this.db.$transaction(operations);
+    await this.sc.batch(operations);
   }
 
   public async getSummaryResults() {
@@ -981,12 +981,12 @@ export class AllocationInstance extends DataObject {
   }
 
   get group() {
-    this._group ??= new AllocationGroup(this.db, this.params);
+    this._group ??= new AllocationGroup(this.sc, this.params);
     return this._group;
   }
 
   get subGroup() {
-    this._subgroup ??= new AllocationSubGroup(this.db, this.params);
+    this._subgroup ??= new AllocationSubGroup(this.sc, this.params);
     return this._subgroup;
   }
 
@@ -1031,35 +1031,35 @@ export class AllocationInstance extends DataObject {
   }
 
   public async isReader(id: string): Promise<boolean> {
-    return await new User(this.db, id).isReader(this.params);
+    return await new User(this.sc, id).isReader(this.params);
   }
 
   public async isSupervisor(userId: string): Promise<boolean> {
-    return new User(this.db, userId).isSupervisor(this.params);
+    return new User(this.sc, userId).isSupervisor(this.params);
   }
 
   public async getSupervisor(userId: string): Promise<Supervisor> {
-    return new User(this.db, userId).toSupervisor(this.params);
+    return new User(this.sc, userId).toSupervisor(this.params);
   }
 
   public async getReader(readerId: string): Promise<Reader> {
-    return new User(this.db, readerId).toReader(this.params);
+    return new User(this.sc, readerId).toReader(this.params);
   }
 
   public async isStudent(userId: string): Promise<boolean> {
-    return new User(this.db, userId).isStudent(this.params);
+    return new User(this.sc, userId).isStudent(this.params);
   }
 
   public async getStudent(userId: string): Promise<Student> {
-    return new User(this.db, userId).toStudent(this.params);
+    return new User(this.sc, userId).toStudent(this.params);
   }
 
   public async isMarker(userId: string): Promise<boolean> {
-    return new User(this.db, userId).isMarker(this.params);
+    return new User(this.sc, userId).isMarker(this.params);
   }
 
   public async getMarker(userId: string): Promise<Marker> {
-    return new User(this.db, userId).toMarker(this.params);
+    return new User(this.sc, userId).toMarker(this.params);
   }
 
   public async getStudents(): Promise<StudentDTO[]> {
@@ -1334,8 +1334,31 @@ export class AllocationInstance extends DataObject {
       .sort((a, b) => a.title.localeCompare(b.title));
   }
 
+  public async createProject(data: {
+    title: string;
+    description: string;
+    capacityUpperBound: number;
+    preAllocatedStudentId: string | undefined;
+    supervisorId: string;
+  }) {
+    const created = await this.sc.db.project.create({
+      data: {
+        ...expand(this.params),
+        title: data.title,
+        description: data.description,
+        capacityLowerBound: 0,
+        capacityUpperBound: data.capacityUpperBound,
+        preAllocatedStudentId: data.preAllocatedStudentId ?? null,
+        latestEditDateTime: new Date(),
+        supervisorId: data.supervisorId,
+      },
+    });
+
+    return new Project(this.sc, { ...this.params, projectId: created.id });
+  }
+
   public getProject(projectId: string): Project {
-    return new Project(this.db, { projectId, ...this.params });
+    return new Project(this.sc, { projectId, ...this.params });
   }
 
   public async getLateProjects(): Promise<ProjectDTO[]> {
@@ -1394,8 +1417,8 @@ export class AllocationInstance extends DataObject {
       byTitle,
     ).map(byTitle);
 
-    await this.db.$transaction(async (tx) => {
-      await tx.allocationInstance.update({
+    await this.sc.transaction(async () => {
+      await this.db.allocationInstance.update({
         where: { instanceId: toInstanceId(this.params) },
         data: {
           projectSubmissionDeadline: instance.projectSubmissionDeadline,
@@ -1415,7 +1438,7 @@ export class AllocationInstance extends DataObject {
         },
       });
 
-      await tx.flag.createMany({
+      await this.db.flag.createMany({
         data: newInstanceFlags.map((f, i) => ({
           ...expand(this.params),
           id: f.id,
@@ -1443,7 +1466,7 @@ export class AllocationInstance extends DataObject {
           const flagId = flagDisplayNameToId[f.displayName];
           if (!flagId) return;
 
-          const existingUoAs = await tx.unitOfAssessment.findMany({
+          const existingUoAs = await this.db.unitOfAssessment.findMany({
             where: { flagId, ...expand(this.params) },
           });
 
@@ -1455,7 +1478,7 @@ export class AllocationInstance extends DataObject {
 
               const unitId = existing
                 ? (
-                    await tx.unitOfAssessment.update({
+                    await this.db.unitOfAssessment.update({
                       where: { id: existing.id },
                       data: {
                         defaultWeight: uoa.weight,
@@ -1467,7 +1490,7 @@ export class AllocationInstance extends DataObject {
                     })
                   ).id
                 : (
-                    await tx.unitOfAssessment.create({
+                    await this.db.unitOfAssessment.create({
                       data: {
                         ...expand(this.params),
                         flagId,
@@ -1483,7 +1506,7 @@ export class AllocationInstance extends DataObject {
 
               await Promise.all(
                 uoa.components.map((c, idx) =>
-                  tx.markingComponent.upsert({
+                  this.db.markingComponent.upsert({
                     where: {
                       title_unitOfAssessmentId: {
                         title: c.displayName,
@@ -1510,14 +1533,14 @@ export class AllocationInstance extends DataObject {
         }),
       );
 
-      await tx.tag.deleteMany({
+      await this.db.tag.deleteMany({
         where: {
           ...expand(this.params),
           title: { in: staleInstanceTagTitles },
         },
       });
 
-      await tx.tag.createMany({
+      await this.db.tag.createMany({
         data: newInstanceTags.map((t) => ({
           ...expand(this.params),
           title: t.title,
@@ -1530,7 +1553,7 @@ export class AllocationInstance extends DataObject {
     const preAllocations = await this.getPreAllocations();
     const preAllocatedStudentIds = preAllocations.map((e) => e.student.id);
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.matchingResult.deleteMany({ where: expand(this.params) }),
 
       this.db.allocationInstance.update({
@@ -1554,7 +1577,7 @@ export class AllocationInstance extends DataObject {
       d.map((d) => d.student.id),
     );
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.studentProjectAllocation.deleteMany({
         where: {
           ...expand(this.params),
@@ -1579,7 +1602,7 @@ export class AllocationInstance extends DataObject {
       include: { matching: true },
     });
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.studentProjectAllocation.deleteMany({
         where: {
           ...expand(this.params),
@@ -1617,7 +1640,7 @@ export class AllocationInstance extends DataObject {
 
   // TODO split into 2 methods
   public async unlinkStudent(userId: string) {
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.project.updateMany({
         where: { preAllocatedStudentId: userId, ...expand(this.params) },
         data: { preAllocatedStudentId: null },
@@ -1629,7 +1652,7 @@ export class AllocationInstance extends DataObject {
   }
 
   public async unlinkStudents(studentIds: string[]) {
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.project.updateMany({
         where: {
           preAllocatedStudentId: { in: studentIds },
@@ -1882,7 +1905,7 @@ export class AllocationInstance extends DataObject {
   public async updateStudentSubmissionInfo(
     deltas: StudentDelta[],
   ): Promise<void> {
-    await this.db.$transaction([
+    await this.sc.batch([
       ...deltas
         .filter((d) => d.enrolled !== undefined)
         .map((d) =>

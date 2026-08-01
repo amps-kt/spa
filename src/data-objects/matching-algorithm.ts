@@ -3,15 +3,15 @@ import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
 import { type UserDTO, type AlgorithmDTO, type InstanceDTO } from "@/dto";
 import { AlgorithmRunResult } from "@/dto/result/algorithm-run-result";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
-import { type DB } from "@/db/types";
 
 import {
   type IMatchingService,
   MatchingServiceError,
   type MatchingServiceResponse,
 } from "@/lib/services/matching";
-import { expand, toAlgID } from "@/lib/utils/general/instance-params";
+import { expand, toAlgID } from "@/lib/utils/instance-params";
 import {
   type MatchingResultDTO,
   type MatchingDataDTO,
@@ -20,9 +20,7 @@ import {
 } from "@/lib/validations/matching";
 import { type AlgorithmInstanceParams } from "@/lib/validations/params";
 
-import { DataObject } from "./data-object";
-
-export class MatchingAlgorithm extends DataObject {
+export class MatchingAlgorithm extends ScopedDataObject {
   public params: AlgorithmInstanceParams;
 
   private _config: AlgorithmDTO | undefined;
@@ -30,11 +28,11 @@ export class MatchingAlgorithm extends DataObject {
   private _results: MatchingResultDTO | undefined;
 
   constructor(
-    db: DB,
+    sc: DataAccessScope,
     params: AlgorithmInstanceParams,
     private matchingService: IMatchingService,
   ) {
-    super(db);
+    super(sc);
     this.params = params;
   }
 
@@ -109,7 +107,7 @@ export class MatchingAlgorithm extends DataObject {
         studentRanking: x.preference_rank,
       }));
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.matchingPair.deleteMany({
         where: { matchingResult: toAlgID(this.params) },
       }),

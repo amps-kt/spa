@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/card";
 import { Item, ItemContent, ItemMedia } from "@/components/ui/item";
 
+import { FormatPercent } from "@/lib/formatting/percent";
 import { cn } from "@/lib/utils";
-import { FormatPercent } from "@/lib/utils/format-percent";
 
 export function MarkingComponentDisplay({
   className,

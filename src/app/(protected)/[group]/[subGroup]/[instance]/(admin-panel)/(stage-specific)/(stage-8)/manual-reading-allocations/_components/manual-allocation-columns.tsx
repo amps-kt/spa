@@ -2,16 +2,13 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { RotateCcwIcon, SaveIcon, Trash2Icon } from "lucide-react";
-import Link from "next/link";
 import { z } from "zod";
 
-import { PAGES } from "@/config/pages";
-
-import { usePathInInstance } from "@/components/params-context";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { cn } from "@/lib/utils";
 
 import {
@@ -38,7 +35,6 @@ export function useManualReadingAllocationColumns({
   onSave,
   onReset,
 }: ManualReadingAllocationColumnsProps): ColumnDef<ManualReadingAllocationRow>[] {
-  const { getPath } = usePathInInstance();
   return [
     {
       id: "project",
@@ -50,28 +46,26 @@ export function useManualReadingAllocationColumns({
         const projectData = row.original;
         return (
           <div className="flex flex-col gap-1 items-start max-w-xl">
-            <Link
-              href={getPath(
-                `${PAGES.allProjects.href}/${projectData.project.id}`,
-              )}
+            <AppInstanceLink
+              page="projectById"
+              linkArgs={{ projectId: projectData.project.id }}
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "p-0 text-sm font-medium",
               )}
             >
               {projectData.project.title}
-            </Link>
-            <Link
-              href={getPath(
-                `${PAGES.allSupervisors.href}/${projectData.project.supervisorId}`,
-              )}
+            </AppInstanceLink>
+            <AppInstanceLink
+              page="supervisorById"
+              linkArgs={{ supervisorId: projectData.project.supervisorId }}
               className={cn(
                 buttonVariants({ variant: "link" }),
                 "p-0 text-xs text-muted-foreground",
               )}
             >
               {projectData.supervisor.name}
-            </Link>
+            </AppInstanceLink>
           </div>
         );
       },

@@ -46,8 +46,7 @@ import {
   matchingOutputSchema,
   matchingReaderSchema,
 } from "@/lib/services/reader-allocation/types";
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { previousStages, stageGte } from "@/lib/utils/permissions/stage-check";
 import { newReaderAllocationSchema } from "@/lib/validations/allocate-readers/new-reader-allocation";
 import { projectPreferenceCardDtoSchema } from "@/lib/validations/board";
@@ -1070,19 +1069,19 @@ export const instanceRouter = createTRPCRouter({
 
   getHeaderTabs: procedure.user
     .input(z.object({ params: instanceParamsSchema.partial() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ ctx: { sc, user }, input }) => {
       const result = instanceParamsSchema.safeParse(input.params);
 
       // TODO consider moving this control flow to client
       if (!result.success) return { headerTabs: [], instancePath: "" };
 
-      const instance = new AllocationInstance(ctx.db, result.data);
+      const instance = new AllocationInstance(sc, result.data);
 
       const instanceData = await instance.get();
 
-      const roles = await ctx.user.getRolesInInstance(instance.params);
+      const roles = await user.getRolesInInstance(instance.params);
 
-      const instancePath = formatParamsAsPath(instance.params);
+      const instancePath = `/${instance.params.group}/${instance.params.subGroup}/${instance.params.instance}`;
 
       if (!roles.has(Role.ADMIN)) {
         return {

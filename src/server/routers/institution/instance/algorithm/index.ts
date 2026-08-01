@@ -15,7 +15,7 @@ import { Transformers as T } from "@/db/transformers";
 import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import {
   matchingResultDtoSchema,
   supervisorMatchingDetailsDtoSchema,

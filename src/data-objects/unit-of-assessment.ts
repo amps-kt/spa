@@ -8,27 +8,26 @@ import {
   type FinalMarkingResult,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
-import { ConsensusMethod, ConsensusStage, type DB } from "@/db/types";
+import { ConsensusMethod, ConsensusStage } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
-import { keyBy } from "@/lib/utils/general/key-by";
+import { expand } from "@/lib/utils/instance-params";
+import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
-
-import { DataObject } from "./data-object";
 
 import { AllocationInstance } from ".";
 
 type MarkerId = string;
 
-export class UnitOfAssessment extends DataObject {
+export class UnitOfAssessment extends ScopedDataObject {
   public instance: AllocationInstance;
 
   public id: string;
 
-  constructor(db: DB, params: InstanceParams, unitId: string) {
-    super(db);
-    this.instance = new AllocationInstance(db, params);
+  constructor(sc: DataAccessScope, params: InstanceParams, unitId: string) {
+    super(sc);
+    this.instance = new AllocationInstance(sc, params);
     this.id = unitId;
   }
 
@@ -96,7 +95,7 @@ export class UnitOfAssessment extends DataObject {
     marks,
   }: FullMarkingSubmissionDTO | DraftMarkingSubmissionDTO) {
     const unitOfAssessmentId = this.id;
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.unitOfAssessmentSubmission.upsert({
         where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
         create: {
@@ -146,7 +145,7 @@ export class UnitOfAssessment extends DataObject {
   }): Promise<void> {
     const unitOfAssessmentId = this.id;
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.unitOfAssessmentSubmission.delete({
         where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
       }),
@@ -177,7 +176,7 @@ export class UnitOfAssessment extends DataObject {
   }): Promise<void> {
     const unitOfAssessmentId = this.id;
 
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.unitOfAssessmentSubmission.update({
         where: { uoaSubmissionId: { markerId, studentId, unitOfAssessmentId } },
         data: { draft: true },
@@ -204,7 +203,7 @@ export class UnitOfAssessment extends DataObject {
     studentId: string,
     newData: FinalMarkingResult,
   ): Promise<UnitGradeDTO> {
-    await this.db.$transaction([
+    await this.sc.batch([
       this.db.unitOfAssessmentGrade.upsert({
         where: { uoaGradeId: { unitOfAssessmentId: this.id, studentId } },
         create: {

@@ -15,6 +15,7 @@ import superjson from "superjson";
 import z, { ZodError } from "zod";
 
 import { db } from "@/db";
+import { sc } from "@/db/scope";
 
 import { auth } from "@/lib/auth";
 import { type Session } from "@/lib/auth/types";
@@ -57,12 +58,14 @@ export const createTRPCContext = async (opts: {
 
   return {
     session,
+    user: session.user,
     db,
     mailer: new Mailer(
       env.MAIL_USE_RATE_LIMIT === "ON" ? makeQueue() : sendMail,
     ),
     logger: trpcLogger,
     audit,
+    sc,
   };
 };
 

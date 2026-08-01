@@ -3,13 +3,11 @@
 import * as React from "react";
 
 import { HomeIcon, LifeBuoyIcon } from "lucide-react";
-import Link from "next/link";
 
 import { app } from "@/config/meta";
 import { PAGES } from "@/config/pages";
 
 import { CopyButton } from "@/components/copy-button";
-import { usePathInInstance } from "@/components/params-context";
 import {
   Dialog,
   DialogHeader,
@@ -28,6 +26,8 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+import { AppInstanceLink } from "@/lib/routing";
+
 import SidebarTabs from "./sidebar-tabs";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
@@ -43,7 +43,6 @@ export function AppSidebar({
   tabGroups,
   ...props
 }: AppSidebarProps) {
-  const { basePath } = usePathInInstance();
   return (
     <Sidebar
       className="top-[calc(var(--header-height)-1px)] h-[calc(100svh-var(--header-height))]! fixed"
@@ -53,7 +52,7 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href={basePath}>
+              <AppInstanceLink page="instanceHome" linkArgs={{}}>
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                   <HomeIcon className="size-4" />
                 </div>
@@ -63,7 +62,7 @@ export function AppSidebar({
                   </span>
                   <span className="truncate text-xs">{instanceName}</span>
                 </div>
-              </Link>
+              </AppInstanceLink>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

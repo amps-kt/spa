@@ -1,19 +1,14 @@
 "use client";
 
 import { Trash2Icon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
-import { PAGES } from "@/config/pages";
-
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import { toPP3 } from "@/lib/utils/general/instance-params";
+import { toPP3 } from "@/lib/utils/instance-params";
 
 export function ProjectRemovalButton({
   projectId,
@@ -23,12 +18,7 @@ export function ProjectRemovalButton({
   isAdmin: boolean;
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
-  const { getInstancePath } = usePathInInstance();
-
-  const redirectPath = isAdmin
-    ? getInstancePath([PAGES.allProjects.href])
-    : getInstancePath([PAGES.myProposedProjects.href]);
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_deleteProject } = api.project.delete.useMutation();
 
@@ -42,7 +32,12 @@ export function ProjectRemovalButton({
       })
       .unwrap()
       .then(() => {
-        router.push(redirectPath);
+        if (isAdmin) {
+          router.push("allProjects", {}, undefined);
+        } else {
+          router.push("myProposedProjects", {}, undefined);
+        }
+
         router.refresh();
       });
   }

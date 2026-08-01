@@ -1,5 +1,4 @@
-import { Plus, SquareLibraryIcon } from "lucide-react";
-import Link from "next/link";
+import { PlusIcon, SquareLibraryIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 
 import { app, metadataTitle } from "@/config/meta";
@@ -14,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { AppLink } from "@/lib/routing";
 import { forbidden } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 import { type SubGroupParams } from "@/lib/validations/params";
@@ -90,16 +90,17 @@ export default async function Page({ params }: { params: SubGroupParams }) {
           className="flex h-20 w-fit items-center justify-center gap-3 rounded-lg bg-accent/60 hover:bg-accent"
           asChild
         >
-          <Link href={`/${group}/${subGroup}/create-instance`}>
-            <Plus className="h-6 w-6 stroke-[3px]" />
+          <AppLink page="newInstance" linkArgs={{ group, subGroup }}>
+            <PlusIcon className="h-6 w-6 stroke-[3px]" />
             <p className="text-lg">Create {spacesLabels.instance.short}</p>
-          </Link>
+          </AppLink>
         </Button>
         <div className="grid grid-cols-3 gap-6">
           {allocationInstances.map(({ instance, displayName }, i) => (
-            <Link
+            <AppLink
+              page="instance"
+              linkArgs={{ group, subGroup, instance }}
               className="col-span-1 flex"
-              href={`/${group}/${subGroup}/${instance}`}
               key={i}
             >
               <Button
@@ -109,7 +110,7 @@ export default async function Page({ params }: { params: SubGroupParams }) {
               >
                 {displayName}
               </Button>
-            </Link>
+            </AppLink>
           ))}
         </div>
       </div>

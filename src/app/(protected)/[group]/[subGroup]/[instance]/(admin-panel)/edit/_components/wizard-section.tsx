@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { spacesLabels } from "@/config/spaces";
@@ -13,8 +12,8 @@ import {
 } from "@/components/instance-wizard/instance-wizard";
 import { useInstanceParams } from "@/components/params-context";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
-import { formatParamsAsPath } from "@/lib/utils/general/get-instance-path";
 
 export function WizardSection({
   formDetails,
@@ -22,8 +21,7 @@ export function WizardSection({
   formDetails: { instance: InstanceDTO; flags: FlagDTO[]; tags: TagDTO[] };
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
-  const instancePath = formatParamsAsPath(params);
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: editInstanceAsync } =
     api.institution.instance.edit.useMutation();
@@ -33,7 +31,7 @@ export function WizardSection({
 
     void toast.promise(
       editInstanceAsync({ params, updatedInstance, flags, tags }).then(() => {
-        router.push(instancePath);
+        router.push("instanceHome", params);
         router.refresh();
       }),
       {

@@ -7,16 +7,15 @@ import {
   type UserDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
-import { type DB, type New } from "@/db/types";
+import { type New } from "@/db/types";
 
-import { toInstanceId, expand } from "@/lib/utils/general/instance-params";
-import { slugify } from "@/lib/utils/general/slugify";
+import { toInstanceId, expand } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { uniqueById } from "@/lib/utils/list-unique";
 import { type SubGroupParams } from "@/lib/validations/params";
 
-import { DataObject } from "../data-object";
 import { User } from "../user";
 
 import { AllocationGroup } from "./group";
@@ -33,13 +32,13 @@ function subgroupExpand(params: SubGroupParams) {
   };
 }
 
-export class AllocationSubGroup extends DataObject {
+export class AllocationSubGroup extends ScopedDataObject {
   public params: SubGroupParams;
   private _institution: Institution | undefined;
   private _group: AllocationGroup | undefined;
 
-  constructor(db: DB, params: SubGroupParams) {
-    super(db);
+  constructor(sc: DataAccessScope, params: SubGroupParams) {
+    super(sc);
     this.params = params;
   }
 
@@ -52,16 +51,16 @@ export class AllocationSubGroup extends DataObject {
     flags: FlagWithAssessmentDTO[];
     tags: New<TagDTO>[];
   }) {
-    const instanceSlug = slugify(newInstance.displayName);
+    const instanceSlug = encodeURIComponent(newInstance.displayName);
 
     const params = { ...this.params, instance: instanceSlug };
 
-    await this.db.$transaction(async (tx) => {
-      await tx.allocationInstance.create({
+    await this.sc.transaction(async () => {
+      await this.db.allocationInstance.create({
         data: { ...toInstanceId(params), ...newInstance },
       });
 
-      const flagData = await tx.flag.createManyAndReturn({
+      const flagData = await this.db.flag.createManyAndReturn({
         data: flags.map((f, i) => ({
           ...expand(params),
           id: f.id,
@@ -78,11 +77,11 @@ export class AllocationSubGroup extends DataObject {
         (f) => f.id,
       );
 
-      await tx.tag.createMany({
+      await this.db.tag.createMany({
         data: tags.map((t) => ({ ...expand(params), title: t.title })),
       });
 
-      await tx.algorithm.createMany({
+      await this.db.algorithm.createMany({
         data: builtInAlgorithms.map((alg) => ({
           ...expand(params),
           displayName: alg.displayName,
@@ -101,7 +100,7 @@ export class AllocationSubGroup extends DataObject {
       const flagsWithUoAs = flags.filter((f) => f.unitsOfAssessment.length > 0);
 
       if (flagsWithUoAs.length > 0) {
-        const units = await tx.unitOfAssessment.createManyAndReturn({
+        const units = await this.db.unitOfAssessment.createManyAndReturn({
           data: flagsWithUoAs.flatMap((f) =>
             f.unitsOfAssessment.map((a) => ({
               ...expand(params),
@@ -137,7 +136,7 @@ export class AllocationSubGroup extends DataObject {
         );
 
         if (componentData.length > 0) {
-          await tx.markingComponent.createMany({ data: componentData });
+          await this.db.markingComponent.createMany({ data: componentData });
         }
       }
     });
@@ -162,7 +161,7 @@ export class AllocationSubGroup extends DataObject {
   }
 
   public async isSubGroupAdmin(userId: string): Promise<boolean> {
-    return await new User(this.db, userId).isSubGroupAdmin(this.params);
+    return await new User(this.sc, userId).isSubGroupAdmin(this.params);
   }
 
   public async linkAdmin(userId: string): Promise<void> {
@@ -201,12 +200,12 @@ export class AllocationSubGroup extends DataObject {
   }
 
   get institution() {
-    this._institution ??= new Institution(this.db);
+    this._institution ??= new Institution(this.sc);
     return this._institution;
   }
 
   get group() {
-    this._group ??= new AllocationGroup(this.db, this.params);
+    this._group ??= new AllocationGroup(this.sc, this.params);
     return this._group;
   }
 }

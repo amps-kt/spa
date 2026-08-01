@@ -3,22 +3,23 @@ import { PAGES } from "@/config/pages";
 import {
   type UserDTO,
   type InstanceDTO,
-  type InstanceUserDTO,
   type GroupDTO,
   type SubGroupDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
-import { type DB, Role } from "@/db/types";
+import { Role } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { assert } from "@/lib/utils/assert";
+import { expand } from "@/lib/utils/instance-params";
 import {
   type GroupParams,
   type SubGroupParams,
   type InstanceParams,
+  type ProjectParams,
 } from "@/lib/validations/params";
 
-import { DataObject } from "../data-object";
 import { Institution } from "../space/institution";
 
 import { UrlSegment } from "..";
@@ -33,12 +34,12 @@ import {
   Supervisor,
 } from ".";
 
-export class User extends DataObject {
+export class User extends ScopedDataObject {
   id: string;
   private _data: UserDTO | undefined;
 
-  constructor(db: DB, id: string) {
-    super(db);
+  constructor(sc: DataAccessScope, id: string) {
+    super(sc);
     this.id = id;
   }
 
@@ -59,8 +60,8 @@ export class User extends DataObject {
     return this._data;
   }
 
-  static fromDTO(db: DB, data: UserDTO): User {
-    const user = new User(db, data.id);
+  static fromDTO(sc: DataAccessScope, data: UserDTO): User {
+    const user = new User(sc, data.id);
     user._data = data;
     return user;
   }
@@ -159,12 +160,44 @@ export class User extends DataObject {
     return (await this.isStaff(params)) || (await this.isStudent(params));
   }
 
+  // admins are members of an instance without participating in it
+  // so they have no userInInstance record and nothing to join
+  // if a user is not in an instance at all, they obviously haven't joined
   public async isJoined(params: InstanceParams): Promise<boolean> {
-    const { joined } = await this.db.userInInstance.findUniqueOrThrow({
+    if (await this.isSubGroupAdminOrBetter(params)) return true;
+
+    const membership = await this.db.userInInstance.findUnique({
       where: { instanceMembership: { ...expand(params), userId: this.id } },
     });
 
-    return joined;
+    return membership?.joined ?? false;
+  }
+  public async canViewProject(params: ProjectParams): Promise<boolean> {
+    // if you are any sort of staff member
+    if (await this.isStaff(params)) return true;
+
+    // or if you are a student and are eligible for this project and it hasn't been pre-allocated to anyone else
+    const student = await this.toStudent(params);
+    const { flag: studentFlag } = await student.get();
+    return !!(await this.db.project.findFirst({
+      where: {
+        id: params.projectId,
+        flagsOnProject: { some: { flagId: studentFlag.id } },
+        OR: [
+          // if this project is pre-allocated it must be yours
+          { preAllocatedStudentId: this.id },
+          // otherwise it must not be preallocated
+          { preAllocatedStudentId: null },
+        ],
+      },
+    }));
+  }
+
+  public async canSeeProjectAsStudent(params: ProjectParams): Promise<boolean> {
+    assert(await this.isStudent(params), "User must be Student");
+    const student = await this.toStudent(params);
+
+    return await student.canViewProject(params);
   }
 
   public async getRolesInInstance(
@@ -190,18 +223,18 @@ export class User extends DataObject {
 
   // --- conversions
   public toUser(): User {
-    return new User(this.db, this.id);
+    return new User(this.sc, this.id);
   }
 
   public async toSuperAdmin(): Promise<SuperAdmin> {
     if (!(await this.isSuperAdmin())) throw new Error("unauthorised");
-    return new SuperAdmin(this.db, this.id);
+    return new SuperAdmin(this.sc, this.id);
   }
 
   public async toGroupAdmin(groupParams: GroupParams): Promise<GroupAdmin> {
     if (!(await this.isGroupAdminOrBetter(groupParams)))
       throw new Error("unauthorised");
-    return new GroupAdmin(this.db, this.id, groupParams);
+    return new GroupAdmin(this.sc, this.id, groupParams);
   }
 
   public async toSubGroupAdmin(
@@ -209,14 +242,14 @@ export class User extends DataObject {
   ): Promise<SubGroupAdmin> {
     if (!(await this.isSubGroupAdminOrBetter(subGroupParams)))
       throw new Error("unauthorised");
-    return new SubGroupAdmin(this.db, this.id, subGroupParams);
+    return new SubGroupAdmin(this.sc, this.id, subGroupParams);
   }
 
   public async toStudent(instanceParams: InstanceParams): Promise<Student> {
     if (!(await this.isStudent(instanceParams)))
       throw new Error("unauthorised");
 
-    return new Student(this.db, this.id, instanceParams);
+    return new Student(this.sc, this.id, instanceParams);
   }
 
   public async toSupervisor(
@@ -225,19 +258,19 @@ export class User extends DataObject {
     if (!(await this.isSupervisor(instanceParams)))
       throw new Error("User is not a supervisor in this instance");
 
-    return new Supervisor(this.db, this.id, instanceParams);
+    return new Supervisor(this.sc, this.id, instanceParams);
   }
 
   public async toReader(instanceParams: InstanceParams): Promise<Reader> {
     if (!(await this.isReader(instanceParams))) throw new Error("unauthorised");
 
-    return new Reader(this.db, this.id, instanceParams);
+    return new Reader(this.sc, this.id, instanceParams);
   }
 
   public async toMarker(instanceParams: InstanceParams): Promise<Marker> {
     if (!(await this.isMarker(instanceParams))) throw new Error("unauthorised");
 
-    return new Marker(this.db, this.id, instanceParams);
+    return new Marker(this.sc, this.id, instanceParams);
   }
 
   // --- Other methods
@@ -291,7 +324,7 @@ export class User extends DataObject {
 
   public async getInstances(): Promise<InstanceDTO[]> {
     if (await this.isSuperAdmin()) {
-      return await new Institution(this.db).getInstances();
+      return await new Institution(this.sc).getInstances();
     }
 
     const instanceData = await this.db.allocationInstance.findMany({
@@ -421,13 +454,10 @@ export class User extends DataObject {
     return res;
   }
 
-  public async joinInstance(params: InstanceParams): Promise<InstanceUserDTO> {
-    return await this.db.userInInstance
-      .update({
-        where: { instanceMembership: { ...expand(params), userId: this.id } },
-        data: { joined: true },
-        include: { user: true },
-      })
-      .then((x) => T.toInstanceUserDTO(x));
+  public async joinInstance(params: InstanceParams): Promise<void> {
+    await this.db.userInInstance.updateMany({
+      where: { ...expand(params), userId: this.id },
+      data: { joined: true },
+    });
   }
 }

@@ -5,12 +5,13 @@ import React, { useState } from "react";
 import { FormProvider, type Path, useForm } from "react-hook-form";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { type z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
+
+import { AppInstanceLink } from "@/lib/routing";
 
 import { StepIndicator } from "./step-indicator";
 
@@ -94,7 +95,9 @@ export function FormWizard<
                     tabIndex={1}
                     asChild
                   >
-                    <Link href="./settings">Cancel</Link>
+                    <AppInstanceLink page="settings" linkArgs={undefined}>
+                      Cancel
+                    </AppInstanceLink>
                   </Button>
                 )}
               </div>
