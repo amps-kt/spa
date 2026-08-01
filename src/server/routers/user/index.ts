@@ -16,8 +16,8 @@ import { procedure } from "@/server/middleware";
 import { createTRPCRouter } from "@/server/trpc";
 
 import { auth } from "@/lib/auth";
-import { relativeComplement } from "@/lib/utils/general/set-difference";
 import { nubsById } from "@/lib/utils/list-unique";
+import { relativeComplement } from "@/lib/utils/set";
 
 import { newMarkerRouter } from "./new-marker";
 import { readerRouter } from "./reader";

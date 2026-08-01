@@ -24,12 +24,23 @@ import {
   instanceParamsSchema,
   projectParamsSchema,
   subGroupParamsSchema,
+  type InstanceParams,
+  type ProjectParams,
 } from "@/lib/validations/params";
 
+import {
+  type GuardPredicate,
+  type GuardCtx,
+  instanceGuard,
+  projectGuard,
+  anyOf,
+  allOf,
+  not,
+} from "./guard";
 import { t } from "./trpc";
 
-const institutionMiddleware = t.middleware(async ({ ctx: { db }, next }) => {
-  const institution = new Institution(db);
+const institutionMiddleware = t.middleware(async ({ ctx: { sc }, next }) => {
+  const institution = new Institution(sc);
   return next({ ctx: { institution } });
 });
 
@@ -37,9 +48,9 @@ const institutionMiddleware = t.middleware(async ({ ctx: { db }, next }) => {
  * @requires a preceding `.input(z.object({ params: groupParamsSchema }))` or better
  */
 const groupMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: groupParamsSchema }).parse(input);
-    const group = new AllocationGroup(db, params);
+    const group = new AllocationGroup(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { group: params.group });
@@ -53,9 +64,9 @@ const groupMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: subGroupParamsSchema }))` or better
  */
 const subGroupMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: subGroupParamsSchema }).parse(input);
-    const subGroup = new AllocationSubGroup(db, params);
+    const subGroup = new AllocationSubGroup(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { subGroup: params.subGroup });
@@ -69,15 +80,20 @@ const subGroupMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))`
  */
 const instanceMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: instanceParamsSchema }).parse(input);
-    const instance = new AllocationInstance(db, params);
+    const instance = new AllocationInstance(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { subGroup: params.subGroup });
     };
 
-    return next({ ctx: { instance, audit: auditNew } });
+    return next({
+      ctx: {
+        instance,
+        audit: auditNew,
+      },
+    });
   },
 );
 
@@ -106,9 +122,9 @@ const stageMiddleware = (allowedStages: Stage[]) =>
  * @requires a preceding `.input(z.object({ params: projectParamsSchema }))`
  */
 const projectMiddleware = t.middleware(
-  async ({ ctx: { db, audit }, input, next }) => {
+  async ({ ctx: { sc, audit }, input, next }) => {
     const { params } = z.object({ params: projectParamsSchema }).parse(input);
-    const project = new Project(db, params);
+    const project = new Project(sc, params);
 
     const auditNew: AuditFn = function auditNew(msg, ...vals) {
       audit(msg, ...vals, { projectId: params.projectId });
@@ -122,13 +138,13 @@ const projectMiddleware = t.middleware(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema, algId: z.string() }))`
  */
 const algorithmMiddleware = t.middleware(
-  async ({ ctx: { db }, input, next }) => {
+  async ({ ctx: { sc }, input, next }) => {
     const { params, algId } = z
       .object({ params: instanceParamsSchema, algId: z.string() })
       .parse(input);
     const matchingService = new HttpMatchingService();
     const alg = new MatchingAlgorithm(
-      db,
+      sc,
       { algConfigId: algId, ...params },
       matchingService,
     );
@@ -146,8 +162,8 @@ const algorithmMiddleware = t.middleware(
   ```
  */
 const unitOfAssessmentMiddleware = t.middleware(
-  async ({ ctx: { db }, input, next }) => {
-    const { params, studentId, unitId } = z
+  async ({ ctx: { sc }, input, next }) => {
+    const { params, unitId } = z
       .object({
         params: instanceParamsSchema,
         studentId: z.string(),
@@ -155,21 +171,22 @@ const unitOfAssessmentMiddleware = t.middleware(
       })
       .parse(input);
 
-    const unit = new UnitOfAssessment(db, params, unitId);
+    const unit = new UnitOfAssessment(sc, params, unitId);
 
     return next({ ctx: { unit } });
   },
 );
+
 // ----
 
-const authedMiddleware = t.middleware(({ ctx: { db, session }, next }) => {
+const authedMiddleware = t.middleware(({ ctx: { sc, session }, next }) => {
   if (!session?.user) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "User is not signed in",
     });
   }
-  const user = new User(db, session.user.id);
+  const user = new User(sc, session.user.id);
   return next({ ctx: { user } });
 });
 
@@ -332,9 +349,9 @@ const unitMarkerMiddleware = authedMiddleware.unstable_pipe(
  * @requires a preceding `.input(z.object({ params: instanceParamsSchema }))` or better
  */
 const accessControlMiddleware = (condition: AccessCondition) =>
-  authedMiddleware.unstable_pipe(async ({ ctx: { user, db }, next, input }) => {
+  authedMiddleware.unstable_pipe(async ({ ctx: { user, sc }, next, input }) => {
     const { params } = z.object({ params: instanceParamsSchema }).parse(input);
-    const instance = new AllocationInstance(db, params);
+    const instance = new AllocationInstance(sc, params);
     const { stage } = await instance.get();
 
     const roles = await user.getRolesInInstance(params);
@@ -492,6 +509,10 @@ export const procedure = {
     member: instanceProcedure.use(instanceMemberMiddleware),
     withAC: (condition: AccessCondition) =>
       instanceProcedure.use(accessControlMiddleware(condition)),
+
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      instanceProcedure.use(authedMiddleware).use(instanceGuard(predicate)),
+
     // sort of makes these two irrelevant now,
     // Maybe we should deprecate?
 
@@ -537,6 +558,9 @@ export const procedure = {
     withAC: (condition: AccessCondition) =>
       projectProcedure.use(accessControlMiddleware(condition)),
 
+    guard: <TInput>(predicate: GuardPredicate<ProjectParams, TInput>) =>
+      projectProcedure.use(authedMiddleware).use(projectGuard(predicate)),
+
     withRoles: (allowedRoles: Role[]) =>
       projectProcedure.use(mkRoleMiddleware(allowedRoles)),
 
@@ -569,6 +593,9 @@ export const procedure = {
     groupAdmin: algorithmProcedure.use(GroupAdminMiddleware),
     subGroupAdmin: algorithmProcedure.use(SubGroupAdminMiddleware),
 
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      algorithmProcedure.use(authedMiddleware).use(instanceGuard(predicate)),
+
     inStage: (allowedStages: Stage[]) => {
       const proc = institutionProcedure
         .input(z.object({ params: instanceParamsSchema, algId: z.string() }))
@@ -592,5 +619,20 @@ export const procedure = {
     groupAdmin: unitOfAssessmentProcedure.use(GroupAdminMiddleware),
     subGroupAdmin: unitOfAssessmentProcedure.use(SubGroupAdminMiddleware),
     marker: unitOfAssessmentProcedure.use(unitMarkerMiddleware),
+
+    guard: <TInput>(predicate: GuardPredicate<InstanceParams, TInput>) =>
+      unitOfAssessmentProcedure
+        .use(authedMiddleware)
+        .use(instanceGuard(predicate)),
   },
+};
+
+export {
+  type GuardPredicate,
+  type GuardCtx,
+  instanceGuard,
+  projectGuard,
+  anyOf,
+  allOf,
+  not,
 };

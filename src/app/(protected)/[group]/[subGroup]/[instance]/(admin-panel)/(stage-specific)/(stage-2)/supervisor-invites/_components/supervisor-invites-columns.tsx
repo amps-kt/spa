@@ -5,15 +5,12 @@ import {
   MoreHorizontalIcon as MoreIcon,
   PenIcon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type InstanceUserDTO } from "@/dto";
 
 import { ExportCSVButton } from "@/components/export-csv";
-import { usePathInInstance } from "@/components/params-context";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
@@ -29,11 +26,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { WithTooltip } from "@/components/ui/tooltip-wrapper";
 
-import { copyToClipboard } from "@/lib/utils/general/copy-to-clipboard";
+import { AppInstanceLink } from "@/lib/routing";
+import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
 export function useSupervisorInvitesColumns(): ColumnDef<InstanceUserDTO>[] {
-  const { getPath } = usePathInInstance();
-
   const selectCol = getSelectColumn<InstanceUserDTO>();
 
   const baseCols: ColumnDef<InstanceUserDTO>[] = [
@@ -48,12 +44,13 @@ export function useSupervisorInvitesColumns(): ColumnDef<InstanceUserDTO>[] {
           original: { id, name },
         },
       }) => (
-        <Link
+        <AppInstanceLink
           className={buttonVariants({ variant: "link" })}
-          href={getPath(`${PAGES.allSupervisors.href}/${id}`)}
+          page="supervisorById"
+          linkArgs={{ supervisorId: id }}
         >
           {name}
-        </Link>
+        </AppInstanceLink>
       ),
     },
     {
@@ -181,22 +178,24 @@ export function useSupervisorInvitesColumns(): ColumnDef<InstanceUserDTO>[] {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`./${PAGES.allSupervisors.href}/${id}`}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: id }}
                 >
                   <CornerDownRightIcon className="h-4 w-4" />
                   <span>View supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               <DropdownMenuItem className="group/item">
-                <Link
+                <AppInstanceLink
                   className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                  href={`./${PAGES.allSupervisors.href}/${id}?edit=true`}
+                  page="supervisorById"
+                  linkArgs={{ supervisorId: id }}
                 >
                   <PenIcon className="h-4 w-4" />
                   <span>Edit supervisor details</span>
-                </Link>
+                </AppInstanceLink>
               </DropdownMenuItem>
               {/* // TODO: make the actual email be click-copyable instead */}
               <DropdownMenuItem className="group/item">

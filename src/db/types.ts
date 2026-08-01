@@ -2,6 +2,7 @@ import {
   StudentPreferenceType as PreferenceType,
   ReaderPreferenceType,
   type PrismaClient,
+  type PrismaPromise,
   Stage,
   AllocationMethod as DB_AllocationMethod,
   ConsensusStage,
@@ -16,6 +17,8 @@ type PrismaTransactionClient = Omit<
 
 export type DB = PrismaClient;
 export type TX = PrismaTransactionClient;
+
+export type DB_Promise<T> = PrismaPromise<T>;
 
 export type {
   Algorithm as DB_Algorithm,

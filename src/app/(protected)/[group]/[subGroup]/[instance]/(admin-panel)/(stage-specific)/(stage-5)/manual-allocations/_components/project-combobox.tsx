@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { Check, ChevronsUpDown } from "lucide-react";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
 
 import { ProjectAllocationStatus } from "@/dto";
 
@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/popover";
 
 import { cn } from "@/lib/utils";
-import { fuzzyMatch } from "@/lib/utils/general/fuzzy-match";
 
 import { type ManualAllocationProject } from "./manual-allocation-types";
 
@@ -49,11 +48,10 @@ export function ProjectCombobox({
     project: ManualAllocationProject,
   ) => {
     const search = searchTerm.toLowerCase();
-
-    const titleMatch = fuzzyMatch(search, project.title);
-    if (titleMatch) return true;
-
-    return fuzzyMatch(search, project.id);
+    return (
+      project.title.toLowerCase().includes(search) ||
+      project.id.toLowerCase().includes(search)
+    );
   };
 
   return (
@@ -73,7 +71,7 @@ export function ProjectCombobox({
           ) : (
             <span className="text-muted-foreground">Select project...</span>
           )}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[500px] p-0">
@@ -100,7 +98,7 @@ export function ProjectCombobox({
                 >
                   <div className="flex w-full items-start justify-between">
                     <ProjectCell project={project} />
-                    <Check
+                    <CheckIcon
                       className={cn(
                         "mt-1 h-4 w-4 shrink-0",
                         value === project.id ? "opacity-100" : "opacity-0",

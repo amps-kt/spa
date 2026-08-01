@@ -25,8 +25,8 @@ export default async function Page({ params }: { params: InstanceParams }) {
   const { supervisorAllocationAccess: supervisorAccess } =
     await api.institution.instance.get({ params });
 
-  const studentAccess =
-    await api.institution.instance.getStudentAllocationAccess({ params });
+  const { studentAllocationAccess: studentAccess } =
+    await api.institution.instance.get({ params });
 
   return (
     <PanelWrapper className="gap-10">

@@ -3,10 +3,7 @@
 import { useState } from "react";
 
 import { CopyPlusIcon, LayoutTemplateIcon } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-
-import { PAGES } from "@/config/pages";
 
 import { type InstanceDTO, type ProjectDTO, type SupervisorDTO } from "@/dto";
 import {
@@ -17,10 +14,7 @@ import {
 
 import { Role } from "@/db/types";
 
-import {
-  useInstanceParams,
-  usePathInInstance,
-} from "@/components/params-context";
+import { useInstanceParams } from "@/components/params-context";
 import { ProjectForm, useProjectForm } from "@/components/project-form";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,6 +26,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 import { ProjectTemplateSelector } from "./project-template-selector";
@@ -66,9 +61,7 @@ export function ProjectCreationManager({
   });
 
   const params = useInstanceParams();
-  const router = useRouter();
-
-  const { basePath, getPath } = usePathInInstance();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_createProject, isPending } =
     api.project.create.useMutation();
@@ -87,18 +80,17 @@ export function ProjectCreationManager({
       })
       .unwrap()
       .then((projectId) => {
-        router.push(getPath(`${PAGES.allProjects.href}/${projectId}`));
+        router.push("projectById", { projectId });
         router.refresh();
       });
   };
 
   const handleCancel = () => {
-    const redirectPath =
-      userRole === Role.ADMIN
-        ? basePath
-        : getPath(PAGES.myProposedProjects.href);
-
-    router.push(redirectPath);
+    if (userRole === Role.ADMIN) {
+      router.push("instanceHome", {});
+    } else {
+      router.push("myProposedProjects", {});
+    }
   };
 
   return (

@@ -20,6 +20,8 @@ import { auth } from "@/lib/auth";
 import { type Session } from "@/lib/auth/types";
 import { type AuditFn, logger, LogLevels } from "@/lib/logging/logger";
 
+import { sc } from "@/db/scope";
+
 const trpcLogger = logger.child({ service: "trpc" });
 
 /**
@@ -55,14 +57,18 @@ export const createTRPCContext = async (opts: {
     trpcLogger.log(LogLevels.AUDIT, message, data);
   };
 
+
+
   return {
     session,
+    user: session.user,
     db,
     mailer: new Mailer(
       env.MAIL_USE_RATE_LIMIT === "ON" ? makeQueue() : sendMail,
     ),
     logger: trpcLogger,
     audit,
+    sc
   };
 };
 

@@ -2,7 +2,7 @@
 
 import { DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu";
 import type { Table } from "@tanstack/react-table";
-import { List } from "lucide-react";
+import { ListIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,7 +28,7 @@ export function DataTableViewOptions<TData>({
           size="sm"
           className="ml-auto hidden h-8 lg:flex"
         >
-          <List className="mr-2 h-4 w-4" />
+          <ListIcon className="mr-2 h-4 w-4" />
           View
         </Button>
       </DropdownMenuTrigger>

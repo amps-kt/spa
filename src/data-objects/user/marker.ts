@@ -13,9 +13,9 @@ import {
 } from "@/dto/marking";
 
 import { Transformers as T } from "@/db/transformers";
-import { MarkerType, type DB } from "@/db/types";
+import { MarkerType } from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { groupBy } from "@/lib/utils/group-by";
 import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -23,13 +23,14 @@ import { type InstanceParams } from "@/lib/validations/params";
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
+import { type DataAccessScope } from "@/db/scope";
 
 export class Marker extends User {
   instance: AllocationInstance;
 
-  constructor(db: DB, id: string, params: InstanceParams) {
-    super(db, id);
-    this.instance = new AllocationInstance(db, params);
+  constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
+    super(sc, id);
+    this.instance = new AllocationInstance(sc, params);
   }
 
   async getAssignedMarking(

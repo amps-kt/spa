@@ -18,9 +18,9 @@ import { PanelWrapper } from "@/components/panel-wrapper";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
+import { numberToOrdinal } from "@/lib/formatting/number-to-ordinal";
 import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
@@ -32,11 +32,11 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
 }
 
 export default async function Page({ params }: { params: InstanceParams }) {
-  if (
-    !(await api.institution.instance.getStudentAllocationAccess({ params }))
-  ) {
-    unauthorised({ params });
-  }
+  const { studentAllocationAccess } = await api.institution.instance.get({
+    params,
+  });
+
+  if (!studentAllocationAccess) unauthorised({ params });
 
   const allocation = await api.user.student.getMaybeAllocation({ params });
 
@@ -56,7 +56,7 @@ export default async function Page({ params }: { params: InstanceParams }) {
                 <span>
                   You got your{" "}
                   <span className="font-semibold text-indigo-600">
-                    {toPositional(allocation.rank)}
+                    {numberToOrdinal(allocation.rank)}
                   </span>{" "}
                   choice
                 </span>

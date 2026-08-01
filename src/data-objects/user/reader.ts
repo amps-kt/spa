@@ -1,20 +1,23 @@
-import { ReaderPreferenceType } from "@prisma/client";
 import { z } from "zod";
 
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
 import { Transformers as T } from "@/db/transformers";
-import { type DB, ExtendedReaderPreferenceType } from "@/db/types";
+import {
+  ExtendedReaderPreferenceType,
+  DB_ReaderPreferenceType
+} from "@/db/types";
 
-import { expand } from "@/lib/utils/general/instance-params";
+import { expand } from "@/lib/utils/instance-params";
 import { institutionIdSchema } from "@/lib/validations/institution-id";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Marker } from ".";
+import { type DataAccessScope } from "@/db/scope";
 
 export class Reader extends Marker {
-  constructor(db: DB, id: string, params: InstanceParams) {
-    super(db, id, params);
+  constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
+    super(sc, id, params);
   }
 
   public static newCSVSchema = z.object({
@@ -91,7 +94,7 @@ export class Reader extends Marker {
       where: {
         ...expand(this.instance.params),
         readerId: this.id,
-        type: ReaderPreferenceType.PREFERRED,
+        type: DB_ReaderPreferenceType.PREFERRED,
       },
     });
   }
@@ -141,9 +144,10 @@ export class Reader extends Marker {
       },
     });
 
-    return data.map((x) => ({
+    // weird!
+    return data.filter(x => x.project.studentAllocations[0]?.student).map((x) => ({
       project: T.toProjectDTO(x.project),
-      student: T.toStudentDTO(x.project.studentAllocations[0].student),
+      student: T.toStudentDTO(x.project.studentAllocations[0]?.student),
       type: x.type,
     }));
   }

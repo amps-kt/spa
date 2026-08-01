@@ -1,9 +1,7 @@
-import { Plus, SquareLibraryIcon } from "lucide-react";
+import { PlusIcon, SquareLibraryIcon } from "lucide-react";
 import { type Metadata } from "next";
-import Link from "next/link";
 
 import { app, metadataTitle } from "@/config/meta";
-import { PAGES } from "@/config/pages";
 import { spacesLabels } from "@/config/spaces";
 
 import { Heading, SectionHeading } from "@/components/heading";
@@ -13,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 
+import { AppLink } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
 
 export const dynamic = "force-dynamic";
@@ -58,11 +57,9 @@ export default async function Page() {
         size="lg"
         asChild
       >
-        <Link
-          href={`/${PAGES.superAdminPanel.href}/${PAGES.userManagement.href}`}
-        >
+        <AppLink page="userManagement" linkArgs={undefined}>
           <span>View All Users</span>
-        </Link>
+        </AppLink>
       </Button>
 
       <Separator />
@@ -77,10 +74,10 @@ export default async function Page() {
           className="flex h-20 w-fit items-center justify-center gap-3 rounded-lg bg-accent/60 hover:bg-accent"
           asChild
         >
-          <Link href={`/${PAGES.superAdminPanel.href}/${PAGES.newGroup.href}`}>
-            <Plus className="h-6 w-6" />{" "}
+          <AppLink page="newGroup" linkArgs={undefined}>
+            <PlusIcon className="h-6 w-6" />{" "}
             <span className="text-lg">Create {spacesLabels.group.short}</span>
-          </Link>
+          </AppLink>
         </Button>
         <div className="grid w-full grid-cols-3 gap-6">
           {groups.map(({ group, displayName }) => (
@@ -91,7 +88,9 @@ export default async function Page() {
               key={group}
               asChild
             >
-              <Link href={`/${group}`}>{displayName}</Link>
+              <AppLink page="group" linkArgs={{ group }}>
+                {displayName}
+              </AppLink>
             </Button>
           ))}
         </div>

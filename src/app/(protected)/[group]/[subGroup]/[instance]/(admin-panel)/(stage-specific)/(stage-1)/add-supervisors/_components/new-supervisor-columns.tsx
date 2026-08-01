@@ -3,14 +3,12 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import {
   CornerDownRightIcon,
-  MoreHorizontal as MoreIcon,
+  MoreHorizontalIcon as MoreIcon,
   PenIcon,
   Trash2Icon,
 } from "lucide-react";
-import Link from "next/link";
 
 import { INSTITUTION } from "@/config/institution";
-import { PAGES } from "@/config/pages";
 
 import { type SupervisorDTO } from "@/dto";
 
@@ -18,7 +16,6 @@ import { Stage } from "@/db/types";
 
 import { ConditionalRender } from "@/components/access-control";
 import { FormatDenials } from "@/components/access-control/format-denial";
-import { usePathInInstance } from "@/components/params-context";
 import { Button } from "@/components/ui/button";
 import { ActionColumnLabel } from "@/components/ui/data-table/action-column-label";
 import { DataTableColumnHeader } from "@/components/ui/data-table/data-table-column-header";
@@ -37,6 +34,7 @@ import {
   YesNoActionTrigger,
 } from "@/components/yes-no-action";
 
+import { AppInstanceLink } from "@/lib/routing";
 import { previousStages } from "@/lib/utils/permissions/stage-check";
 
 export function useNewSupervisorColumns({
@@ -46,8 +44,6 @@ export function useNewSupervisorColumns({
   deleteSupervisor: (id: string) => Promise<void>;
   deleteManySupervisors: (ids: string[]) => Promise<void>;
 }): ColumnDef<SupervisorDTO>[] {
-  const { getInstancePath } = usePathInInstance();
-
   const selectCol = getSelectColumn<SupervisorDTO>();
 
   const userCols: ColumnDef<SupervisorDTO>[] = [
@@ -223,28 +219,24 @@ export function useNewSupervisorColumns({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={getInstancePath([
-                      PAGES.allSupervisors.href,
-                      supervisor.id,
-                    ])}
+                    page="supervisorById"
+                    linkArgs={{ supervisorId: supervisor.id }}
                   >
                     <CornerDownRightIcon className="h-4 w-4" />
                     <span>View supervisor details</span>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem className="group/item">
-                  <Link
+                  <AppInstanceLink
                     className="flex items-center gap-2 text-primary underline-offset-4 group-hover/item:underline hover:underline"
-                    href={getInstancePath(
-                      [PAGES.allSupervisors.href, supervisor.id],
-                      "edit=true",
-                    )}
+                    page="supervisorById"
+                    linkArgs={{ supervisorId: supervisor.id }}
                   >
                     <PenIcon className="h-4 w-4" />
                     <span>Edit supervisor details</span>
-                  </Link>
+                  </AppInstanceLink>
                 </DropdownMenuItem>
                 <ConditionalRender
                   allowedStages={previousStages(Stage.STUDENT_BIDDING)}

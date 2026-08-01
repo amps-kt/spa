@@ -1,12 +1,12 @@
 "use client";
 
 import { type ClassValue } from "clsx";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { DangerZone } from "@/components/danger-zone";
 import { useInstanceParams } from "@/components/params-context";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 
 export function DeleteConfirmation({
@@ -19,9 +19,7 @@ export function DeleteConfirmation({
   className?: ClassValue;
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
-
-  const { group, subGroup } = params;
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: deleteAsync } =
     api.institution.subGroup.deleteInstance.useMutation();
@@ -29,7 +27,7 @@ export function DeleteConfirmation({
   async function destructiveAction() {
     void toast.promise(
       deleteAsync({ params }).then(() => {
-        router.push(`/${group}/${subGroup}`);
+        router.push("subGroup", params);
         router.refresh();
       }),
       {

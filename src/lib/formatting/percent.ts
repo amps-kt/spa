@@ -1,4 +1,3 @@
-// MOVE to 'lib/format'
 const fmt = new Intl.NumberFormat("en-gb", {
   style: "percent",
   maximumFractionDigits: 1,

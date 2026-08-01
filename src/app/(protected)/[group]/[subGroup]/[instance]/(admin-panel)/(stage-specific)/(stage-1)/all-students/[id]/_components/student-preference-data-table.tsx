@@ -1,11 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { useInstanceParams } from "@/components/params-context";
 import DataTable from "@/components/ui/data-table/data-table";
 
+import { useAppInstanceRouter } from "@/lib/routing";
 import { api } from "@/lib/trpc/client";
 import { type StudentPreferenceType } from "@/lib/validations/student-preference";
 
@@ -22,7 +22,7 @@ export function StudentPreferenceDataTable({
   studentId: string;
 }) {
   const params = useInstanceParams();
-  const router = useRouter();
+  const router = useAppInstanceRouter();
 
   const { mutateAsync: api_changeStudentPreference } =
     api.institution.instance.changeStudentPreference.useMutation();
