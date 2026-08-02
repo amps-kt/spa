@@ -126,7 +126,7 @@
     "@types/nodemailer": "^6.4.24",
     "@types/papaparse": "^5.5.2",
     "@types/uuid": "^9.0.8",
-    "eslint": "10.8.0",
+    "eslint": "9.39.5",
     "eslint-config-next": "16.2.12",
     "fast-check": "^4.9.0",
     "husky": "9.1.7",

@@ -1,7 +1,5 @@
-import { FlatCompat } from "@eslint/eslintrc";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
 import tseslint from "typescript-eslint";
-
-const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
 // import disallows:
 const disallowNextBuiltins = {
@@ -59,7 +57,7 @@ function AllowImportsFrom(...from) {
 
 export default tseslint.config(
   { ignores: [".next/", ".react-email/", "dist/"] },
-  ...compat.extends("next/core-web-vitals"),
+  ...nextCoreWebVitals,
   {
     files: ["**/*.ts", "**/*.tsx"],
     extends: [
