@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 
 import { CopyIcon, ShieldXIcon } from "lucide-react";
 // eslint-disable-next-line no-restricted-imports
@@ -14,11 +14,11 @@ import { Button } from "@/components/ui/button";
 
 import { copyToClipboard } from "@/lib/utils/copy-to-clipboard";
 
-export default function ForbiddenPage({
-  searchParams: { next },
-}: {
-  searchParams: { next?: string };
+export default function ForbiddenPage(props: {
+  searchParams: Promise<{ next?: string }>;
 }) {
+  const { next } = use(props.searchParams);
+
   const [countdown, setCountdown] = useState(10);
   const router = useRouter();
 

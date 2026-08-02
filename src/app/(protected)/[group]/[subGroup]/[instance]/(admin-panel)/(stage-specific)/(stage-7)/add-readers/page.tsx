@@ -9,7 +9,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { AddReadersSection } from "./_components/add-readers-section";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {

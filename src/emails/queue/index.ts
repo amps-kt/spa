@@ -17,7 +17,7 @@ export function makeQueue() {
     subject,
     cc,
   }: {
-    message: ReactElement;
+    message: ReactElement<any>;
     subject: string;
     to: string[];
     cc?: string[];

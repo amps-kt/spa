@@ -10,7 +10,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 import { AllAvailableProjectsDataTable } from "./_components/all-available-projects-data-table";
 import { HelpSection } from "./_components/help-section";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -22,7 +25,10 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Projects({ params }: { params: InstanceParams }) {
+export default async function Projects(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const projectData = await api.project.getAllAvailableForReadingForUser({
     params,
   });

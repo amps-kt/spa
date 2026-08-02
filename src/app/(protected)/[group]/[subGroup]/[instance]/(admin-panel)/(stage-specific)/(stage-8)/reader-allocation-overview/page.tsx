@@ -23,11 +23,10 @@ import { byProjectColumns } from "./_components/by-project-columns";
 import { byReaderColumns } from "./_components/by-reader-columns";
 import { RunAlgorithmButton } from "./_components/run-algorithm-button";
 
-export default async function ReaderAllocationOverview({
-  params,
-}: {
-  params: InstanceParams;
+export default async function ReaderAllocationOverview(props: {
+  params: Promise<InstanceParams>;
 }) {
+  const params = await props.params;
   const { totalRequired, totalAvailable, numRead } =
     await api.institution.instance.getReadingOverviewData({ params });
 

@@ -17,13 +17,17 @@ import {
   SupervisorHome,
 } from "./_components/instance-home";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return { title: metadataTitle([displayName, app.name]) };
 }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   const isJoined = await api.user.isJoined({ params });

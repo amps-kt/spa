@@ -23,7 +23,7 @@ export const MarkingSchemeStoreProvider = ({
   children: ReactNode;
   initialState: State;
 }) => {
-  const storeRef = useRef<MarkingSchemeStoreAPI>();
+  const storeRef = useRef<MarkingSchemeStoreAPI>(undefined);
   storeRef.current ??= createMarkingSchemeStore(initialState);
 
   return (

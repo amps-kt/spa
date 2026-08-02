@@ -12,7 +12,10 @@ import { api } from "@/lib/trpc/server";
 import { stageGt } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -20,7 +23,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const stage = await api.institution.instance.getCurrentStage({ params });
   if (stageGt(stage, Stage.ALLOCATION_ADJUSTMENT)) {
     return (

@@ -21,7 +21,7 @@ export async function sendMail({
   subject,
   cc,
 }: {
-  message: ReactElement;
+  message: ReactElement<any>;
   subject: string;
   to: string[];
   cc?: string[];

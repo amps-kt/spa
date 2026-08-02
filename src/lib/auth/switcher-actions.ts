@@ -24,7 +24,7 @@ export async function switchDevUser(userId: string): Promise<void> {
     throw new Error("User not found");
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.set(DEV_USER_COOKIE_KEY, userId, {
     maxAge: 60 * 60 * 24 * 7, // 1 week
     httpOnly: true,
@@ -46,7 +46,7 @@ export async function getCurrentDevUser(): Promise<UserDTO | undefined> {
     return undefined;
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const devUserId = cookieStore.get(DEV_USER_COOKIE_KEY)?.value;
 
   if (!devUserId) {
@@ -65,7 +65,7 @@ export async function clearDevUser() {
     throw new Error("User switching is only available in development");
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete(DEV_USER_COOKIE_KEY);
 
   redirect("home", undefined);

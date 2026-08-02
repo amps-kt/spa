@@ -38,9 +38,11 @@ async function getRealUser(): Promise<UserDTO> {
       );
     }
 
-    id = headers().get(env.HEADERS_SHIB_GUID);
-    name = headers().get(env.HEADERS_SHIB_DISPLAY_NAME);
-    email = headers().get(env.HEADERS_SHIB_EMAIL);
+    const hs = await headers();
+
+    id = hs.get(env.HEADERS_SHIB_GUID);
+    name = hs.get(env.HEADERS_SHIB_DISPLAY_NAME);
+    email = hs.get(env.HEADERS_SHIB_EMAIL);
   } else {
     id = env.DEV_ID;
     name = env.DEV_NAME;

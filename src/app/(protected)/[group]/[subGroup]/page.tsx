@@ -22,7 +22,10 @@ import { AdminRemovalButton } from "./_components/admin-removal-button";
 import { DeleteConfirmation } from "./_components/delete-confirmation";
 import { FormButton } from "./_components/form-button";
 
-export async function generateMetadata({ params }: { params: SubGroupParams }) {
+export async function generateMetadata(props: {
+  params: Promise<SubGroupParams>;
+}) {
+  const params = await props.params;
   const allocationSubGroup = await api.institution.subGroup.exists({ params });
   if (!allocationSubGroup) notFound();
 
@@ -31,7 +34,8 @@ export async function generateMetadata({ params }: { params: SubGroupParams }) {
   return { title: metadataTitle([displayName, app.name]) };
 }
 
-export default async function Page({ params }: { params: SubGroupParams }) {
+export default async function Page(props: { params: Promise<SubGroupParams> }) {
+  const params = await props.params;
   const allocationSubGroup = await api.institution.subGroup.exists({ params });
   if (!allocationSubGroup) notFound();
 

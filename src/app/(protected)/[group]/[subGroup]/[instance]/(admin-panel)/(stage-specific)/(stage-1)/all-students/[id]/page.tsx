@@ -19,7 +19,8 @@ import { StudentProjectSection } from "./_components/student-project-section";
 
 type PageParams = InstanceParams & { id: string };
 
-export async function generateMetadata({ params }: { params: PageParams }) {
+export async function generateMetadata(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const exists = await api.user.student.exists({
     params,
     studentId: params.id,
@@ -39,7 +40,8 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   };
 }
 
-export default async function Page({ params }: { params: PageParams }) {
+export default async function Page(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const studentId = params.id;
   const exists = await api.user.student.exists({ params, studentId });
   if (!exists) notFound();

@@ -15,7 +15,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 type PageParams = InstanceParams & { id: string };
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -23,7 +26,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Page({ params }: { params: PageParams }) {
+export default async function Page(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const projectId = params.id;
 
   const user = await api.user.get();

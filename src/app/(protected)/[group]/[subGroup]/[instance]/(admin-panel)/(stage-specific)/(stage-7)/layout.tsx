@@ -6,12 +6,13 @@ import { stageLt } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
-  params,
   children,
+  ...props
 }: {
-  params: InstanceParams;
+  params: Promise<InstanceParams>;
   children: React.ReactNode;
 }) {
+  const params = await props.params;
   const stage = await api.institution.instance.getCurrentStage({ params });
 
   if (stageLt(stage, Stage.READER_BIDDING)) redirect("instance", params);

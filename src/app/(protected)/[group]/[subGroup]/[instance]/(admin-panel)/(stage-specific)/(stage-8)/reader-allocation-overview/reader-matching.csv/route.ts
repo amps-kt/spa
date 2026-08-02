@@ -27,8 +27,9 @@ interface ReaderMatchingRow {
 
 export async function GET(
   _request: Request,
-  { params }: { params: InstanceParams },
+  props: { params: Promise<InstanceParams> },
 ) {
+  const params = await props.params;
   const isAdmin = await api.ac.isAdminInInstance({ params });
   if (!isAdmin) return redirect("unauthorised", undefined);
 
@@ -41,15 +42,12 @@ export async function GET(
       ({
         projectId: project.id,
         projectTitle: project.title,
-
         supervisorId: supervisor.id,
         supervisorName: supervisor.name,
         supervisorEmail: supervisor.email,
-
         studentId: student.id,
         studentEmail: student.email,
         studentName: student.name,
-
         readerId: reader?.id,
         readerName: reader?.name,
         readerEmail: reader?.email,

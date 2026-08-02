@@ -19,7 +19,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { KanbanBoardSection } from "./_components/kanban-board-section";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -27,7 +30,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const { mask: user } = await auth();
 
   const isPreAllocated = await api.user.student.isPreAllocated({ params });

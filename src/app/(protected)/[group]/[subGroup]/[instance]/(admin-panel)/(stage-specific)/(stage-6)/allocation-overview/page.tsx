@@ -13,7 +13,10 @@ import { ByProjectDataTable } from "./_components/by-project-data-table";
 import { ByStudentDataTable } from "./_components/by-student-data-table";
 import { BySupervisorDataTable } from "./_components/by-supervisor-data-table";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -24,7 +27,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
     ]),
   };
 }
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const { byStudent, byProject, bySupervisor } =
     await api.institution.instance.projectAllocations({ params });
 

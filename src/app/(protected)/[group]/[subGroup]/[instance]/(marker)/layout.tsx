@@ -7,12 +7,13 @@ import { api } from "@/lib/trpc/server";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
-  params,
   children,
+  ...props
 }: {
-  params: InstanceParams;
+  params: Promise<InstanceParams>;
   children: ReactNode;
 }) {
+  const params = await props.params;
   const roles = await api.user.roles({ params });
   if (!roles.has(Role.SUPERVISOR) && !roles.has(Role.READER))
     forbidden({ params });

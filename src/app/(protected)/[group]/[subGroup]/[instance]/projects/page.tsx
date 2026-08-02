@@ -12,7 +12,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllProjectsDataTable } from "./_components/all-projects-data-table";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -20,7 +23,10 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Projects({ params }: { params: InstanceParams }) {
+export default async function Projects(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { mask: user } = await auth();
 
   const roles = await api.user.roles({ params });

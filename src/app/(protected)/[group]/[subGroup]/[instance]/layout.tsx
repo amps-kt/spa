@@ -13,12 +13,14 @@ import { AppSidebar } from "./_components/app-sidebar";
 
 export default async function Layout({
   children,
-  params,
+  ...props
 }: {
   children: ReactNode;
 
-  params: InstanceParams;
+  params: Promise<InstanceParams>;
 }) {
+  const params = await props.params;
+
   const exists = await api.institution.instance.exists({ params });
   if (!exists) notFound();
 

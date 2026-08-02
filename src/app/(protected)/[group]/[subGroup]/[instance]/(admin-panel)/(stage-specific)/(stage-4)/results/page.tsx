@@ -19,7 +19,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 import { StudentResultsSection } from "./_components/student-results-section";
 import { SupervisorResultsSection } from "./_components/supervisor-results-section";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return { title: metadataTitle([PAGES.results.title, displayName, app.name]) };
