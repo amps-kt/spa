@@ -1,3 +1,5 @@
+"use client";
+
 import { type ReactNode } from "react";
 
 import { formatDate } from "date-fns";
@@ -31,7 +33,7 @@ export function CsvLink<T extends PageName>({
       className={cn(className)}
       href={mkHref(page, linkArgs)}
       target="_blank"
-      download={`${title}-${formatDate(Date.now(), "yyyy-MM-dd")}.csv`}
+      download={`${title}-${formatDate(new Date(), "yyyy-MM-dd")}.csv`}
     >
       {children}
     </Link>

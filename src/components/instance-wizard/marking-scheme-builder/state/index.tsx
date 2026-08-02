@@ -27,6 +27,7 @@ export const MarkingSchemeStoreProvider = ({
   storeRef.current ??= createMarkingSchemeStore(initialState);
 
   return (
+    // eslint-disable-next-line react-hooks/refs
     <MarkingSchemeContext.Provider value={storeRef.current}>
       {children}
     </MarkingSchemeContext.Provider>

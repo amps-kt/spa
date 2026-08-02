@@ -1,4 +1,4 @@
-import { redirect as nextRedirect, RedirectType } from "next/navigation";
+import { redirect as nextRedirect, type RedirectType } from "next/navigation";
 
 import { type PageName } from "@/config/pages";
 

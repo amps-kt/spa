@@ -86,6 +86,7 @@ export function BoardDetailsProvider({
   storeRef.current ??= createBoardDetailsStore(props);
 
   return (
+    // eslint-disable-next-line react-hooks/refs
     <KanbanBoardContext.Provider value={storeRef.current}>
       {children}
     </KanbanBoardContext.Provider>

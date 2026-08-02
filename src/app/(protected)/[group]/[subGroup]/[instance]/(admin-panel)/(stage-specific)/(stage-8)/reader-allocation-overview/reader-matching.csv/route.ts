@@ -38,21 +38,20 @@ export async function GET(
   });
 
   const data = matching.map(
-    ({ project, supervisor, reader, student, preferenceType }) =>
-      ({
-        projectId: project.id,
-        projectTitle: project.title,
-        supervisorId: supervisor.id,
-        supervisorName: supervisor.name,
-        supervisorEmail: supervisor.email,
-        studentId: student.id,
-        studentEmail: student.email,
-        studentName: student.name,
-        readerId: reader?.id,
-        readerName: reader?.name,
-        readerEmail: reader?.email,
-        readerPreferenceType: preferenceType,
-      }) as ReaderMatchingRow,
+    ({ project, supervisor, reader, student, preferenceType }) => ({
+      projectId: project.id,
+      projectTitle: project.title,
+      supervisorId: supervisor.id,
+      supervisorName: supervisor.name,
+      supervisorEmail: supervisor.email,
+      studentId: student.id,
+      studentEmail: student.email,
+      studentName: student.name,
+      readerId: reader?.id,
+      readerName: reader?.name,
+      readerEmail: reader?.email,
+      readerPreferenceType: preferenceType,
+    }),
   );
 
   const csvText = unparse(data);

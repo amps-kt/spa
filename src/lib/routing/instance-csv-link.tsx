@@ -45,7 +45,7 @@ export function InstanceCsvLink<T extends PageName>({
       className={cn(className)}
       href={mkHref(page, linkArgs)}
       target="_blank"
-      download={`${title}-${formatDate(Date.now(), "yyyy-MM-dd")}.csv`}
+      download={`${title}-${formatDate(new Date(), "yyyy-MM-dd")}.csv`}
     >
       {children}
     </Link>

@@ -1,19 +1,12 @@
-import { useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 
 import {
-  DndContext,
   type DragEndEvent,
-  DragOverlay,
   type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 
 import { type MarkerType } from "@/db/types";
 
@@ -21,9 +14,6 @@ import { computeUpdatedRank } from "@/components/kanban-board/compute-updated-ra
 
 import { useMarkingSchemeStore } from "../state";
 import { type AssessmentCriterion } from "../state/store";
-
-import { AssessmentCriterionCard } from "./assessment-criterion-card";
-import { FormDivider } from "./form-divider";
 
 export function SortableForm({
   activeMarkerType,
@@ -81,50 +71,10 @@ export function SortableForm({
     );
   }
 
-  const assessmentCriteria = useMemo(
-    () =>
-      flags[selectedFlagIndex].submissions[selectedSubmissionIndex].components[
-        activeMarkerType
-      ],
-    [flags, selectedFlagIndex, selectedSubmissionIndex, activeMarkerType],
-  );
-
-  const itemIds = useMemo(
-    () => assessmentCriteria.map((e) => e.id),
-    [assessmentCriteria],
-  );
-
-  return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
-    >
-      <div className="flex h-full w-full flex-col gap-5">
-        <FormDivider className="mt-1.5" onClick={() => handleNewCriterion(0)} />
-        <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-          {assessmentCriteria.map((e, idx) => (
-            <AssessmentCriterionCard
-              key={e.id}
-              item={e}
-              handleNewCriterion={() => handleNewCriterion(idx + 1)}
-            />
-          ))}
-        </SortableContext>
-        {createPortal(
-          <DragOverlay>
-            {activeCard && (
-              <AssessmentCriterionCard
-                item={activeCard}
-                handleNewCriterion={() => console.log("hmm")}
-              />
-            )}
-          </DragOverlay>,
-          document.body,
-        )}
-      </div>
-    </DndContext>
-  );
+  const assessmentCriteria =
+    flags[selectedFlagIndex].submissions[selectedSubmissionIndex].components[
+      activeMarkerType
+    ];
 
   function onDragStart({ active }: DragStartEvent) {
     if (active.data.current) {

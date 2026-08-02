@@ -38,6 +38,7 @@ export function EditableText({
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValue(initialValue);
     setIsEditing(false);
   }, [initialValue]);

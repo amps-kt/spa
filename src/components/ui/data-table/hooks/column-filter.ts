@@ -33,7 +33,7 @@ export function useColumnFilterSearchParams<T, V>(
   const computeColFilters = useCallback((filters: Record<string, string>) => {
     return Object.entries(filters)
       .filter(([_, v]) => Boolean(v))
-      .map(([id, value]) => ({ id, value })) as ColumnFiltersState;
+      .map(([id, value]) => ({ id, value }));
   }, []);
 
   const colFilters = computeColFilters(filters);
