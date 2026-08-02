@@ -1,5 +1,6 @@
+import { Button, Heading, Section, Text } from "react-email";
+
 import { env } from "@/env";
-import { Button, Heading, Section, Text } from "@react-email/components";
 
 import {
   type ProjectDTO,

@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
+import { Link } from "react-email";
 
 import { env } from "@/env";
-import { Link } from "@react-email/components";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { type PageName } from "@/config/pages";

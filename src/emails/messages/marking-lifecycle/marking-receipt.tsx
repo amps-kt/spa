@@ -1,3 +1,5 @@
+import { Column, Row, Heading, Section, Text, Hr } from "react-email";
+
 import { EmailLink } from "@/emails/components/email-link";
 import { Layout } from "@/emails/components/layout";
 import { Marksheet } from "@/emails/components/marksheet";
@@ -9,14 +11,6 @@ import {
   fakeSupervisor,
   fakeSupervisorSubmission,
 } from "@/emails/fake-data";
-import {
-  Column,
-  Row,
-  Heading,
-  Section,
-  Text,
-  Hr,
-} from "@react-email/components";
 
 import {
   type FullMarkingSubmissionDTO,

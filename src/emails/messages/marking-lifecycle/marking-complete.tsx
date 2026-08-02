@@ -1,3 +1,5 @@
+import { Column, Heading, Row, Section, Text, Hr } from "react-email";
+
 import { EmailLink } from "@/emails/components/email-link";
 import { Layout } from "@/emails/components/layout";
 import { Marksheet } from "@/emails/components/marksheet";
@@ -10,14 +12,6 @@ import {
   fakeSupervisorSubmission,
 } from "@/emails/fake-data";
 import { Grade } from "@/logic/grading";
-import {
-  Column,
-  Heading,
-  Row,
-  Section,
-  Text,
-  Hr,
-} from "@react-email/components";
 
 import {
   type UnitGradeDTO,

@@ -1,6 +1,4 @@
 import { type ReactNode } from "react";
-
-import { env } from "@/env";
 import {
   Heading,
   Img,
@@ -15,7 +13,9 @@ import {
   Preview,
   Container,
   Hr,
-} from "@react-email/components";
+} from "react-email";
+
+import { env } from "@/env";
 
 export function Layout({
   previewText,

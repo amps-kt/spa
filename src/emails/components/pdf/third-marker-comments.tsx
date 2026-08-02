@@ -1,4 +1,4 @@
-import { Text, Heading, Row, Section } from "@react-email/components";
+import { Text, Heading, Row, Section } from "react-email";
 
 export function ThirdMarkerComments({ comments }: { comments: string }) {
   return (

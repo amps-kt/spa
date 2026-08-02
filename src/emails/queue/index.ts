@@ -1,6 +1,6 @@
 import { type ReactElement } from "react";
+import { render } from "react-email";
 
-import { render } from "@react-email/components";
 import { Queue } from "bullmq";
 
 import { EMAIL_QUEUE_NAME, type EmailJob } from "./config";

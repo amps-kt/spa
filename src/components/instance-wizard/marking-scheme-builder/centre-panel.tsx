@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 
 import { DeadlinesSection } from "./deadlines-section";
 import { EditableFlag, EditableSubmission } from "./editable-text";
-import { SortableForm } from "./sortable";
 import { useMarkingSchemeStore } from "./state";
 
 export function CentrePanel() {
@@ -79,10 +78,10 @@ export function CentrePanel() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value={MarkerType.SUPERVISOR}>
-            <SortableForm activeMarkerType={MarkerType.SUPERVISOR} />
+            {/* <SortableForm activeMarkerType={MarkerType.SUPERVISOR} /> */}
           </TabsContent>
           <TabsContent value={MarkerType.READER}>
-            <SortableForm activeMarkerType={MarkerType.READER} />
+            {/* <SortableForm activeMarkerType={MarkerType.READER} /> */}
           </TabsContent>
         </Tabs>
       </div>
