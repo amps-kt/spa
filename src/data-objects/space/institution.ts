@@ -5,13 +5,13 @@ import {
   type UserDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 
 import { toInstanceId } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { User } from "../user";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export class Institution extends ScopedDataObject {
   constructor(sc: DataAccessScope) {

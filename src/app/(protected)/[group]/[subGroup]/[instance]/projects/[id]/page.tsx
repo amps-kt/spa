@@ -38,7 +38,8 @@ import { StudentPreferenceDataTable } from "./_components/student-preference-dat
 
 type PageParams = InstanceParams & { id: string };
 
-export async function generateMetadata({ params }: { params: PageParams }) {
+export async function generateMetadata(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const exists = await api.project.exists({ params: toPP1(params) });
   if (!exists) notFound();
 
@@ -57,7 +58,8 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   };
 }
 
-export default async function Project({ params }: { params: PageParams }) {
+export default async function Project(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const exists = await api.project.exists({ params: toPP1(params) });
   if (!exists) notFound();
 

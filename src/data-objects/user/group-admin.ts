@@ -1,10 +1,10 @@
+import { type DataAccessScope } from "@/db/scope";
 
 import { type GroupParams } from "@/lib/validations/params";
 
 import { AllocationGroup } from "../space/group";
 
 import { User } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class GroupAdmin extends User {
   allocationGroup: AllocationGroup;

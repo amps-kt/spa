@@ -48,7 +48,7 @@ export const teachingOfficeRouter = createTRPCRouter({
               });
             }
 
-            await Promise.all([
+            await Promise.all(
               d.units.map(async (u) => {
                 if (u.customWeight === 0) {
                   const student = await instance.getStudent(d.studentId);
@@ -86,7 +86,7 @@ export const teachingOfficeRouter = createTRPCRouter({
                   });
                 }
               }),
-            ]);
+            );
           }),
         );
 

@@ -23,7 +23,7 @@ export type SendMail = ({
   subject,
   cc,
 }: {
-  message: ReactElement;
+  message: ReactElement<unknown>;
   subject: string;
   to: string[];
   cc?: string[];

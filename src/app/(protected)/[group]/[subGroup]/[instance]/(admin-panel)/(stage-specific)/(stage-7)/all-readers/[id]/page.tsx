@@ -14,7 +14,8 @@ import { type PageParams } from "@/lib/validations/params";
 import { InstanceDetailsCard } from "./_components/instance-details-card";
 import { ReaderPreferencesDataTable } from "./_components/reader-preferences-data-table";
 
-export async function generateMetadata({ params }: { params: PageParams }) {
+export async function generateMetadata(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const exists = await api.user.reader.exists({ params, readerId: params.id });
   if (!exists) notFound();
 
@@ -26,7 +27,8 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   };
 }
 
-export default async function Page({ params }: { params: PageParams }) {
+export default async function Page(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const readerId = params.id;
 
   const exists = await api.user.reader.exists({ params, readerId });

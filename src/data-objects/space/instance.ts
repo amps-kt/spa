@@ -38,6 +38,7 @@ import {
   type StudentSubmissionsRow,
 } from "@/dto/marking/student-submissions";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import {
   AllocationMethod,
@@ -55,8 +56,8 @@ import {
   type MatchingReader,
   type ReaderMatchingPair,
 } from "@/lib/services/reader-allocation/types";
-import { expand, toInstanceId } from "@/lib/utils/instance-params";
 import { groupBy } from "@/lib/utils/group-by";
+import { expand, toInstanceId } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { setDiff } from "@/lib/utils/set";
 import { type InstanceParams } from "@/lib/validations/params";
@@ -79,7 +80,6 @@ import { Project } from "..";
 
 import { AllocationGroup } from "./group";
 import { AllocationSubGroup } from "./sub-group";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export const byTitle = <T extends { title: string }>({ title }: T) => title;
 export const byDisplayName = <T extends { displayName: string }>({
@@ -268,9 +268,9 @@ export class AllocationInstance extends ScopedDataObject {
             // emit some kind of error message here
             return (
               s.submittedPreferences.length >=
-              instanceData.minStudentPreferences &&
+                instanceData.minStudentPreferences &&
               s.submittedPreferences.length <=
-              instanceData.maxStudentPreferences
+                instanceData.maxStudentPreferences
             );
           })
           .map((s) => ({
@@ -1478,31 +1478,31 @@ export class AllocationInstance extends ScopedDataObject {
 
               const unitId = existing
                 ? (
-                  await this.db.unitOfAssessment.update({
-                    where: { id: existing.id },
-                    data: {
-                      defaultWeight: uoa.weight,
-                      defaultStudentSubmissionDeadline:
-                        uoa.studentSubmissionDeadline,
-                      markerSubmissionDeadline: uoa.markerSubmissionDeadline,
-                      allowedMarkerTypes: uoa.allowedMarkerTypes,
-                    },
-                  })
-                ).id
+                    await this.db.unitOfAssessment.update({
+                      where: { id: existing.id },
+                      data: {
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id
                 : (
-                  await this.db.unitOfAssessment.create({
-                    data: {
-                      ...expand(this.params),
-                      flagId,
-                      title: uoa.displayName,
-                      defaultWeight: uoa.weight,
-                      defaultStudentSubmissionDeadline:
-                        uoa.studentSubmissionDeadline,
-                      markerSubmissionDeadline: uoa.markerSubmissionDeadline,
-                      allowedMarkerTypes: uoa.allowedMarkerTypes,
-                    },
-                  })
-                ).id;
+                    await this.db.unitOfAssessment.create({
+                      data: {
+                        ...expand(this.params),
+                        flagId,
+                        title: uoa.displayName,
+                        defaultWeight: uoa.weight,
+                        defaultStudentSubmissionDeadline:
+                          uoa.studentSubmissionDeadline,
+                        markerSubmissionDeadline: uoa.markerSubmissionDeadline,
+                        allowedMarkerTypes: uoa.allowedMarkerTypes,
+                      },
+                    })
+                  ).id;
 
               await Promise.all(
                 uoa.components.map((c, idx) =>

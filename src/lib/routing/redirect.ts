@@ -9,7 +9,7 @@ import { type LinkArgs, mkHref } from ".";
 export function redirect<T extends PageName>(
   page: T,
   linkArgs: LinkArgs<T>,
-  type?: RedirectType,
+  type?: keyof typeof RedirectType,
 ) {
   return nextRedirect(mkHref(page, linkArgs), type);
 }

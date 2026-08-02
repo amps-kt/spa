@@ -5,10 +5,9 @@ import {
   type SupervisorDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod } from "@/db/types";
-
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 import { expand, toPP2 } from "@/lib/utils/instance-params";
 import {

@@ -16,8 +16,9 @@ interface CSVRow {
 
 export async function GET(
   _request: Request,
-  { params }: { params: InstanceParams },
+  props: { params: Promise<InstanceParams> },
 ) {
+  const params = await props.params;
   // We have to do our own AC here (since there is no layout to do it for us):
   const isAdmin = await api.ac.isAdminInInstance({ params });
   if (!isAdmin) return redirect("unauthorised", undefined);

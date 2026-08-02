@@ -15,17 +15,20 @@ import {
 } from "@/dto";
 import { sortPreferenceType } from "@/dto/preference";
 
+import { type DataAccessScope } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { AllocationMethod, type MarkerType, PreferenceType } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type ProjectPreferenceCardDto } from "@/lib/validations/board";
-import { type ProjectParams, type InstanceParams } from "@/lib/validations/params";
+import {
+  type ProjectParams,
+  type InstanceParams,
+} from "@/lib/validations/params";
 
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class Student extends User {
   instance: AllocationInstance;
@@ -56,12 +59,16 @@ export class Student extends User {
     }));
   }
 
-  public async canViewProject({ projectId, ...params }: ProjectParams): Promise<boolean> {
+  public async canViewProject({
+    projectId,
+    ...params
+  }: ProjectParams): Promise<boolean> {
     const { flag: studentFlag } = await this.get();
 
     return !!(await this.db.project.findFirst({
       where: {
-        id: projectId, ...expand(params),
+        id: projectId,
+        ...expand(params),
         flagsOnProject: { some: { flagId: studentFlag.id } },
         OR: [
           { preAllocatedStudentId: this.id },

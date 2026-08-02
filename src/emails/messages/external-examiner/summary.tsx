@@ -1,3 +1,5 @@
+import { Column, Heading, Row, Section, Text, Hr } from "react-email";
+
 import { Marksheet } from "@/emails/components/marksheet";
 import {
   fakeCriteria,
@@ -13,14 +15,6 @@ import {
   fakeSupervisorMissingPresentationSubmission,
 } from "@/emails/fake-data";
 import { Grade } from "@/logic/grading";
-import {
-  Column,
-  Heading,
-  Row,
-  Section,
-  Text,
-  Hr,
-} from "@react-email/components";
 
 import {
   type MarkingComponentDTO,

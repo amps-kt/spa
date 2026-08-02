@@ -104,8 +104,7 @@ export function ManualAllocationDataTableSection({
       // Adjust supervisor data to include current change
       let supervisor = baseSupervisor;
       if (
-        currentChange &&
-        currentChange.supervisorId === allocation.selectedSupervisorId
+        currentChange?.supervisorId === allocation.selectedSupervisorId
         // && project.supervisorId !== allocation.selectedSupervisorId
       ) {
         supervisor = {

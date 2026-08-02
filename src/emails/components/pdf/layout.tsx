@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
-
-import { Tailwind, Html, Head, Body, Container } from "@react-email/components";
+import { Tailwind, Html, Head, Body, Container } from "react-email";
 
 export function PDFLayout({ children }: { children?: ReactNode }) {
   return (

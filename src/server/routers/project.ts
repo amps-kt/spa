@@ -255,10 +255,7 @@ export const projectRouter = createTRPCRouter({
     .input(z.object({ newProject: projectForm.createApiInputSchema }))
     .output(z.string())
     .mutation(
-      async ({
-        ctx: { sc, audit, instance },
-        input: { newProject },
-      }) => {
+      async ({ ctx: { sc, audit, instance }, input: { newProject } }) => {
         audit("Create project", { project: newProject });
 
         return sc.transaction(async () => {

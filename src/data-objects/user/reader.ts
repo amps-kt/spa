@@ -2,10 +2,11 @@ import { z } from "zod";
 
 import { type ReaderDTO, type ProjectDTO, type StudentDTO } from "@/dto";
 
+import { type DataAccessScope } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import {
   ExtendedReaderPreferenceType,
-  DB_ReaderPreferenceType
+  DB_ReaderPreferenceType,
 } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
@@ -13,7 +14,6 @@ import { institutionIdSchema } from "@/lib/validations/institution-id";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Marker } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class Reader extends Marker {
   constructor(sc: DataAccessScope, id: string, params: InstanceParams) {
@@ -145,11 +145,13 @@ export class Reader extends Marker {
     });
 
     // weird!
-    return data.filter(x => x.project.studentAllocations[0]?.student).map((x) => ({
-      project: T.toProjectDTO(x.project),
-      student: T.toStudentDTO(x.project.studentAllocations[0]?.student),
-      type: x.type,
-    }));
+    return data
+      .filter((x) => x.project.studentAllocations[0]?.student)
+      .map((x) => ({
+        project: T.toProjectDTO(x.project),
+        student: T.toStudentDTO(x.project.studentAllocations[0]?.student),
+        type: x.type,
+      }));
   }
 
   public async getPreferencesMap(): Promise<

@@ -1,3 +1,5 @@
+import { Column, Row, Section, Heading, Text } from "react-email";
+
 import { EmailLink } from "@/emails/components/email-link";
 import { Layout } from "@/emails/components/layout";
 import {
@@ -6,7 +8,6 @@ import {
   fakePresentationUnit,
   fakeParams,
 } from "@/emails/fake-data";
-import { Column, Row, Section, Heading, Text } from "@react-email/components";
 
 import {
   type StudentDTO,

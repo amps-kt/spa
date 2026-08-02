@@ -12,6 +12,7 @@ export function useProxyState<TState>(
   const [shadowState, setShadowState] = useState<TState>(init);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setShadowState(state);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

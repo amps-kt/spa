@@ -9,7 +9,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { StudentsDataTable } from "./_components/all-students-data-table";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -17,7 +20,10 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Students({ params }: { params: InstanceParams }) {
+export default async function Students(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const data = await api.institution.instance.getStudentsWithAllocation({
     params,
   });

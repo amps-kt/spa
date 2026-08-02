@@ -15,12 +15,11 @@ import superjson from "superjson";
 import z, { ZodError } from "zod";
 
 import { db } from "@/db";
+import { sc } from "@/db/scope";
 
 import { auth } from "@/lib/auth";
 import { type Session } from "@/lib/auth/types";
 import { type AuditFn, logger, LogLevels } from "@/lib/logging/logger";
-
-import { sc } from "@/db/scope";
 
 const trpcLogger = logger.child({ service: "trpc" });
 
@@ -57,8 +56,6 @@ export const createTRPCContext = async (opts: {
     trpcLogger.log(LogLevels.AUDIT, message, data);
   };
 
-
-
   return {
     session,
     user: session.user,
@@ -68,7 +65,7 @@ export const createTRPCContext = async (opts: {
     ),
     logger: trpcLogger,
     audit,
-    sc
+    sc,
   };
 };
 

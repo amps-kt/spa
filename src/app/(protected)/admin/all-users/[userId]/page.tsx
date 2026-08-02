@@ -11,7 +11,10 @@ import { EditUserDetailsForm } from "./_components/edit-user-details-form";
 
 export const dynamic = "force-dynamic";
 
-export default async function Page({ params }: { params: { userId: string } }) {
+export default async function Page(props: {
+  params: Promise<{ userId: string }>;
+}) {
+  const params = await props.params;
   const { user, isSuperAdmin } = await api.institution.getDetailsForUser({
     userId: params.userId,
   });

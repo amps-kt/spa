@@ -16,7 +16,8 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 type PageParams = InstanceParams & { id: string };
 
-export async function generateMetadata({ params }: { params: PageParams }) {
+export async function generateMetadata(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const exists = await api.user.supervisor.exists({
     params,
     supervisorId: params.id,
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: { params: PageParams }) {
   };
 }
 
-export default async function Page({ params }: { params: PageParams }) {
+export default async function Page(props: { params: Promise<PageParams> }) {
+  const params = await props.params;
   const stage = await api.institution.instance.getCurrentStage({ params });
   if (stageGt(stage, Stage.STUDENT_BIDDING)) {
     return (

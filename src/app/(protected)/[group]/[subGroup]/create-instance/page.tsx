@@ -13,7 +13,10 @@ import { type SubGroupParams } from "@/lib/validations/params";
 
 import { WizardSection } from "./_components/wizard-section";
 
-export async function generateMetadata({ params }: { params: SubGroupParams }) {
+export async function generateMetadata(props: {
+  params: Promise<SubGroupParams>;
+}) {
+  const params = await props.params;
   const allocationSubGroup = await api.institution.subGroup.exists({ params });
   if (!allocationSubGroup) notFound();
 
@@ -24,7 +27,8 @@ export async function generateMetadata({ params }: { params: SubGroupParams }) {
   };
 }
 
-export default async function Page({ params }: { params: SubGroupParams }) {
+export default async function Page(props: { params: Promise<SubGroupParams> }) {
+  const params = await props.params;
   const access = await api.institution.subGroup.access({ params });
   if (!access) forbidden();
 

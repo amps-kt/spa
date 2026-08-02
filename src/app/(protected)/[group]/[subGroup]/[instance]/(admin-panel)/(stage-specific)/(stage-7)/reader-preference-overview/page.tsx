@@ -13,7 +13,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { ReaderPreferencesDataTable } from "./_components/reader-preference-data-table";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -25,7 +28,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const data = await api.institution.instance.getReaderPreferenceData({
     params,
   });

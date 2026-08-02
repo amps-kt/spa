@@ -1,10 +1,10 @@
+import { type DataAccessScope } from "@/db/scope";
 
 import { type SubGroupParams } from "@/lib/validations/params";
 
 import { AllocationSubGroup } from "../space/sub-group";
 
 import { User } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class SubGroupAdmin extends User {
   subGroup: AllocationSubGroup;

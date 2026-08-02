@@ -88,12 +88,7 @@ const instanceMiddleware = t.middleware(
       audit(msg, ...vals, { subGroup: params.subGroup });
     };
 
-    return next({
-      ctx: {
-        instance,
-        audit: auditNew,
-      },
-    });
+    return next({ ctx: { instance, audit: auditNew } });
   },
 );
 

@@ -809,16 +809,16 @@ export const instanceRouter = createTRPCRouter({
         .map(({ project, supervisor, allocatedStudent }) =>
           !allAllocationsMap[project.id] || !allocatedStudent
             ? {
-              project,
-              supervisor,
-              status: ProjectAllocationStatus.UNALLOCATED,
-            }
+                project,
+                supervisor,
+                status: ProjectAllocationStatus.UNALLOCATED,
+              }
             : {
-              project,
-              supervisor,
-              status: allAllocationsMap[project.id],
-              studentId: allocatedStudent.id,
-            },
+                project,
+                supervisor,
+                status: allAllocationsMap[project.id],
+                studentId: allocatedStudent.id,
+              },
         )
         .sort((a, b) => a.project.title.localeCompare(b.project.title))
         .sort((a, b) => statusRank[a.status] - statusRank[b.status]);

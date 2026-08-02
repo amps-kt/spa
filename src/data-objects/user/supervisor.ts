@@ -6,13 +6,13 @@ import {
   type InstanceDTO,
 } from "@/dto";
 
+import { type DataAccessScope } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { Marker } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class Supervisor extends Marker {
   constructor(sc: DataAccessScope, id: string, params: InstanceParams) {

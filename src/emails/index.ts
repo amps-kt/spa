@@ -1,7 +1,7 @@
 import { type ReactElement } from "react";
+import { render } from "react-email";
 
 import { env } from "@/env";
-import { render } from "@react-email/components";
 import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport(
@@ -21,7 +21,7 @@ export async function sendMail({
   subject,
   cc,
 }: {
-  message: ReactElement;
+  message: ReactElement<unknown>;
   subject: string;
   to: string[];
   cc?: string[];

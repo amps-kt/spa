@@ -3,6 +3,7 @@ import { adjustTarget, adjustUpperBound } from "@/config/submission-target";
 import { type UserDTO, type AlgorithmDTO, type InstanceDTO } from "@/dto";
 import { AlgorithmRunResult } from "@/dto/result/algorithm-run-result";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 
 import {
@@ -18,8 +19,6 @@ import {
   type SupervisorMatchingDetailsDTO,
 } from "@/lib/validations/matching";
 import { type AlgorithmInstanceParams } from "@/lib/validations/params";
-
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export class MatchingAlgorithm extends ScopedDataObject {
   public params: AlgorithmInstanceParams;

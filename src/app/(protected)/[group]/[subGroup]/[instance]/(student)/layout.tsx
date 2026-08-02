@@ -8,12 +8,14 @@ import { stageLt } from "@/lib/utils/permissions/stage-check";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export default async function Layout({
-  params,
   children,
+  ...props
 }: {
-  params: InstanceParams;
+  params: Promise<InstanceParams>;
   children: ReactNode;
 }) {
+  const params = await props.params;
+
   // replace with user.isStudentInInstance
   const roles = await api.user.roles({ params });
   if (!roles.has(Role.STUDENT)) forbidden({ params });

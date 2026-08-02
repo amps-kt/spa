@@ -7,6 +7,7 @@ import {
   type SubGroupDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { Role } from "@/db/types";
 
@@ -32,7 +33,6 @@ import {
   SuperAdmin,
   Supervisor,
 } from ".";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export class User extends ScopedDataObject {
   id: string;

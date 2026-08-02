@@ -11,7 +11,10 @@ import { type GroupParams } from "@/lib/validations/params";
 
 import { FormSection } from "./_components/form-section";
 
-export async function generateMetadata({ params }: { params: GroupParams }) {
+export async function generateMetadata(props: {
+  params: Promise<GroupParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.group.get({ params });
 
   return {
@@ -19,7 +22,8 @@ export async function generateMetadata({ params }: { params: GroupParams }) {
   };
 }
 
-export default async function Page({ params }: { params: GroupParams }) {
+export default async function Page(props: { params: Promise<GroupParams> }) {
+  const params = await props.params;
   const access = await api.institution.group.access({ params });
   if (!access) forbidden();
 

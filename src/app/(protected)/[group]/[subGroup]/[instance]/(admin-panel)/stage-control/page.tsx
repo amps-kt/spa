@@ -8,7 +8,8 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { StageControl } from "./_components/stage-control";
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   const stage = await api.institution.instance.getCurrentStage({ params });
 
   return (

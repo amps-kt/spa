@@ -1,4 +1,5 @@
 import { type DB, type TX, type DB_Promise } from "@/db/types";
+
 import { db } from ".";
 
 /**
@@ -30,9 +31,8 @@ export class DataAccessScope {
 
   public static getInstance(db: DB): DataAccessScope {
     DataAccessScope.instance ??= new DataAccessScope(db);
-    return DataAccessScope.instance
+    return DataAccessScope.instance;
   }
-
 
   /** The current database client (either root or transaction-scoped). */
   get db(): DB | TX {
@@ -126,4 +126,4 @@ export abstract class ScopedDataObject {
   }
 }
 
-export const sc = DataAccessScope.getInstance(db)
+export const sc = DataAccessScope.getInstance(db);

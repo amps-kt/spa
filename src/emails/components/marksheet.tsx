@@ -1,6 +1,7 @@
+import { Column, Row, Heading, Section, Text } from "react-email";
+import { Markdown } from "react-email";
+
 import { Grade } from "@/logic/grading";
-import { Column, Row, Heading, Section, Text } from "@react-email/components";
-import { Markdown } from "@react-email/components";
 
 import { type FullMarkingSubmissionDTO } from "@/dto";
 import { type MarkingComponentDTO } from "@/dto";

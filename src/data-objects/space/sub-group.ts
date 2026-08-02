@@ -7,6 +7,7 @@ import {
   type UserDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { type New } from "@/db/types";
 
@@ -19,7 +20,6 @@ import { User } from "../user";
 
 import { AllocationGroup } from "./group";
 import { Institution } from "./institution";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 function toSubgroupId(params: SubGroupParams) {
   return { allocationGroupId: params.group, id: params.subGroup };
@@ -125,7 +125,7 @@ export class AllocationSubGroup extends ScopedDataObject {
             u.components.map((c, idx) => ({
               unitOfAssessmentId:
                 unitKeyToId[
-                `${flagDisplayNameToId[f.displayName]}::${u.displayName}`
+                  `${flagDisplayNameToId[f.displayName]}::${u.displayName}`
                 ],
               title: c.displayName,
               description: c.description,

@@ -2,13 +2,12 @@ import { guidToMatric } from "@/config/guid-to-matric";
 
 import { type StudentDTO, type SupervisorDTO, type ProjectDTO } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { type AllocationMethod } from "@/db/types";
 
 import { expand } from "@/lib/utils/instance-params";
 import { type InstanceParams } from "@/lib/validations/params";
-
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export type StudentProjectAllocationDTO = {
   student: StudentDTO;

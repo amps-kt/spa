@@ -21,7 +21,10 @@ import { type InstanceParams } from "@/lib/validations/params";
 
 import { DownloadPreferenceDataSection } from "./_components/download-preference-section";
 
-export async function generateMetadata({ params }: { params: InstanceParams }) {
+export async function generateMetadata(props: {
+  params: Promise<InstanceParams>;
+}) {
+  const params = await props.params;
   const { displayName } = await api.institution.instance.get({ params });
 
   return {
@@ -33,7 +36,8 @@ export async function generateMetadata({ params }: { params: InstanceParams }) {
   };
 }
 
-export default async function Page({ params }: { params: InstanceParams }) {
+export default async function Page(props: { params: Promise<InstanceParams> }) {
+  const params = await props.params;
   return (
     <PanelWrapper className="gap-16">
       <Heading className="mb-4">{PAGES.preferenceStatistics.title}</Heading>

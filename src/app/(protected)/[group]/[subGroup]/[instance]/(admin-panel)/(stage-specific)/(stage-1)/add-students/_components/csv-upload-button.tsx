@@ -28,7 +28,7 @@ interface CSVUploadButtonProps {
   showErrorModal: boolean;
   onProcessingResultChange: (result: ProcessingResult | null) => void;
   onShowErrorModalChange: (show: boolean) => void;
-  fileInputRef: RefObject<HTMLInputElement>;
+  fileInputRef: RefObject<HTMLInputElement | null>;
 }
 
 export function CSVUploadButton({

@@ -7,6 +7,7 @@ import {
   type SupervisorDTO,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 
 import { uniqueById } from "@/lib/utils/list-unique";
@@ -15,7 +16,6 @@ import { type GroupParams } from "@/lib/validations/params";
 import { User } from "../user";
 
 import { Institution } from "./institution";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 export class AllocationGroup extends ScopedDataObject {
   public params: GroupParams;

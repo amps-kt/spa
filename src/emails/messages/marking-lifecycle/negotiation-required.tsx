@@ -1,3 +1,5 @@
+import { Column, Heading, Hr, Row, Section, Text } from "react-email";
+
 import { EmailLink } from "@/emails/components/email-link";
 import { Layout } from "@/emails/components/layout";
 import { Marksheet } from "@/emails/components/marksheet";
@@ -12,14 +14,6 @@ import {
   fakeReader,
 } from "@/emails/fake-data";
 import { Grade } from "@/logic/grading";
-import {
-  Column,
-  Heading,
-  Hr,
-  Row,
-  Section,
-  Text,
-} from "@react-email/components";
 
 import {
   type FullMarkingSubmissionDTO,

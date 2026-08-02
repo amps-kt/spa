@@ -8,6 +8,7 @@ import {
   type FinalMarkingResult,
 } from "@/dto";
 
+import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { ConsensusMethod, ConsensusStage } from "@/db/types";
 
@@ -15,9 +16,7 @@ import { expand } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
-
 import { AllocationInstance } from ".";
-import { type DataAccessScope, ScopedDataObject } from "@/db/scope";
 
 type MarkerId = string;
 
@@ -218,46 +217,46 @@ export class UnitOfAssessment extends ScopedDataObject {
 
       ...(newData.status === ConsensusStage.MODERATE_AFTER_NEGOTIATION
         ? [
-          this.db.gradeEntry.upsert({
-            where: {
-              unitOfAssessmentId_studentId_method: {
+            this.db.gradeEntry.upsert({
+              where: {
+                unitOfAssessmentId_studentId_method: {
+                  method: ConsensusMethod.NEGOTIATED,
+                  unitOfAssessmentId: this.id,
+                  studentId,
+                },
+              },
+              create: {
+                comment: newData.comment,
+                grade: newData.grade,
                 method: ConsensusMethod.NEGOTIATED,
                 unitOfAssessmentId: this.id,
                 studentId,
               },
-            },
-            create: {
-              comment: newData.comment,
-              grade: newData.grade,
-              method: ConsensusMethod.NEGOTIATED,
-              unitOfAssessmentId: this.id,
-              studentId,
-            },
-            update: { comment: newData.comment, grade: newData.grade },
-          }),
-        ]
+              update: { comment: newData.comment, grade: newData.grade },
+            }),
+          ]
         : []),
 
       ...(newData.status === ConsensusStage.RESOLVED
         ? [
-          this.db.gradeEntry.upsert({
-            where: {
-              unitOfAssessmentId_studentId_method: {
+            this.db.gradeEntry.upsert({
+              where: {
+                unitOfAssessmentId_studentId_method: {
+                  method: newData.method,
+                  unitOfAssessmentId: this.id,
+                  studentId,
+                },
+              },
+              create: {
+                comment: newData.comment,
+                grade: newData.grade,
                 method: newData.method,
                 unitOfAssessmentId: this.id,
                 studentId,
               },
-            },
-            create: {
-              comment: newData.comment,
-              grade: newData.grade,
-              method: newData.method,
-              unitOfAssessmentId: this.id,
-              studentId,
-            },
-            update: { comment: newData.comment, grade: newData.grade },
-          }),
-        ]
+              update: { comment: newData.comment, grade: newData.grade },
+            }),
+          ]
         : []),
     ]);
 

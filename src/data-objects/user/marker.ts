@@ -12,18 +12,18 @@ import {
   type StudentGradingLifecycleState,
 } from "@/dto/marking";
 
+import { type DataAccessScope } from "@/db/scope";
 import { Transformers as T } from "@/db/transformers";
 import { MarkerType } from "@/db/types";
 
-import { expand } from "@/lib/utils/instance-params";
 import { groupBy } from "@/lib/utils/group-by";
+import { expand } from "@/lib/utils/instance-params";
 import { keyBy } from "@/lib/utils/key-by";
 import { type InstanceParams } from "@/lib/validations/params";
 
 import { AllocationInstance } from "../space/instance";
 
 import { User } from ".";
-import { type DataAccessScope } from "@/db/scope";
 
 export class Marker extends User {
   instance: AllocationInstance;

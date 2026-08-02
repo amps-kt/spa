@@ -30,11 +30,13 @@ export function useColumnFilterSearchParams<T, V>(
     },
   );
 
-  const computeColFilters = useCallback((filters: Record<string, string>) => {
-    return Object.entries(filters)
-      .filter(([_, v]) => Boolean(v))
-      .map(([id, value]) => ({ id, value })) as ColumnFiltersState;
-  }, []);
+  const computeColFilters = useCallback(
+    (filters: Record<string, string>) =>
+      Object.entries(filters)
+        .filter(([_, v]) => Boolean(v))
+        .map(([id, value]) => ({ id, value })),
+    [],
+  );
 
   const colFilters = computeColFilters(filters);
 
@@ -62,5 +64,5 @@ export function useColumnFilterSearchParams<T, V>(
     [setFilters, cols, computeColFilters],
   );
 
-  return useProxyState(colFilters, setColFilters, []);
+  return useProxyState<ColumnFiltersState>(colFilters, setColFilters, []);
 }
