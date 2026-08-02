@@ -18,7 +18,9 @@ export function DownloadZipFileButton({
 
   function handleDownload() {
     if (downloadLinkRef.current) {
-      const blob = new Blob([data.zipData], { type: data.contentType });
+      const blob = new Blob([new Uint8Array(data.zipData)], {
+        type: data.contentType,
+      });
       const url = window.URL.createObjectURL(blob);
 
       downloadLinkRef.current.href = url;

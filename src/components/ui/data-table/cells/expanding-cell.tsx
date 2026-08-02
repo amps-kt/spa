@@ -4,7 +4,7 @@ import { ChevronDownIcon, ChevronLeftIcon } from "lucide-react";
 import { Button } from "../../button";
 import { WithTooltip } from "../../tooltip-wrapper";
 
-export function ExpandingCell({ row }: { row: Row<unknown> }) {
+export function ExpandingCell<TRow>({ row }: { row: Row<TRow> }) {
   return (
     <WithTooltip tip={row.getIsExpanded() ? "Fold breakdown" : "See breakdown"}>
       <Button variant="ghost" onClick={() => row.toggleExpanded()}>
