@@ -4,12 +4,21 @@ import { render } from "@react-email/components";
 import { Queue } from "bullmq";
 
 import { EMAIL_QUEUE_NAME, type EmailJob } from "./config";
-import { makeConnection } from "./redis-connection";
+import { getConnection } from "./redis-connection";
+
+let emailQueue: Queue<EmailJob> | undefined;
+
+export function getQueue() {
+  if (!emailQueue) {
+    emailQueue = new Queue<EmailJob>(EMAIL_QUEUE_NAME, {
+      connection: getConnection(),
+    });
+  }
+
+  return emailQueue
+}
 
 export function makeQueue() {
-  const emailQueue = new Queue<EmailJob>(EMAIL_QUEUE_NAME, {
-    connection: makeConnection(),
-  });
 
   async function queueEmail({
     message,
@@ -22,6 +31,8 @@ export function makeQueue() {
     to: string[];
     cc?: string[];
   }) {
+    const emailQueue = getQueue()
+
     await emailQueue.add("send-mail", {
       to,
       cc,
