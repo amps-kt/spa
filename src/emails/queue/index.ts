@@ -9,11 +9,9 @@ import { getConnection } from "./redis-connection";
 let emailQueue: Queue<EmailJob> | undefined;
 
 export function getQueue() {
-  if (!emailQueue) {
-    emailQueue = new Queue<EmailJob>(EMAIL_QUEUE_NAME, {
-      connection: getConnection(),
-    });
-  }
+  emailQueue ??= new Queue<EmailJob>(EMAIL_QUEUE_NAME, {
+    connection: getConnection(),
+  });
 
   return emailQueue
 }
