@@ -1,5 +1,4 @@
 import {
-  AwardIcon,
   FolderCheckIcon,
   FolderXIcon,
   MailIcon,
@@ -15,12 +14,10 @@ import { CopyEmailLink } from "@/components/copy-email-link";
 import { Heading, SectionHeading } from "@/components/heading";
 import { MarkdownRenderer } from "@/components/markdown-editor";
 import { PanelWrapper } from "@/components/panel-wrapper";
-import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 import { unauthorised } from "@/lib/routing";
 import { api } from "@/lib/trpc/server";
-import { toPositional } from "@/lib/utils/general/to-positional";
 import { type InstanceParams } from "@/lib/validations/params";
 
 export async function generateMetadata({ params }: { params: InstanceParams }) {
@@ -50,19 +47,6 @@ export default async function Page({ params }: { params: InstanceParams }) {
         </div>
       ) : (
         <div className="flex flex-col gap-8">
-          <Card className="mb-8">
-            <CardContent className="pt-6">
-              <SectionHeading icon={AwardIcon}>
-                <span>
-                  You got your{" "}
-                  <span className="font-semibold text-indigo-600">
-                    {toPositional(allocation.rank)}
-                  </span>{" "}
-                  choice
-                </span>
-              </SectionHeading>
-            </CardContent>
-          </Card>
           <SectionHeading icon={FolderCheckIcon}>
             {allocation.project.title}
           </SectionHeading>
