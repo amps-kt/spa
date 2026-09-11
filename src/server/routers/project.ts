@@ -267,11 +267,11 @@ export const projectRouter = createTRPCRouter({
         const checkedProjects = isAdmin
           ? projectIds.map((e) => ({ pid: e, res: true }))
           : await Promise.all(
-              projectIds.map(async (e) => ({
-                pid: e,
-                res: await user.isProjectSupervisor(e),
-              })),
-            );
+            projectIds.map(async (e) => ({
+              pid: e,
+              res: await user.isProjectSupervisor(e),
+            })),
+          );
 
         await instance.deleteProjects(
           checkedProjects.filter(({ res }) => res).map(({ pid }) => pid),
